@@ -1133,64 +1133,657 @@ function finishRoute(){
       playerId:drawingRoute.id||null
     });
     drawingRoute=null;routePts=[];drawAll();buildOpts();
+// ═══════════════════════════════════════════════
+// PLAY CANVAS
+// ═══════════════════════════════════════════════
+const cv=document.getElementById('playCanvas');
+const ctx=cv.getContext('2d');
+
+function resizeCv(){
+  const w=document.getElementById('canvasWrap');
+  cv.width=w.clientWidth;
+  cv.height=w.clientHeight;
+  drawAll();
+}
+
+function toS(fx,fy){
+  return {
+    x:fx*vs+vx+cv.width/2-FW/2*vs,
+    y:fy*vs+vy+cv.height/2-FH/2*vs
+  };
+}
+
+function toF(sx,sy){
+  return {
+    x:(sx-vx-cv.width/2+FW/2*vs)/vs,
+    y:(sy-vy-cv.height/2+FH/2*vs)/vs
+  };
+}
+
+function drawFieldOn(c,canv,sc,toScreen){
+  const tl=toScreen(0,0),br=toScreen(FW,FH);
+  const fw=br.x-tl.x,fh=br.y-tl.y;
+
+  c.fillStyle='#1a3d16';
+  c.fillRect(tl.x,tl.y,fw,fh);
+
+  for(let i=0;i<10;i++){
+    if(i%2===0){
+      c.fillStyle='#1f4819';
+      c.fillRect(tl.x+i*fw/10,tl.y,fw/10,fh);
+    }
+  }
+
+  c.strokeStyle='rgba(255,255,255,0.07)';
+  c.lineWidth=1;
+
+  for(let i=0;i<=20;i++){
+    const x=tl.x+i*fw/20;
+    c.beginPath();
+    c.moveTo(x,tl.y);
+    c.lineTo(x,br.y);
+    c.stroke();
+  }
+
+  for(let j=0;j<=12;j++){
+    const y=tl.y+j*fh/12;
+    c.beginPath();
+    c.moveTo(tl.x,y);
+    c.lineTo(br.x,y);
+    c.stroke();
+  }
+
+  c.strokeStyle='rgba(255,255,255,0.2)';
+  c.lineWidth=1.5;
+
+  for(let i=0;i<=10;i++){
+    const x=tl.x+i*fw/10;
+    c.beginPath();
+    c.moveTo(x,tl.y);
+    c.lineTo(x,br.y);
+    c.stroke();
+  }
+
+  const midY=toScreen(0,FH/2).y;
+  c.strokeStyle='rgba(240,180,41,.6)';
+  c.lineWidth=2;
+  c.setLineDash([10,7]);
+  c.beginPath();
+  c.moveTo(tl.x,midY);
+  c.lineTo(br.x,midY);
+  c.stroke();
+  c.setLineDash([]);
+
+  c.fillStyle='rgba(240,180,41,.55)';
+  c.font=`${Math.max(9,11*sc)}px DM Sans`;
+  c.fillText('LOS',tl.x+6,midY-5);
+
+  c.strokeStyle='rgba(255,255,255,.4)';
+  c.lineWidth=2;
+  c.strokeRect(tl.x,tl.y,fw,fh);
+}
+
+function drawPlayersOn(c,canv,sc,players,selected,toScreen){
+  players.forEach(p=>{
+    const s=toScreen(p.x,p.y);
+    const r=Math.max(14,18*Math.min(sc,1.4));
+
+    c.save();
+
+    if(p===selected){
+      c.shadowColor='#fff';
+      c.shadowBlur=16;
+    }
+
+    c.beginPath();
+    c.arc(s.x,s.y,r,0,Math.PI*2);
+    c.fillStyle=p.color||'#f0b429';
+    c.fill();
+
+    c.strokeStyle=p===selected?'#fff':'rgba(0,0,0,.5)';
+    c.lineWidth=p===selected?3:1.5;
+    c.stroke();
+
+    c.fillStyle='#000';
+    c.font=`bold ${Math.max(9,11*Math.min(sc,1.4))}px DM Sans`;
+    c.textAlign='center';
+    c.textBaseline='middle';
+    c.fillText(p.pos||'?',s.x,s.y);
+
+    c.restore();
+  });
+}
+
+function drawAll(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#070809';
+  ctx.fillRect(0,0,cv.width,cv.height);
+
+  drawFieldOn(ctx,cv,vs,toS);
+
+  eRoutes.forEach(r=>{
+    (r.segments||[]).forEach((seg,i)=>{
+      drawSegment(seg,false);
+    });
+
+    const last=(r.segments||[])[r.segments.length-1];
+    if(last) drawSegmentEnd(last);
+  });
+
+  drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
+}
+
+function drawSegment(seg){
+  const a=toS(seg.from.x,seg.from.y);
+  const b=toS(seg.to.x,seg.to.y);
+  const color=seg.color||'#41c97a';
+
+  ctx.save();
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2.8*Math.min(vs,1.5);
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+
+  if(seg.type==='motion'){
+    drawZigZag(a,b,color);
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawSegmentEnd(seg){
+  const a=toS(seg.from.x,seg.from.y);
+  const b=toS(seg.to.x,seg.to.y);
+  const angle=Math.atan2(b.y-a.y,b.x-a.x);
+  const color=seg.color||'#41c97a';
+
+  if(seg.type==='block'){
+    drawTEnd(b.x,b.y,angle,color);
+  } else {
+    drawArrowEnd(b.x,b.y,angle,color);
   }
 }
 
-function nearR(sx,sy){let best=null,bd=26;eRoutes.forEach(r=>{for(let i=0;i<r.points.length-1;i++){const a=toS(r.points[i].x,r.points[i].y),b=toS(r.points[i+1].x,r.points[i+1].y);const d=dSeg(sx,sy,a.x,a.y,b.x,b.y);if(d<bd){bd=d;best=r;}}});return best;}
-function dSeg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay;if(!dx&&!dy)return Math.hypot(px-ax,py-ay);const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
+function drawArrowEnd(x,y,angle,color){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle);
+  ctx.fillStyle=color;
+
+  const size=12*Math.min(vs,1.4);
+
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(-size,-size*.55);
+  ctx.lineTo(-size,size*.55);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawTEnd(x,y,angle,color){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle+Math.PI/2);
+  ctx.strokeStyle=color;
+  ctx.lineWidth=4*Math.min(vs,1.4);
+  ctx.lineCap='round';
+
+  const size=13*Math.min(vs,1.4);
+
+  ctx.beginPath();
+  ctx.moveTo(-size,0);
+  ctx.lineTo(size,0);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawZigZag(a,b,color){
+  const dx=b.x-a.x;
+  const dy=b.y-a.y;
+  const len=Math.hypot(dx,dy);
+
+  if(len<4){
+    ctx.beginPath();
+    ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+    ctx.stroke();
+    return;
+  }
+
+  const steps=Math.max(4,Math.floor(len/14));
+  const amp=6*Math.min(vs,1.35);
+
+  const ux=dx/len;
+  const uy=dy/len;
+  const px=-uy;
+  const py=ux;
+
+  ctx.beginPath();
+  ctx.moveTo(a.x,a.y);
+
+  for(let i=1;i<steps;i++){
+    const t=i/steps;
+    const off=i%2===0?amp:-amp;
+    ctx.lineTo(
+      a.x+dx*t+px*off,
+      a.y+dy*t+py*off
+    );
+  }
+
+  ctx.lineTo(b.x,b.y);
+  ctx.stroke();
+}
+
+function playerAt(sx,sy){
+  return ePlayers.find(p=>{
+    const s=toS(p.x,p.y);
+    const r=Math.max(14,18*Math.min(vs,1.4));
+    return Math.hypot(sx-s.x,sy-s.y)<r+10;
+  });
+}
+
+function routeForPlayer(player){
+  let r=eRoutes.find(x=>x.playerId===player.id);
+  if(!r){
+    r={
+      playerId:player.id,
+      color:rColor,
+      segments:[]
+    };
+    eRoutes.push(r);
+  }
+  return r;
+}
+
+function getRouteStart(player,route){
+  if(route.segments.length){
+    return {...route.segments[route.segments.length-1].to};
+  }
+  return {x:player.x,y:player.y};
+}
+
+function addSegmentToActiveRoute(sx,sy){
+  if(!activePlayer){
+    toast('Tap a player first','err');
+    return;
+  }
+
+  if(!activeRoute){
+    activeRoute=routeForPlayer(activePlayer);
+  }
+
+  pushH();
+
+  const target=toF(sx,sy);
+  const start=getRouteStart(activePlayer,activeRoute);
+
+  activeRoute.segments.push({
+    from:start,
+    to:target,
+    type:tool,
+    color:rColor
+  });
+
+  drawAll();
+  buildOpts();
+}
+
+function pushH(){
+  eHistory.push(JSON.parse(JSON.stringify(eRoutes)));
+  if(eHistory.length>40)eHistory.shift();
+}
+
+window.undoA=function(){
+  if(activeRoute&&activeRoute.segments.length){
+    activeRoute.segments.pop();
+
+    if(!activeRoute.segments.length){
+      eRoutes=eRoutes.filter(r=>r!==activeRoute);
+      activeRoute=null;
+    }
+
+    drawAll();
+    buildOpts();
+    toast('Last line removed','ok');
+    return;
+  }
+
+  if(eRoutes.length){
+    const lastRoute=eRoutes[eRoutes.length-1];
+    if(lastRoute.segments?.length){
+      lastRoute.segments.pop();
+
+      if(!lastRoute.segments.length){
+        eRoutes.pop();
+      }
+
+      drawAll();
+      buildOpts();
+      toast('Last line removed','ok');
+    }
+  }
+};
+
+function clearCurrentRoute(){
+  if(!activeRoute)return;
+  if(!confirm('Clear this player route?'))return;
+
+  eRoutes=eRoutes.filter(r=>r!==activeRoute);
+  activeRoute=null;
+  drawAll();
+  buildOpts();
+}
+
+function clearAllRoutes(){
+  if(!confirm('Clear all play art?'))return;
+
+  eRoutes=[];
+  activeRoute=null;
+  drawAll();
+  buildOpts();
+}
+
+window.clearCv=function(){
+  clearAllRoutes();
+};
+
+// ─ Touch/Mouse ─
+cv.addEventListener('touchstart',e=>{
+  e.preventDefault();
+
+  if(e.touches.length===2){
+    pinching=true;
+    pd0=pinchD(e,cv);
+    pvx0=vx;
+    pvy0=vy;
+    return;
+  }
+
+  const p=cvPos(e.touches[0],cv);
+  tStart=Date.now();
+  handleDown(p.x,p.y);
+},{passive:false});
+
+cv.addEventListener('touchmove',e=>{
+  e.preventDefault();
+
+  if(e.touches.length===2&&pinching){
+    const d=pinchD(e,cv);
+    const f=d/pd0;
+    const mc=pinchMid(e,cv);
+    const ns=Math.min(4,Math.max(.25,vs*f));
+
+    vx=mc.x-(mc.x-pvx0)*(ns/vs);
+    vy=mc.y-(mc.y-pvy0)*(ns/vs);
+
+    vs=ns;
+    pd0=d;
+    pvx0=vx;
+    pvy0=vy;
+
+    drawAll();
+    return;
+  }
+
+  if(e.touches.length===1){
+    const p=cvPos(e.touches[0],cv);
+    handleMove(p.x,p.y);
+  }
+},{passive:false});
+
+cv.addEventListener('touchend',e=>{
+  e.preventDefault();
+  pinching=false;
+  isPanning=false;
+},{passive:false});
+
+cv.addEventListener('mousedown',e=>handleDown(e.offsetX,e.offsetY));
+
+cv.addEventListener('mousemove',e=>{
+  if(isPanning)handleMove(e.offsetX,e.offsetY);
+});
+
+cv.addEventListener('mouseup',()=>{
+  isPanning=false;
+});
+
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+
+  const zf=e.deltaY>0?.92:1.09;
+  const ns=Math.min(4,Math.max(.25,vs*zf));
+
+  vx=e.offsetX-(e.offsetX-vx)*(ns/vs);
+  vy=e.offsetY-(e.offsetY-vy)*(ns/vs);
+  vs=ns;
+
+  drawAll();
+},{passive:false});
+
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+
+function handleDown(sx,sy){
+  if(!canEdit&&currentPlay)return;
+
+  if(tool==='select'){
+    const hit=playerAt(sx,sy);
+
+    if(hit){
+      activePlayer=hit;
+      selP=hit;
+      activeRoute=routeForPlayer(hit);
+    } else {
+      selP=null;
+      activePlayer=null;
+      activeRoute=null;
+      isPanning=true;
+      panSX=sx-vx;
+      panSY=sy-vy;
+    }
+
+    drawAll();
+    buildOpts();
+    return;
+  }
+
+  if(tool==='route'||tool==='motion'||tool==='block'){
+    addSegmentToActiveRoute(sx,sy);
+    return;
+  }
+
+  if(tool==='erase'){
+    const hit=playerAt(sx,sy);
+
+    if(hit){
+      const r=eRoutes.find(x=>x.playerId===hit.id);
+      if(r){
+        eRoutes=eRoutes.filter(x=>x!==r);
+        if(activeRoute===r){
+          activeRoute=null;
+          activePlayer=null;
+          selP=null;
+        }
+        drawAll();
+        buildOpts();
+      }
+      return;
+    }
+
+    const near=nearSegment(sx,sy);
+    if(near){
+      near.route.segments.splice(near.index,1);
+      if(!near.route.segments.length){
+        eRoutes=eRoutes.filter(r=>r!==near.route);
+      }
+      drawAll();
+      buildOpts();
+    }
+  }
+}
+
+function handleMove(sx,sy){
+  if(isPanning&&tool==='select'){
+    vx=sx-panSX;
+    vy=sy-panSY;
+    drawAll();
+  }
+}
+
+function nearSegment(sx,sy){
+  let best=null;
+  let bestD=24;
+
+  eRoutes.forEach(route=>{
+    (route.segments||[]).forEach((seg,index)=>{
+      const a=toS(seg.from.x,seg.from.y);
+      const b=toS(seg.to.x,seg.to.y);
+      const d=dSeg(sx,sy,a.x,a.y,b.x,b.y);
+
+      if(d<bestD){
+        bestD=d;
+        best={route,index};
+      }
+    });
+  });
+
+  return best;
+}
+
+function dSeg(px,py,ax,ay,bx,by){
+  const dx=bx-ax;
+  const dy=by-ay;
+
+  if(!dx&&!dy)return Math.hypot(px-ax,py-ay);
+
+  const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));
+
+  return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
+}
 
 // ─ Tools ─
-window.setTool=function(t){tool=t;drawingRoute=null;routePts=[];syncToolUI();buildOpts();};
-function syncToolUI(){document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('on'));const el=document.getElementById('tool-'+tool);if(el)el.classList.add('on');}
+window.setTool=function(t){
+  tool=t;
+  syncToolUI();
+  buildOpts();
+};
+
+function syncToolUI(){
+  document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('on'));
+  const el=document.getElementById('tool-'+tool);
+  if(el)el.classList.add('on');
+}
 
 function buildOpts(){
   const row=document.getElementById('optionsRow');
   let h='';
-  if(tool==='player'){
-    h+=`<span class="olbl">COLOR</span>`;
-    PCOLORS.forEach(c=>h+=`<div class="cdot${pColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setPC('${c}',this)"></div>`);
-    h+=`<div class="osep"></div>`;
-    POSITIONS.forEach(p=>h+=`<button class="chip${pPos===p?' on':''}" onclick="setPP('${p}',this)">${p}</button>`);
-  } else if(tool==='route'||tool==='motion'||tool==='block'){
-    const lbl=tool==='block'?'BLOCK COLOR':tool==='motion'?'MOTION COLOR':'ROUTE COLOR';
-    h+=`<span class="olbl">${lbl}</span>`;
-    RCOLORS.forEach(c=>h+=`<div class="cdot${rColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setRC('${c}',this)"></div>`);
-    if(drawingRoute) h+=`<div class="osep"></div><button class="chip on" onclick="finishRoute()">✓ Done</button>`;
-    h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ Undo</button>`;
-  } else if(tool==='select'){
+
+  if(tool==='select'){
     if(selP){
-      h+=`<span class="olbl">PLAYER</span>`;
-      PCOLORS.forEach(c=>h+=`<div class="cdot${selP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setSPC('${c}',this)"></div>`);
+      const lineCount=activeRoute?.segments?.length||0;
+
+      h+=`<span class="olbl">EDITING ${selP.pos||'PLAYER'} · ${lineCount} LINE${lineCount===1?'':'S'}</span>`;
       h+=`<div class="osep"></div>`;
-      POSITIONS.forEach(p=>h+=`<button class="chip${selP.pos===p?' on':''}" onclick="setSPP('${p}',this)">${p}</button>`);
+      h+=`<button class="chip" onclick="setTool('route')">ROUTE</button>`;
+      h+=`<button class="chip" onclick="setTool('motion')">MOTION</button>`;
+      h+=`<button class="chip" onclick="setTool('block')">BLOCK</button>`;
+      h+=`<div class="osep"></div>`;
+      h+=`<button class="chip" onclick="undoA()">↩ Undo Line</button>`;
+      h+=`<button class="chip red" onclick="clearCurrentRoute()">✕ Clear Player</button>`;
     } else {
-      h+=`<span class="olbl" style="color:var(--muted)">Tap player · drag · double-tap to finish route</span>`;
-      h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ Undo</button>`;
-      if(canEdit) h+=`<button class="chip red" onclick="clearCv()">✕ Clear</button>`;
+      h+=`<span class="olbl" style="color:var(--muted)">Tap player to draw · drag empty field to pan</span>`;
+      h+=`<div class="osep"></div>`;
+      h+=`<button class="chip" onclick="undoA()">↩ Undo Line</button>`;
+      if(canEdit)h+=`<button class="chip red" onclick="clearCv()">✕ Clear Art</button>`;
     }
-  } else if(tool==='erase'){
-    h+=`<span class="olbl" style="color:var(--muted)">Tap player or route to erase</span>`;
-    h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ Undo</button>`;
   }
+
+  else if(tool==='route'||tool==='motion'||tool==='block'){
+    const label=tool==='route'
+      ?'ROUTE → ARROW'
+      :tool==='motion'
+        ?'MOTION ZIG-ZAG → ARROW'
+        :'BLOCK → T';
+
+    h+=`<span class="olbl">${label}</span>`;
+
+    RCOLORS.forEach(c=>{
+      h+=`<div class="cdot${rColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setRC('${c}',this)"></div>`;
+    });
+
+    h+=`<div class="osep"></div>`;
+    h+=`<button class="chip${tool==='route'?' on':''}" onclick="setTool('route')">ROUTE</button>`;
+    h+=`<button class="chip${tool==='motion'?' on':''}" onclick="setTool('motion')">MOTION</button>`;
+    h+=`<button class="chip${tool==='block'?' on':''}" onclick="setTool('block')">BLOCK</button>`;
+    h+=`<div class="osep"></div>`;
+    h+=`<button class="chip" onclick="undoA()">↩ Undo Line</button>`;
+    h+=`<button class="chip" onclick="setTool('select')">✓ Done</button>`;
+  }
+
+  else if(tool==='player'){
+    h+=`<span class="olbl" style="color:var(--muted)">Players come from formation template</span>`;
+  }
+
+  else if(tool==='erase'){
+    h+=`<span class="olbl" style="color:var(--muted)">Tap route/player art to erase</span>`;
+    h+=`<div class="osep"></div>`;
+    h+=`<button class="chip" onclick="undoA()">↩ Undo Line</button>`;
+  }
+
   row.innerHTML=h;
 }
 
-window.setPC=(c,el)=>{pColor=c;document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
-window.setRC=(c,el)=>{rColor=c;document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
-window.setPP=(p,el)=>{pPos=p;document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
-window.setSPC=(c,el)=>{if(selP){selP.color=c;drawAll();}document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
-window.setSPP=(p,el)=>{if(selP){selP.pos=p;drawAll();}document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
-window.finishRoute=finishRoute;
+window.setPC=(c,el)=>{
+  pColor=c;
+  document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));
+  el.classList.add('on');
+};
 
-function pushH(){eHistory.push({p:JSON.parse(JSON.stringify(ePlayers)),r:JSON.parse(JSON.stringify(eRoutes))});if(eHistory.length>30)eHistory.shift();}
-window.undoA=function(){if(!eHistory.length)return;const h=eHistory.pop();ePlayers=h.p;eRoutes=h.r;selP=null;drawAll();toast('Undone','ok');};
-window.clearCv=function(){if(!confirm('Clear the field?'))return;pushH();ePlayers=[];eRoutes=[];selP=null;drawAll();};
+window.setRC=(c,el)=>{
+  rColor=c;
+  document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));
+  el.classList.add('on');
+};
+
+window.setPP=(p,el)=>{
+  pPos=p;
+  document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+};
+
+window.setSPC=(c,el)=>{
+  if(selP){
+    selP.color=c;
+    drawAll();
+  }
+  document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));
+  el.classList.add('on');
+};
+
+window.setSPP=(p,el)=>{
+  if(selP){
+    selP.pos=p;
+    drawAll();
+  }
+  document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+};
+
+window.clearCurrentRoute=clearCurrentRoute;
 
 window.printPlay=function(){
   const name=document.getElementById('playNameInput').value||'Play';
   const url=cv.toDataURL('image/png');
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>${name}</title><style>body{margin:20px;font-family:sans-serif}img{max-width:100%;border-radius:8px}h2{margin-bottom:4px}p{color:#666;margin-bottom:16px;font-size:13px}</style></head><body><h2>${name}</h2><p>${currentFormation?.name||''} · ${currentTeam?.name||''}</p><img src="${url}"><script>window.print();<\/script></body></html>`);
+
+  w.document.write(`<!DOCTYPE html><html><head><title>${name}</title><style>body{margin:20px;font-family:sans-serif}img{max-width:100%;border-radius:8px}h2{margin-bottom:4px}p{color:#666;margin-bottom:16px;font-size:13px}</style></head><body><h2>${esc(name)}</h2><p>${esc(currentFormation?.name||'')} · ${esc(currentTeam?.name||'')}</p><img src="${url}"><script>window.print();<\/script></body></html>`);
   w.document.close();
 };
 
