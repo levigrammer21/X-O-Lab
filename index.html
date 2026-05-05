@@ -311,14 +311,21 @@ async function sb(path, opts={}) {
 
 async function initDB() {
   try {
-    await sb('teams?limit=1');
+    const testRes = await fetch(SB_URL+'/rest/v1/teams?limit=1', {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY}
+    });
+    if (!testRes.ok) {
+      const body = await testRes.text();
+      setStatus('ERR '+testRes.status+': '+body.slice(0,60), 'var(--red)');
+      loadLocal(); return;
+    }
     dbOk=true;
     setStatus('● Cloud connected','var(--green)');
     const [t,f,p]=await Promise.all([sb('teams?order=created_at'),sb('formations?order=created_at'),sb('plays?order=created_at')]);
     teams=t||[]; formations=f||[]; plays=p||[];
     saveLocal();
   } catch(e) {
-    setStatus('● Saved locally','var(--muted)');
+    setStatus('NET ERR: '+e.message, 'var(--red)');
     loadLocal();
   }
 }
