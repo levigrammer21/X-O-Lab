@@ -1163,17 +1163,15 @@ async function connectSupabase() {
 }
 
 function sbFetch(path, options = {}) {
-  const headers = {
-    'apikey': sbKey,
-    'Authorization': 'Bearer ' + sbKey,
-    'Content-Type': 'application/json',
-  };
-  if (options.method === 'POST') {
-    headers['Prefer'] = 'return=representation,resolution=merge-duplicates';
-  }
   return fetch(`${sbUrl}/rest/v1/${path}`, {
     ...options,
-    headers
+    headers: {
+      'apikey': sbKey,
+      'Authorization': 'Bearer ' + sbKey,
+      'Content-Type': 'application/json',
+      'Prefer': options.method === 'POST' ? 'return=representation' : undefined,
+      ...(options.headers || {})
+    }
   });
 }
 
