@@ -1015,34 +1015,7 @@ cv.addEventListener('wheel',e=>{e.preventDefault();const zf=e.deltaY>0?.92:1.09,
 function handleDown(sx,sy){
   if(!canEdit&&currentPlay) return; // view only - no editing
   const fp=toF(sx,sy);
-  if(tool==='select'){
-    const hit=playerAt(sx,sy);
-    if(hit){selP=hit;isDragging=true;dragP=hit;const s=toS(hit.x,hit.y);dragOX=sx-s.x;dragOY=sy-s.y;}
-    else{selP=null;isPanning=true;panSX=sx-vx;panSY=sy-vy;}
-    buildOpts();drawAll();
-  } else if(tool==='player'){
-    pushH();ePlayers.push({x:fp.x,y:fp.y,color:pColor,pos:pPos,id:uid()});drawAll();
-  } else if(tool==='route'||tool==='motion'||tool==='block'){
-    const hit=playerAt(sx,sy);
-    if(hit&&!drawingRoute){drawingRoute=hit;routePts=[{x:hit.x,y:hit.y}];}
-    else if(drawingRoute){routePts.push(fp);drawAll();}
-  } else if(tool==='erase'){
-    const hit=playerAt(sx,sy);
-    if(hit){pushH();ePlayers=ePlayers.filter(p=>p!==hit);eRoutes=eRoutes.filter(r=>r.playerId!==hit.id);drawAll();}
-    else{const nr=nearR(sx,sy);if(nr){pushH();eRoutes=eRoutes.filter(r=>r!==nr);drawAll();}}
-  }
-}
-
-function handleMove(sx,sy){
-  if(isPanning&&tool==='select'&&!isDragging){vx=sx-panSX;vy=sy-panSY;drawAll();return;}
-  if(isDragging&&dragP){
-    const fp=toF(sx-dragOX,sy-dragOY);
-    const dx=fp.x-dragP.x,dy=fp.y-dragP.y;
-    eRoutes.forEach(r=>{if(r.playerId===dragP.id&&r.points.length>0){r.points[0].x+=dx;r.points[0].y+=dy;}});
-    dragP.x=fp.x;dragP.y=fp.y;drawAll();
-  }
-  if((tool==='route'||tool==='motion'||tool==='block')&&drawingRoute&&routePts.length>=1){
-
+  
 // ═══════════════════════════════════════════════
 // PLAY CANVAS
 // ═══════════════════════════════════════════════
