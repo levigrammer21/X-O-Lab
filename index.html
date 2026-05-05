@@ -321,17 +321,27 @@ let fVx=0,fVy=0,fVs=1, fDragP=null,fDragOX=0,fDragOY=0,fDragging=false,fPanning=
 let fPinching=false,fPd0=0,fPvx0=0,fPvy0=0;
 let fPColor='#f0b429', fPPos='QB';
 
-// Play editor state
+// Play editor state — NEW SYSTEM
 let ePlayers=[], eRoutes=[];
 let selP=null, tool='select';
+
 let pColor='#f0b429', rColor='#41c97a', pPos='WR';
-let drawingRoute=null, routePts=[];
-let dragP=null,dragOX=0,dragOY=0,isDragging=false,isPanning=false;
+
+// NEW CORE LOGIC
+let activePlayer=null;
+let activeRoute=null;
+
+// No dragging players anymore
+let isPanning=false;
 let panSX=0,panSY=0;
+
+// History now optional (we mostly undo per-route)
 let eHistory=[];
+
 let vx=0,vy=0,vs=1;
 let pinching=false,pd0=0,pvx0=0,pvy0=0;
-let lastTap=0,tStart=0;
+let tStart=0;
+
 
 const FW=1000, FH=600;
 const POSITIONS=['QB','RB','FB','WR','TE','OL','C','DE','DT','LB','CB','S','K','P'];
