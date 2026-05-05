@@ -225,15 +225,14 @@ canvas{display:block;touch-action:none}
   </div>
   <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas></div>
   <div class="bot-bar">
-    <!-- Row 1: segment type picker (only active when a player is selected) -->
-    <div class="tool-row" id="segTypeRow">
-      <button class="tool-btn" id="seg-none" disabled style="opacity:.35;flex:0 0 44px"><span class="ti">↖</span>TAP<br>PLAYER</button>
-      <button class="tool-btn" id="seg-route" onclick="setSegType('route')"><span class="ti">↗</span>ROUTE</button>
-      <button class="tool-btn" id="seg-motion" onclick="setSegType('motion')"><span class="ti">〰</span>MOTION</button>
-      <button class="tool-btn" id="seg-block" onclick="setSegType('block')"><span class="ti">▬</span>BLOCK</button>
+    <div class="tool-row">
+      <button class="tool-btn on" id="tool-select" onclick="setTool('select')"><span class="ti">↖</span>SELECT</button>
+      <button class="tool-btn" id="tool-player" onclick="setTool('player')"><span class="ti">●</span>PLAYER</button>
+      <button class="tool-btn" id="tool-route" onclick="setTool('route')"><span class="ti">↗</span>ROUTE</button>
+      <button class="tool-btn" id="tool-motion" onclick="setTool('motion')"><span class="ti">⟶</span>MOTION</button>
+      <button class="tool-btn" id="tool-block" onclick="setTool('block')"><span class="ti">▬</span>BLOCK</button>
       <button class="tool-btn" id="tool-erase" onclick="setTool('erase')"><span class="ti">✕</span>ERASE</button>
     </div>
-    <!-- Row 2: context options -->
     <div class="opts" id="optionsRow"></div>
   </div>
 </div>
@@ -324,14 +323,11 @@ let fPColor='#f0b429', fPPos='QB';
 
 // Play editor state
 let ePlayers=[], eRoutes=[];
-let selP=null;          // selected player
-let tool='erase';       // erase | select (internal only)
-let segType='route';    // route | motion | block  — current segment type
+let selP=null, tool='select';
 let pColor='#f0b429', rColor='#41c97a', pPos='WR';
-// Active route being built: { playerId, segments:[{type,color,pts:[]}] }
-let activeRoute=null;
-let isPanning=false, panSX=0, panSY=0;
-// undo stack: each entry is a full eRoutes snapshot BEFORE the action
+let drawingRoute=null, routePts=[];
+let dragP=null,dragOX=0,dragOY=0,isDragging=false,isPanning=false;
+let panSX=0,panSY=0;
 let eHistory=[];
 let vx=0,vy=0,vs=1;
 let pinching=false,pd0=0,pvx0=0,pvy0=0;
@@ -345,20 +341,11 @@ const RCOLORS=['#41c97a','#f0b429','#4182f0','#f04141','#ffffff','#f97316'];
 // ═══════════════════════════════════════════════
 // SCREEN NAV
 // ═══════════════════════════════════════════════
-// ── NAV STACK ─────────────────────────────────────
-// Each entry: { screenId }
-// Browser history entries mirror the stack so the OS back button works
-const navStack = [];
-
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>{
     s.classList.remove('hidden','back');
     if(s.id!==id) s.classList.add('hidden');
   });
-  navStack.length = 0;
-  navStack.push(id);
-  // Replace history state (no back entry at root)
-  history.replaceState({screen:id,depth:0},'',location.href);
 }
 window.showScreen = showScreen;
 
@@ -366,84 +353,14 @@ function navTo(id){
   const cur=document.querySelector('.screen:not(.hidden):not(.back)');
   if(cur) cur.classList.add('back');
   document.getElementById(id).classList.remove('hidden','back');
-  navStack.push(id);
-  history.pushState({screen:id,depth:navStack.length},'',location.href);
 }
 window.navTo = navTo;
 
-// goBack now just pops — used internally or by in-app back buttons
-function goBack(toId, fromId){
+function goBack(toId,fromId){
   document.getElementById(fromId).classList.add('hidden');
   document.getElementById(toId).classList.remove('hidden','back');
-  if(navStack.length>1) navStack.pop();
-  history.replaceState({screen:toId,depth:navStack.length},'',location.href);
 }
 window.goBack = goBack;
-
-// OS/browser back button → always intercept, never exit
-// We keep a permanent pushState entry ahead of the real history
-// so popstate always fires and we handle it ourselves.
-function pushGuard(){
-  history.pushState({guard:true},'',location.href);
-}
-
-window.addEventListener('popstate', e => {
-  // Always re-push the guard so next back press also fires popstate
-  pushGuard();
-
-  if(navStack.length <= 1){
-    // Already at root — do nothing (stay in app)
-    return;
-  }
-  const from = navStack.pop();
-  const to   = navStack[navStack.length - 1];
-  document.getElementById(from).classList.add('hidden');
-  document.getElementById(to).classList.remove('hidden','back');
-});
-
-// ── SWIPE-BACK GESTURE ─────────────────────────────
-(()=>{
-  let swX=0,swY=0,swiping=false,swEl=null;
-  const EDGE=40, THRESH=80, RATIO=1.5;
-
-  document.addEventListener('touchstart', e=>{
-    if(e.touches.length!==1)return;
-    const t=e.touches[0];
-    swX=t.clientX; swY=t.clientY; swiping=false; swEl=null;
-    if(t.clientX < EDGE){
-      // Started from left edge — potential swipe back
-      swEl=document.querySelector('.screen:not(.hidden):not(.back)');
-      swiping=true;
-    }
-  },{passive:true});
-
-  document.addEventListener('touchmove', e=>{
-    if(!swiping||!swEl||e.touches.length!==1)return;
-    const dx=e.touches[0].clientX-swX;
-    const dy=Math.abs(e.touches[0].clientY-swY);
-    if(dx>0 && dx/Math.max(dy,1)>RATIO){
-      // Drag the current screen with finger for feel
-      swEl.style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;
-      swEl.style.transition='none';
-    }
-  },{passive:true});
-
-  document.addEventListener('touchend', e=>{
-    if(!swiping||!swEl)return;
-    const dx=e.changedTouches[0].clientX-swX;
-    swEl.style.transform='';
-    swEl.style.transition='';
-    if(dx > THRESH && navStack.length > 1){
-      // Commit swipe back
-      const from=navStack.pop();
-      const to=navStack[navStack.length-1];
-      document.getElementById(from).classList.add('hidden');
-      document.getElementById(to).classList.remove('hidden','back');
-      history.replaceState({screen:to,depth:navStack.length},'',location.href);
-    }
-    swiping=false; swEl=null;
-  },{passive:true});
-})();
 
 // ═══════════════════════════════════════════════
 // FIREBASE HELPERS
@@ -708,13 +625,11 @@ function miniPrev(play){
   cx.beginPath();cx.moveTo(0,c.height/2);cx.lineTo(c.width,c.height/2);cx.stroke();cx.setLineDash([]);
   const sx=w=>w/FW*c.width, sy=h=>h/FH*c.height;
   (play.data?.routes||[]).forEach(r=>{
-    (r.segments||[]).forEach(seg=>{
-      if(!seg.pts||seg.pts.length<2)return;
-      cx.strokeStyle=seg.color||'#41c97a';cx.lineWidth=1.5;
-      cx.setLineDash(seg.type==='motion'?[4,3]:[]);
-      cx.beginPath();cx.moveTo(sx(seg.pts[0].x),sy(seg.pts[0].y));
-      seg.pts.forEach(p=>cx.lineTo(sx(p.x),sy(p.y)));cx.stroke();cx.setLineDash([]);
-    });
+    if(!r.points||r.points.length<2)return;
+    cx.strokeStyle=r.color||'#41c97a';cx.lineWidth=1.5;
+    cx.setLineDash(r.motion?[4,3]:[]);
+    cx.beginPath();cx.moveTo(sx(r.points[0].x),sy(r.points[0].y));
+    r.points.forEach(p=>cx.lineTo(sx(p.x),sy(p.y)));cx.stroke();cx.setLineDash([]);
   });
   (play.data?.players||[]).forEach(p=>{
     cx.beginPath();cx.arc(sx(p.x),sy(p.y),5,0,Math.PI*2);
@@ -727,10 +642,10 @@ window.newPlay=function(){
   currentPlay=null;
   // Load formation template players
   ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
-  eRoutes=[];selP=null;eHistory=[];activeRoute=null;
-  vx=0;vy=0;vs=1;
+  eRoutes=[];selP=null;eHistory=[];
+  vx=0;vy=0;vs=1;drawingRoute=null;routePts=[];
   document.getElementById('playNameInput').value='';
-  tool='erase';setSegType('route');
+  tool='select';syncToolUI();
   navTo('editorScreen');
   setTimeout(()=>{resizeCv();drawAll();},110);
 };
@@ -739,11 +654,11 @@ window.openPlay=function(id){
   currentPlay=plays.find(p=>p.id===id);
   ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
-  selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
+  selP=null;eHistory=[];vx=0;vy=0;vs=1;drawingRoute=null;routePts=[];
   document.getElementById('playNameInput').value=currentPlay.name;
   // Read-only if view only
   document.getElementById('editorScreen').querySelector('.e-save').style.display=canEdit?'':'none';
-  tool='erase';setSegType('route');
+  tool='select';syncToolUI();
   navTo('editorScreen');
   setTimeout(()=>{resizeCv();drawAll();},110);
 };
@@ -832,137 +747,64 @@ function drawPlayersOn(c,canv,sc,players,selected,toScreen){
   });
 }
 
-// ══════════════════════════════════════════════
-// DRAW HELPERS
-// ══════════════════════════════════════════════
-function drawSegment(c, pts, type, color, isLast, sc){
-  if(pts.length<2) return;
-  const lw=2.8*Math.min(sc,1.5);
-  c.save();
-  c.strokeStyle=color;
-  c.lineWidth=lw;
-  c.lineCap='round';
-  c.lineJoin='round';
-
-  if(type==='motion'){
-    // Zig-zag: alternate up/down every segment pair
-    c.setLineDash([]);
-    c.beginPath();
-    c.moveTo(pts[0].x,pts[0].y);
-    const ZAG=8*Math.min(sc,1.5);
-    for(let i=1;i<pts.length;i++){
-      const ax=pts[i-1].x,ay=pts[i-1].y,bx=pts[i].x,by=pts[i].y;
-      const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy);
-      if(len===0){c.lineTo(bx,by);continue;}
-      const steps=Math.max(2,Math.round(len/12));
-      const nx=-dy/len,ny=dx/len; // normal
-      for(let s=1;s<=steps;s++){
-        const t=s/steps;
-        const mx=ax+dx*t,my=ay+dy*t;
-        const zag=(s%2===0?1:-1)*ZAG*(s<steps?1:0);
-        c.lineTo(mx+nx*zag,my+ny*zag);
-      }
-    }
-    c.stroke();
-  } else {
-    // Solid line
-    c.setLineDash([]);
-    c.beginPath();
-    c.moveTo(pts[0].x,pts[0].y);
-    pts.forEach(p=>c.lineTo(p.x,p.y));
-    c.stroke();
-  }
-
-  // End cap (only on the last segment of a route)
-  if(isLast && pts.length>=2){
-    const last=pts[pts.length-1], prev=pts[pts.length-2];
-    const angle=Math.atan2(last.y-prev.y, last.x-prev.x);
-    c.setLineDash([]);
-    if(type==='block'){
-      // T-bar: perpendicular line
-      const tLen=10*Math.min(sc,1.5);
-      c.lineWidth=lw;
-      c.beginPath();
-      c.moveTo(last.x+Math.cos(angle+Math.PI/2)*tLen,
-               last.y+Math.sin(angle+Math.PI/2)*tLen);
-      c.lineTo(last.x+Math.cos(angle-Math.PI/2)*tLen,
-               last.y+Math.sin(angle-Math.PI/2)*tLen);
-      c.stroke();
-    } else if(type==='route'){
-      // Arrow
-      const aLen=12*Math.min(sc,1.5);
-      c.fillStyle=color;
-      c.save();
-      c.translate(last.x,last.y);
-      c.rotate(angle);
-      c.beginPath();c.moveTo(0,0);c.lineTo(-aLen,-aLen*.55);c.lineTo(-aLen,aLen*.55);
-      c.closePath();c.fill();
-      c.restore();
-    }
-    // motion has no end cap
-  }
-  c.restore();
-}
-
 function drawAll(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
   drawFieldOn(ctx,cv,vs,toS);
-
-  // Draw committed routes (each route = array of segments)
-  eRoutes.forEach(route=>{
-    route.segments.forEach((seg,si)=>{
-      const pts=seg.pts.map(p=>toS(p.x,p.y));
-      const isLast=si===route.segments.length-1;
-      drawSegment(ctx,pts,seg.type,seg.color,isLast,vs);
-    });
+  // Draw routes
+  eRoutes.forEach(r=>{
+    if(!r.points||r.points.length<2)return;
+    const pts=r.points.map(p=>toS(p.x,p.y));
+    ctx.save();
+    const lw=2.5*Math.min(vs,1.5);
+    if(r.type==='block'){
+      // Blocking: solid line ending with filled circle
+      ctx.strokeStyle=r.color||'#f59e0b';
+      ctx.lineWidth=lw;
+      ctx.setLineDash([]);
+      ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+      pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+      // End cap: filled circle
+      const last=pts[pts.length-1];
+      ctx.beginPath();ctx.arc(last.x,last.y,5*Math.min(vs,1.5),0,Math.PI*2);
+      ctx.fillStyle=r.color||'#f59e0b';ctx.fill();
+    } else {
+      ctx.strokeStyle=r.color||'#41c97a';
+      ctx.lineWidth=lw;
+      ctx.setLineDash(r.motion?[9,5]:[]);
+      ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+      pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+      ctx.setLineDash([]);
+      // Arrow
+      if(!r.motion&&pts.length>=2){
+        const l=pts[pts.length-1],pv=pts[pts.length-2];
+        const a=Math.atan2(l.y-pv.y,l.x-pv.x);
+        ctx.fillStyle=r.color||'#41c97a';
+        ctx.save();ctx.translate(l.x,l.y);ctx.rotate(a);
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-11,-6);ctx.lineTo(-11,6);ctx.closePath();ctx.fill();ctx.restore();
+      }
+    }
+    ctx.restore();
   });
-
-  // Draw active (in-progress) route
-  if(activeRoute){
-    activeRoute.segments.forEach((seg,si)=>{
-      const pts=seg.pts.map(p=>toS(p.x,p.y));
-      const isLast=si===activeRoute.segments.length-1;
-      drawSegment(ctx,pts,seg.type,seg.color,isLast,vs);
-    });
+  // In-progress route preview (fully opaque)
+  if(drawingRoute&&routePts.length>=1){
+    const pts=routePts.map(p=>toS(p.x,p.y));
+    ctx.save();ctx.strokeStyle=rColor;ctx.lineWidth=2.5*Math.min(vs,1.5);
+    ctx.setLineDash(tool==='motion'?[9,5]:tool==='block'?[]:[5,4]);
+    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
   }
-
   drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
 }
 
-// ══════════════════════════════════════════════
-// PLAY CANVAS INTERACTION
-// ══════════════════════════════════════════════
-function playerAt(sx,sy){
-  return ePlayers.find(p=>{
-    const s=toS(p.x,p.y),r=Math.max(14,18*Math.min(vs,1.4));
-    return Math.hypot(sx-s.x,sy-s.y)<r+10;
-  });
-}
+function playerAt(sx,sy){return ePlayers.find(p=>{const s=toS(p.x,p.y),r=Math.max(14,18*Math.min(vs,1.4));return Math.hypot(sx-s.x,sy-s.y)<r+10;});}
 
-function nearR(sx,sy){
-  let best=null,bd=26;
-  eRoutes.forEach(r=>{
-    r.segments.forEach(seg=>{
-      for(let i=0;i<seg.pts.length-1;i++){
-        const a=toS(seg.pts[i].x,seg.pts[i].y),b=toS(seg.pts[i+1].x,seg.pts[i+1].y);
-        const d=dSeg(sx,sy,a.x,a.y,b.x,b.y);
-        if(d<bd){bd=d;best=r;}
-      }
-    });
-  });
-  return best;
-}
-function dSeg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay;if(!dx&&!dy)return Math.hypot(px-ax,py-ay);const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
-
-// Touch / mouse
+// ─ Touch/Mouse ─
 cv.addEventListener('touchstart',e=>{
   e.preventDefault();
   if(e.touches.length===2){pinching=true;pd0=pinchD(e,cv);pvx0=vx;pvy0=vy;return;}
-  const p=cvPos(e.touches[0],cv);tStart=Date.now();
-  handleDown(p.x,p.y);
+  const p=cvPos(e.touches[0],cv);tStart=Date.now();handleDown(p.x,p.y);
 },{passive:false});
-
 cv.addEventListener('touchmove',e=>{
   e.preventDefault();
   if(e.touches.length===2&&pinching){
@@ -971,200 +813,125 @@ cv.addEventListener('touchmove',e=>{
     vx=mc.x-(mc.x-pvx0)*(ns/vs);vy=mc.y-(mc.y-pvy0)*(ns/vs);
     vs=ns;pd0=d;pvx0=vx;pvy0=vy;drawAll();return;
   }
-  if(e.touches.length===1){
-    const p=cvPos(e.touches[0],cv);
-    // Live preview of next tap point
-    if(activeRoute){
-      const seg=activeRoute.segments[activeRoute.segments.length-1];
-      if(seg&&seg.pts.length>=1){
-        const fp=toF(p.x,p.y);
-        // Temporarily extend last segment for preview
-        const previewSeg={...seg,pts:[...seg.pts,fp]};
-        const previewRoute={...activeRoute,segments:[...activeRoute.segments.slice(0,-1),previewSeg]};
-        // Draw with preview
-        ctx.clearRect(0,0,cv.width,cv.height);
-        ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
-        drawFieldOn(ctx,cv,vs,toS);
-        eRoutes.forEach(route=>{route.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===route.segments.length-1,vs);});});
-        previewRoute.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===previewRoute.segments.length-1,vs);});
-        drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
-      }
-    } else if(isPanning){
-      vx=p.x-panSX;vy=p.y-panSY;drawAll();
-    }
-  }
+  if(e.touches.length===1){const p=cvPos(e.touches[0],cv);handleMove(p.x,p.y);}
 },{passive:false});
-
 cv.addEventListener('touchend',e=>{
-  e.preventDefault();pinching=false;isPanning=false;
+  e.preventDefault();pinching=false;
+  const now=Date.now();
+  if(now-lastTap<320&&now-tStart<200){finishRoute();lastTap=0;return;}
+  lastTap=now;
+  isDragging=false;dragP=null;isPanning=false;
 },{passive:false});
-
 cv.addEventListener('mousedown',e=>handleDown(e.offsetX,e.offsetY));
-cv.addEventListener('mousemove',e=>{
-  if(isPanning){vx=e.offsetX-panSX;vy=e.offsetY-panSY;drawAll();}
-});
-cv.addEventListener('mouseup',()=>{isPanning=false;});
-cv.addEventListener('wheel',e=>{
-  e.preventDefault();
-  const zf=e.deltaY>0?.92:1.09,ns=Math.min(4,Math.max(.25,vs*zf));
-  vx=e.offsetX-(e.offsetX-vx)*(ns/vs);vy=e.offsetY-(e.offsetY-vy)*(ns/vs);vs=ns;drawAll();
-},{passive:false});
+cv.addEventListener('mousemove',e=>{if(isDragging||isPanning||(drawingRoute&&routePts.length))handleMove(e.offsetX,e.offsetY);});
+cv.addEventListener('mouseup',()=>{isDragging=false;dragP=null;isPanning=false;});
+cv.addEventListener('dblclick',()=>finishRoute());
+cv.addEventListener('contextmenu',e=>{e.preventDefault();finishRoute();});
+cv.addEventListener('wheel',e=>{e.preventDefault();const zf=e.deltaY>0?.92:1.09,ns=Math.min(4,Math.max(.25,vs*zf));vx=e.offsetX-(e.offsetX-vx)*(ns/vs);vy=e.offsetY-(e.offsetY-vy)*(ns/vs);vs=ns;drawAll();},{passive:false});
 
 function handleDown(sx,sy){
-  if(!canEdit) return;
+  if(!canEdit&&currentPlay) return; // view only - no editing
   const fp=toF(sx,sy);
-
-  // Tap on a player
-  const hit=playerAt(sx,sy);
-
-  if(tool==='erase'){
-    if(hit){
-      pushH();
-      eRoutes=eRoutes.filter(r=>r.playerId!==hit.id);
-      drawAll();
-    } else {
-      const nr=nearR(sx,sy);
-      if(nr){pushH();eRoutes=eRoutes.filter(r=>r!==nr);drawAll();}
-    }
-    return;
-  }
-
-  // If tapping a player → select it (finish any in-progress route first)
-  if(hit){
-    if(activeRoute && activeRoute.segments.some(s=>s.pts.length>=2)){
-      commitRoute();
-    }
-    selP=hit;
-    activeRoute={
-      playerId:hit.id,
-      segments:[{type:segType,color:rColor,pts:[{x:hit.x,y:hit.y}]}]
-    };
-    isPanning=false;
+  if(tool==='select'){
+    const hit=playerAt(sx,sy);
+    if(hit){selP=hit;isDragging=true;dragP=hit;const s=toS(hit.x,hit.y);dragOX=sx-s.x;dragOY=sy-s.y;}
+    else{selP=null;isPanning=true;panSX=sx-vx;panSY=sy-vy;}
     buildOpts();drawAll();
-    return;
+  } else if(tool==='player'){
+    pushH();ePlayers.push({x:fp.x,y:fp.y,color:pColor,pos:pPos,id:uid()});drawAll();
+  } else if(tool==='route'||tool==='motion'||tool==='block'){
+    const hit=playerAt(sx,sy);
+    if(hit&&!drawingRoute){drawingRoute=hit;routePts=[{x:hit.x,y:hit.y}];}
+    else if(drawingRoute){routePts.push(fp);drawAll();}
+  } else if(tool==='erase'){
+    const hit=playerAt(sx,sy);
+    if(hit){pushH();ePlayers=ePlayers.filter(p=>p!==hit);eRoutes=eRoutes.filter(r=>r.playerId!==hit.id);drawAll();}
+    else{const nr=nearR(sx,sy);if(nr){pushH();eRoutes=eRoutes.filter(r=>r!==nr);drawAll();}}
   }
+}
 
-  // If no player hit and we have an active route → add a point
-  if(activeRoute){
-    const seg=activeRoute.segments[activeRoute.segments.length-1];
-    // If seg type changed, start a new segment from last point
-    const lastPt=seg.pts[seg.pts.length-1];
-    if(seg.type!==segType||seg.color!==rColor){
-      activeRoute.segments.push({type:segType,color:rColor,pts:[{...lastPt},fp]});
-    } else {
-      seg.pts.push(fp);
-    }
+function handleMove(sx,sy){
+  if(isPanning&&tool==='select'&&!isDragging){vx=sx-panSX;vy=sy-panSY;drawAll();return;}
+  if(isDragging&&dragP){
+    const fp=toF(sx-dragOX,sy-dragOY);
+    const dx=fp.x-dragP.x,dy=fp.y-dragP.y;
+    eRoutes.forEach(r=>{if(r.playerId===dragP.id&&r.points.length>0){r.points[0].x+=dx;r.points[0].y+=dy;}});
+    dragP.x=fp.x;dragP.y=fp.y;drawAll();
+  }
+  if((tool==='route'||tool==='motion'||tool==='block')&&drawingRoute&&routePts.length>=1){
+    const fp=toF(sx,sy);
+    const preview=[...routePts,fp].map(p=>toS(p.x,p.y));
     drawAll();
-    buildOpts();
-    return;
+    ctx.save();ctx.strokeStyle=rColor;ctx.lineWidth=2.5*Math.min(vs,1.5);
+    ctx.setLineDash(tool==='motion'?[9,5]:tool==='block'?[]:[5,4]);
+    ctx.beginPath();preview.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
   }
-
-  // Nothing — pan
-  isPanning=true;panSX=sx-vx;panSY=sy-vy;
 }
 
-function commitRoute(){
-  if(!activeRoute) return;
-  // Filter out segments with only 1 point
-  const segs=activeRoute.segments.filter(s=>s.pts.length>=2);
-  if(segs.length>0){
+function finishRoute(){
+  if((tool==='route'||tool==='motion'||tool==='block')&&drawingRoute&&routePts.length>=2){
     pushH();
-    eRoutes.push({playerId:activeRoute.playerId,segments:segs});
+    eRoutes.push({
+      points:[...routePts],
+      color:rColor,
+      type:tool==='block'?'block':tool==='motion'?'motion':'route',
+      motion:tool==='motion',
+      playerId:drawingRoute.id||null
+    });
+    drawingRoute=null;routePts=[];drawAll();buildOpts();
   }
-  activeRoute=null;
-  buildOpts();drawAll();
 }
 
-// ── TOOLS ──────────────────────────────────────
-window.setTool=function(t){
-  tool=t;
-  if(activeRoute) commitRoute();
-  selP=null;
-  buildOpts();drawAll();
-};
+function nearR(sx,sy){let best=null,bd=26;eRoutes.forEach(r=>{for(let i=0;i<r.points.length-1;i++){const a=toS(r.points[i].x,r.points[i].y),b=toS(r.points[i+1].x,r.points[i+1].y);const d=dSeg(sx,sy,a.x,a.y,b.x,b.y);if(d<bd){bd=d;best=r;}}});return best;}
+function dSeg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay;if(!dx&&!dy)return Math.hypot(px-ax,py-ay);const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
 
-window.setSegType=function(t){
-  segType=t;
-  // Highlight correct button
-  ['route','motion','block'].forEach(s=>{
-    const el=document.getElementById('seg-'+s);
-    if(el) el.classList.toggle('on',s===t);
-  });
-  // If mid-route, start new segment from last pt
-  if(activeRoute){
-    const seg=activeRoute.segments[activeRoute.segments.length-1];
-    const lastPt=seg.pts[seg.pts.length-1];
-    if(seg.pts.length>=2){
-      // Already has 2+ pts, start fresh segment
-      activeRoute.segments.push({type:t,color:rColor,pts:[{...lastPt}]});
-    } else {
-      // Only 1 pt, just change type in place
-      seg.type=t;
-    }
-  }
-  buildOpts();
-};
+// ─ Tools ─
+window.setTool=function(t){tool=t;drawingRoute=null;routePts=[];syncToolUI();buildOpts();};
+function syncToolUI(){document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('on'));const el=document.getElementById('tool-'+tool);if(el)el.classList.add('on');}
 
 function buildOpts(){
   const row=document.getElementById('optionsRow');
   let h='';
-
-  // Always show color picker for routes
-  h+=`<span class="olbl">COLOR</span>`;
-  RCOLORS.forEach(c=>h+=`<div class="cdot${rColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setRC('${c}',this)"></div>`);
-  h+=`<div class="osep"></div>`;
-
-  if(activeRoute){
-    h+=`<button class="chip on" style="background:var(--green);color:#000;border-color:var(--green)" onclick="commitRoute()">✓ DONE</button>`;
+  if(tool==='player'){
+    h+=`<span class="olbl">COLOR</span>`;
+    PCOLORS.forEach(c=>h+=`<div class="cdot${pColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setPC('${c}',this)"></div>`);
     h+=`<div class="osep"></div>`;
+    POSITIONS.forEach(p=>h+=`<button class="chip${pPos===p?' on':''}" onclick="setPP('${p}',this)">${p}</button>`);
+  } else if(tool==='route'||tool==='motion'||tool==='block'){
+    const lbl=tool==='block'?'BLOCK COLOR':tool==='motion'?'MOTION COLOR':'ROUTE COLOR';
+    h+=`<span class="olbl">${lbl}</span>`;
+    RCOLORS.forEach(c=>h+=`<div class="cdot${rColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setRC('${c}',this)"></div>`);
+    if(drawingRoute) h+=`<div class="osep"></div><button class="chip on" onclick="finishRoute()">✓ Done</button>`;
+    h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ Undo</button>`;
+  } else if(tool==='select'){
+    if(selP){
+      h+=`<span class="olbl">PLAYER</span>`;
+      PCOLORS.forEach(c=>h+=`<div class="cdot${selP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setSPC('${c}',this)"></div>`);
+      h+=`<div class="osep"></div>`;
+      POSITIONS.forEach(p=>h+=`<button class="chip${selP.pos===p?' on':''}" onclick="setSPP('${p}',this)">${p}</button>`);
+    } else {
+      h+=`<span class="olbl" style="color:var(--muted)">Tap player · drag · double-tap to finish route</span>`;
+      h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ Undo</button>`;
+      if(canEdit) h+=`<button class="chip red" onclick="clearCv()">✕ Clear</button>`;
+    }
+  } else if(tool==='erase'){
+    h+=`<span class="olbl" style="color:var(--muted)">Tap player or route to erase</span>`;
+    h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ Undo</button>`;
   }
-
-  if(selP){
-    h+=`<span class="olbl">PLAYER</span>`;
-    PCOLORS.forEach(c=>h+=`<div class="cdot${selP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setSPC('${c}',this)"></div>`);
-  }
-
-  h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ UNDO</button>`;
-  if(canEdit) h+=`<button class="chip red" onclick="clearCv()">✕ CLEAR</button>`;
-
   row.innerHTML=h;
 }
 
-window.setRC=(c,el)=>{
-  rColor=c;
-  document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));
-  el.classList.add('on');
-  // Update current active segment color
-  if(activeRoute){
-    const seg=activeRoute.segments[activeRoute.segments.length-1];
-    seg.color=c;
-    drawAll();
-  }
-};
+window.setPC=(c,el)=>{pColor=c;document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
+window.setRC=(c,el)=>{rColor=c;document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
+window.setPP=(p,el)=>{pPos=p;document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
 window.setSPC=(c,el)=>{if(selP){selP.color=c;drawAll();}document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
 window.setSPP=(p,el)=>{if(selP){selP.pos=p;drawAll();}document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
-window.commitRoute=commitRoute;
-window.finishRoute=commitRoute; // alias
+window.finishRoute=finishRoute;
 
-// Undo: remove last committed route (one route = one player's full set of segments)
-function pushH(){ eHistory.push(JSON.parse(JSON.stringify(eRoutes))); if(eHistory.length>30)eHistory.shift(); }
-window.undoA=function(){
-  if(activeRoute){
-    // If mid-drawing, undo last segment
-    if(activeRoute.segments.length>1){
-      activeRoute.segments.pop();
-      drawAll();buildOpts();
-    } else {
-      // Only one segment with 1 point — cancel whole route
-      activeRoute=null;selP=null;drawAll();buildOpts();
-    }
-    return;
-  }
-  if(!eHistory.length){toast('Nothing to undo','');return;}
-  eRoutes=eHistory.pop();
-  drawAll();toast('Undone','ok');
-};
-window.clearCv=function(){if(!confirm('Clear all routes?'))return;pushH();eRoutes=[];activeRoute=null;selP=null;buildOpts();drawAll();};
+function pushH(){eHistory.push({p:JSON.parse(JSON.stringify(ePlayers)),r:JSON.parse(JSON.stringify(eRoutes))});if(eHistory.length>30)eHistory.shift();}
+window.undoA=function(){if(!eHistory.length)return;const h=eHistory.pop();ePlayers=h.p;eRoutes=h.r;selP=null;drawAll();toast('Undone','ok');};
+window.clearCv=function(){if(!confirm('Clear the field?'))return;pushH();ePlayers=[];eRoutes=[];selP=null;drawAll();};
 
 window.printPlay=function(){
   const name=document.getElementById('playNameInput').value||'Play';
@@ -1230,9 +997,6 @@ window.addEventListener('resize',()=>{
 // INIT
 // ═══════════════════════════════════════════════
 (async()=>{
-  // Push a guard entry immediately so the first back press fires popstate
-  // instead of closing the app
-  pushGuard();
   const shared=checkShare();
   if(shared){
     renderFormations();
