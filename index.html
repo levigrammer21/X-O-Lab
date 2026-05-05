@@ -755,17 +755,181 @@ window.openPlay=function(id){
 window.savePlay=async function(){
   if(!canEdit)return;
   const name=document.getElementById('playNameInput').value.trim();
+// ═══════════════════════════════════════════════
+// PLAYS
+// ═══════════════════════════════════════════════
+function normalizePlayData(data){
+  const players=JSON.parse(JSON.stringify(data?.players||[]));
+  let routes=[];
+
+  // New format
+  if((data?.routes||[]).some(r=>Array.isArray(r.segments))){
+    routes=JSON.parse(JSON.stringify(data.routes||[]));
+  } 
+  // Old format compatibility
+  else {
+    routes=(data?.routes||[]).map(r=>{
+      const pts=r.points||[];
+      const segments=[];
+      for(let i=0;i<pts.length-1;i++){
+        segments.push({
+          from:{...pts[i]},
+          to:{...pts[i+1]},
+          type:r.type==='block'?'block':r.motion?'motion':'route',
+          color:r.color||'#41c97a'
+        });
+      }
+      return {
+        playerId:r.playerId||null,
+        color:r.color||'#41c97a',
+        segments
+      };
+    }).filter(r=>r.segments.length);
+  }
+
+  return {players,routes};
+}
+
+function renderPlays(){
+  const el=document.getElementById('playsList');
+  if(!plays.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">🏃</div><h3>No Plays Yet</h3><p>${canEdit?'Tap + Play to draw your first play.':'No plays yet.'}</p></div>`;
+    return;
+  }
+
+  el.innerHTML=`<div class="play-grid">${plays.map(p=>{
+    const d=normalizePlayData(p.data||{});
+    const lineCount=d.routes.reduce((n,r)=>n+(r.segments?.length||0),0);
+    return `
+    <div class="play-card" onclick="openPlay('${p.id}')">
+      <div class="play-preview" id="prev-${p.id}"></div>
+      <div class="play-card-name">${esc(p.name)}</div>
+      <div class="play-card-sub">
+        <span>${d.players.length}p · ${lineCount} lines</span>
+        ${canEdit?`<button onclick="event.stopPropagation();confirmDel('play','${p.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">🗑</button>`:''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+
+  plays.forEach(p=>setTimeout(()=>miniPrev(p),80));
+}
+
+function miniPrev(play){
+  const wrap=document.getElementById('prev-'+play.id);
+  if(!wrap||wrap.querySelector('canvas'))return;
+
+  const d=normalizePlayData(play.data||{});
+  const c=document.createElement('canvas');
+  c.width=wrap.clientWidth||148;
+  c.height=wrap.clientHeight||70;
+  wrap.appendChild(c);
+
+  const cx=c.getContext('2d');
+  cx.fillStyle='#1a3d16';
+  cx.fillRect(0,0,c.width,c.height);
+
+  cx.strokeStyle='rgba(240,180,41,.4)';
+  cx.setLineDash([4,3]);
+  cx.beginPath();
+  cx.moveTo(0,c.height/2);
+  cx.lineTo(c.width,c.height/2);
+  cx.stroke();
+  cx.setLineDash([]);
+
+  const sx=x=>x/FW*c.width;
+  const sy=y=>y/FH*c.height;
+
+  d.routes.forEach(r=>{
+    (r.segments||[]).forEach(seg=>{
+      cx.strokeStyle=seg.color||r.color||'#41c97a';
+      cx.lineWidth=1.5;
+      cx.setLineDash(seg.type==='motion'?[3,3]:[]);
+      cx.beginPath();
+      cx.moveTo(sx(seg.from.x),sy(seg.from.y));
+      cx.lineTo(sx(seg.to.x),sy(seg.to.y));
+      cx.stroke();
+      cx.setLineDash([]);
+    });
+  });
+
+  d.players.forEach(p=>{
+    cx.beginPath();
+    cx.arc(sx(p.x),sy(p.y),5,0,Math.PI*2);
+    cx.fillStyle=p.color||'#f0b429';
+    cx.fill();
+  });
+}
+
+window.newPlay=function(){
+  if(!canEdit){toast('View only','err');return;}
+
+  currentPlay=null;
+  ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
+  eRoutes=[];
+  selP=null;
+  activePlayer=null;
+  activeRoute=null;
+  eHistory=[];
+  vx=0;vy=0;vs=1;
+
+  document.getElementById('playNameInput').value='';
+  document.getElementById('editorScreen').querySelector('.e-save').style.display='';
+  tool='select';
+  syncToolUI();
+
+  navTo('editorScreen');
+  setTimeout(()=>{resizeCv();drawAll();buildOpts();},110);
+};
+
+window.openPlay=function(id){
+  currentPlay=plays.find(p=>p.id===id);
+  const d=normalizePlayData(currentPlay.data||{});
+
+  ePlayers=d.players;
+  eRoutes=d.routes;
+  selP=null;
+  activePlayer=null;
+  activeRoute=null;
+  eHistory=[];
+  vx=0;vy=0;vs=1;
+
+  document.getElementById('playNameInput').value=currentPlay.name;
+  document.getElementById('editorScreen').querySelector('.e-save').style.display=canEdit?'':'none';
+
+  tool='select';
+  syncToolUI();
+
+  navTo('editorScreen');
+  setTimeout(()=>{resizeCv();drawAll();buildOpts();},110);
+};
+
+window.savePlay=async function(){
+  if(!canEdit)return;
+
+  const name=document.getElementById('playNameInput').value.trim();
   if(!name){toast('Enter a play name','err');return;}
+
   const data={players:ePlayers,routes:eRoutes};
+
   if(currentPlay){
-    currentPlay.name=name;currentPlay.data=data;
-    const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
-    await updateDoc(doc(db,'teams',currentTeam.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,data});
+    currentPlay.name=name;
+    currentPlay.data=data;
+    const i=plays.findIndex(p=>p.id===currentPlay.id);
+    if(i!==-1)plays[i]=currentPlay;
+
+    await updateDoc(
+      doc(db,'teams',currentTeam.id,'formations',currentFormation.id,'plays',currentPlay.id),
+      {name,data}
+    );
   } else {
-    const ref=await addDoc(plCol(currentTeam.id,currentFormation.id),{name,data,createdAt:Date.now()});
+    const ref=await addDoc(
+      plCol(currentTeam.id,currentFormation.id),
+      {name,data,createdAt:Date.now()}
+    );
     currentPlay={id:ref.id,name,data};
     plays.push(currentPlay);
   }
+
   toast('Saved!','ok');
 };
 
