@@ -341,11 +341,20 @@ const RCOLORS=['#41c97a','#f0b429','#4182f0','#f04141','#ffffff','#f97316'];
 // ═══════════════════════════════════════════════
 // SCREEN NAV
 // ═══════════════════════════════════════════════
+// ── NAV STACK ─────────────────────────────────────
+// Each entry: { screenId }
+// Browser history entries mirror the stack so the OS back button works
+const navStack = [];
+
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>{
     s.classList.remove('hidden','back');
     if(s.id!==id) s.classList.add('hidden');
   });
+  navStack.length = 0;
+  navStack.push(id);
+  // Replace history state (no back entry at root)
+  history.replaceState({screen:id,depth:0},'',location.href);
 }
 window.showScreen = showScreen;
 
@@ -353,14 +362,84 @@ function navTo(id){
   const cur=document.querySelector('.screen:not(.hidden):not(.back)');
   if(cur) cur.classList.add('back');
   document.getElementById(id).classList.remove('hidden','back');
+  navStack.push(id);
+  history.pushState({screen:id,depth:navStack.length},'',location.href);
 }
 window.navTo = navTo;
 
-function goBack(toId,fromId){
+// goBack now just pops — used internally or by in-app back buttons
+function goBack(toId, fromId){
   document.getElementById(fromId).classList.add('hidden');
   document.getElementById(toId).classList.remove('hidden','back');
+  if(navStack.length>1) navStack.pop();
+  history.replaceState({screen:toId,depth:navStack.length},'',location.href);
 }
 window.goBack = goBack;
+
+// OS/browser back button → always intercept, never exit
+// We keep a permanent pushState entry ahead of the real history
+// so popstate always fires and we handle it ourselves.
+function pushGuard(){
+  history.pushState({guard:true},'',location.href);
+}
+
+window.addEventListener('popstate', e => {
+  // Always re-push the guard so next back press also fires popstate
+  pushGuard();
+
+  if(navStack.length <= 1){
+    // Already at root — do nothing (stay in app)
+    return;
+  }
+  const from = navStack.pop();
+  const to   = navStack[navStack.length - 1];
+  document.getElementById(from).classList.add('hidden');
+  document.getElementById(to).classList.remove('hidden','back');
+});
+
+// ── SWIPE-BACK GESTURE ─────────────────────────────
+(()=>{
+  let swX=0,swY=0,swiping=false,swEl=null;
+  const EDGE=40, THRESH=80, RATIO=1.5;
+
+  document.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1)return;
+    const t=e.touches[0];
+    swX=t.clientX; swY=t.clientY; swiping=false; swEl=null;
+    if(t.clientX < EDGE){
+      // Started from left edge — potential swipe back
+      swEl=document.querySelector('.screen:not(.hidden):not(.back)');
+      swiping=true;
+    }
+  },{passive:true});
+
+  document.addEventListener('touchmove', e=>{
+    if(!swiping||!swEl||e.touches.length!==1)return;
+    const dx=e.touches[0].clientX-swX;
+    const dy=Math.abs(e.touches[0].clientY-swY);
+    if(dx>0 && dx/Math.max(dy,1)>RATIO){
+      // Drag the current screen with finger for feel
+      swEl.style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;
+      swEl.style.transition='none';
+    }
+  },{passive:true});
+
+  document.addEventListener('touchend', e=>{
+    if(!swiping||!swEl)return;
+    const dx=e.changedTouches[0].clientX-swX;
+    swEl.style.transform='';
+    swEl.style.transition='';
+    if(dx > THRESH && navStack.length > 1){
+      // Commit swipe back
+      const from=navStack.pop();
+      const to=navStack[navStack.length-1];
+      document.getElementById(from).classList.add('hidden');
+      document.getElementById(to).classList.remove('hidden','back');
+      history.replaceState({screen:to,depth:navStack.length},'',location.href);
+    }
+    swiping=false; swEl=null;
+  },{passive:true});
+})();
 
 // ═══════════════════════════════════════════════
 // FIREBASE HELPERS
@@ -997,6 +1076,9 @@ window.addEventListener('resize',()=>{
 // INIT
 // ═══════════════════════════════════════════════
 (async()=>{
+  // Push a guard entry immediately so the first back press fires popstate
+  // instead of closing the app
+  pushGuard();
   const shared=checkShare();
   if(shared){
     renderFormations();
