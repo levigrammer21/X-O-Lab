@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f13;
+    --panel: #16181f;
+    --panel2: #1e2029;
+    --border: #2a2d38;
+    --accent: #e8b42a;
+    --accent2: #3b82f6;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --danger: #ef4444;
+    --green: #22c55e;
+    --field-green: #2d5a27;
+    --field-line: #3a7a32;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOP NAV */
+  nav { height: 52px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 16px; flex-shrink: 0; z-index: 100; }
+  .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); letter-spacing: 2px; }
+  .nav-sep { width: 1px; height: 24px; background: var(--border); }
+  .nav-btn { background: none; border: 1px solid var(--border); color: var(--text); padding: 5px 14px; border-radius: var(--radius); font-size: 13px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .nav-btn.danger { border-color: var(--danger); color: var(--danger); }
+  .nav-btn.danger:hover { background: var(--danger); color: #fff; }
+  .nav-spacer { flex: 1; }
+  .supabase-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .status-dot.connected { background: var(--green); }
+
+  /* MAIN LAYOUT */
+  .app { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .sidebar-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--muted); }
+  .icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 2px 6px; border-radius: 4px; transition: all .15s; line-height: 1; }
+  .icon-btn:hover { color: var(--text); background: var(--panel2); }
+  .icon-btn.accent:hover { color: var(--accent); }
+  .sidebar-list { flex: 1; overflow-y: auto; }
+  .sidebar-list::-webkit-scrollbar { width: 4px; }
+  .sidebar-list::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* FORMATION GROUPS */
+  .formation-group { border-bottom: 1px solid var(--border); }
+  .formation-header { display: flex; align-items: center; padding: 9px 14px; cursor: pointer; gap: 8px; transition: background .12s; }
+  .formation-header:hover { background: var(--panel2); }
+  .formation-chevron { font-size: 10px; color: var(--muted); transition: transform .2s; }
+  .formation-chevron.open { transform: rotate(90deg); }
+  .formation-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .formation-badge { font-size: 10px; padding: 1px 7px; border-radius: 10px; background: var(--panel2); color: var(--muted); }
+  .formation-type-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+  .formation-type-tag.off { background: rgba(232,180,42,.15); color: var(--accent); }
+  .formation-type-tag.def { background: rgba(239,68,68,.15); color: var(--danger); }
+  .formation-type-tag.st { background: rgba(59,130,246,.15); color: var(--accent2); }
+
+  .play-list { display: none; }
+  .play-list.open { display: block; }
+  .play-item { display: flex; align-items: center; padding: 7px 14px 7px 32px; cursor: pointer; font-size: 12.5px; gap: 8px; transition: background .12s; }
+  .play-item:hover { background: var(--panel2); }
+  .play-item.active { background: rgba(232,180,42,.08); color: var(--accent); }
+  .play-item .play-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  .play-item.active .play-dot { background: var(--accent); }
+
+  /* MAIN AREA */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+  /* TOOLBAR */
+  .toolbar { height: 46px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 6px; flex-shrink: 0; }
+  .tool-btn { background: none; border: 1px solid transparent; color: var(--muted); padding: 5px 10px; border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 5px; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .tool-btn:hover { color: var(--text); border-color: var(--border); }
+  .tool-btn.active { background: var(--panel2); color: var(--text); border-color: var(--accent); }
+  .tool-sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; }
+  .tool-spacer { flex: 1; }
+  .play-name-input { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; width: 200px; }
+  .play-name-input:focus { outline: none; border-color: var(--accent); }
+  .play-name-input::placeholder { color: var(--muted); }
+
+  /* CANVAS WRAPPER */
+  .canvas-wrapper { flex: 1; overflow: hidden; position: relative; }
+  canvas { display: block; cursor: crosshair; }
+
+  /* RIGHT PANEL */
+  .right-panel { width: 220px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  .right-panel::-webkit-scrollbar { width: 4px; }
+  .right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .rp-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .rp-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
+  .rp-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+  .rp-row label { color: var(--muted); }
+  .color-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .color-swatch { width: 22px; height: 22px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: all .12s; }
+  .color-swatch.active { border-color: #fff; transform: scale(1.15); }
+  .pos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .pos-btn { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 4px 2px; border-radius: 4px; font-size: 10px; cursor: pointer; text-align: center; transition: all .12s; font-family: 'Inter', sans-serif; font-weight: 600; }
+  .pos-btn:hover { border-color: var(--accent); color: var(--accent); }
+  select.rp-select { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 4px; font-size: 12px; width: 100%; font-family: 'Inter', sans-serif; cursor: pointer; }
+  select.rp-select:focus { outline: none; border-color: var(--accent); }
+
+  /* MODALS */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 1000; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 400px; max-width: 95vw; }
+  .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+  .modal-input { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; }
+  .modal-input:focus { outline: none; border-color: var(--accent); }
+  .modal-select { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; }
+  .modal-select:focus { outline: none; border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn { padding: 8px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all .15s; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #f5c842; }
+  .btn-ghost { background: none; border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--muted); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: var(--radius); font-size: 13px; z-index: 2000; transform: translateY(60px); opacity: 0; transition: all .25s; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--danger); }
+
+  /* SHARE MODAL */
+  .share-link-box { background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 11px; word-break: break-all; color: var(--accent2); font-family: monospace; margin-bottom: 12px; }
+
+  /* SETUP BANNER */
+  .setup-banner { background: rgba(232,180,42,.08); border: 1px solid rgba(232,180,42,.25); border-radius: var(--radius); padding: 10px 14px; margin: 12px; font-size: 12px; color: var(--accent); display: none; }
+  .setup-banner.show { display: block; }
+  .setup-banner a { color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+  /* EMPTY STATE */
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); text-align: center; padding: 40px; }
+  .empty-icon { font-size: 48px; opacity: .3; }
+  .empty-state h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--muted); }
+  .empty-state p { font-size: 13px; max-width: 240px; line-height: 1.6; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 10px; padding: 6px 12px; background: var(--panel); border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-line { width: 20px; height: 2px; }
+  .legend-dashed { width: 20px; height: 2px; border-top: 2px dashed currentColor; }
+
+  /* PLAYER SELECTED INDICATOR */
+  .selection-info { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--muted); pointer-events: none; opacity: 0; transition: opacity .2s; }
+  .selection-info.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav>
+  <span class="nav-logo">📋 PLAYBOOK</span>
+  <div class="nav-sep"></div>
+  <button class="nav-btn active" onclick="setView('editor')">Editor</button>
+  <button class="nav-btn" onclick="setView('browse')">Browse Plays</button>
+  <div class="nav-spacer"></div>
+  <div class="supabase-status">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Local only</span>
+  </div>
+  <button class="nav-btn" onclick="openModal('supabaseModal')">☁ Connect DB</button>
+  <button class="nav-btn" onclick="openModal('shareModal')">🔗 Share</button>
+</nav>
+
+<!-- MAIN APP -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Formations</span>
+      <button class="icon-btn accent" onclick="openModal('formationModal')" title="New Formation">＋</button>
+    </div>
+    <div class="setup-banner" id="setupBanner">
+      Connect Supabase to <a onclick="openModal('supabaseModal')">save plays to the cloud</a>. Currently storing locally.
+    </div>
+    <div class="sidebar-list" id="sidebarList"></div>
+  </div>
+
+  <!-- MAIN EDITOR -->
+  <div class="main" id="editorView">
+    <div class="toolbar" id="toolbar">
+      <button class="tool-btn active" id="tool-select" onclick="setTool('select')" title="Select & move players">
+        ↖ Select
+      </button>
+      <button class="tool-btn" id="tool-player" onclick="setTool('player')" title="Add a player">
+        ● Player
+      </button>
+      <button class="tool-btn" id="tool-route" onclick="setTool('route')" title="Draw a route from a player">
+        ↗ Route
+      </button>
+      <button class="tool-btn" id="tool-motion" onclick="setTool('motion')" title="Draw pre-snap motion (dashed)">
+        ⟶ Motion
+      </button>
+      <button class="tool-btn" id="tool-line" onclick="setTool('line')" title="Draw blocking/assignment lines">
+        — Line
+      </button>
+      <button class="tool-btn" id="tool-erase" onclick="setTool('erase')" title="Click player or line to delete">
+        ✕ Erase
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="clearCanvas()" title="Clear all players and routes">🗑 Clear</button>
+      <button class="tool-btn" onclick="undoAction()" title="Undo last action">↩ Undo</button>
+      <div class="tool-spacer"></div>
+      <input class="play-name-input" id="playNameInput" placeholder="Play name…" value="">
+      <button class="tool-btn" onclick="savePlay()" style="border-color:var(--accent);color:var(--accent)">💾 Save Play</button>
+      <button class="tool-btn" onclick="printPlay()">🖨 Print</button>
+    </div>
+
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <canvas id="playCanvas"></canvas>
+      <div class="selection-info" id="selInfo">Click player to select · Drag to move</div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> Offense</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> Defense</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Specialty</span>
+      <span class="legend-item"><span class="legend-line" style="background:#22c55e"></span> Route</span>
+      <span class="legend-item"><span class="legend-dashed" style="color:#f59e0b"></span> Motion</span>
+      <span class="legend-item"><span class="legend-line" style="background:#6b7280"></span> Block</span>
+      <span style="flex:1"></span>
+      <span>Scroll to zoom · Middle-drag or Space+drag to pan</span>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel" id="rightPanel">
+    <div class="rp-section">
+      <div class="rp-label">Formation</div>
+      <select class="rp-select" id="formationSelect" onchange="selectFormation(this.value)">
+        <option value="">— select formation —</option>
+      </select>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-label">Player Color</div>
+      <div class="color-swatches" id="colorSwatches">
+        <div class="color-swatch active" data-color="#f59e0b" style="background:#f59e0b" onclick="setPlayerColor('#f59e0b',this)"></div>
+        <div class="color-swatch" data-color="#ef4444" style="background:#ef4444" onclick="setPlayerColor('#ef4444',this)"></div>
+        <div class="color-swatch" data-color="#3b82f6" style="background:#3b82f6" onclick="setPlayerColor('#3b82f6',this)"></div>
+        <div class="color-swatch" data-color="#a855f7" style="background:#a855f7" onclick="setPlayerColor('#a855f7',this)"></div>
+        <div class="color-swatch" data-color="#22c55e" style="background:#22c55e" onclick="setPlayerColor('#22c55e',this)"></div>
+        <div class="color-swatch" data-color="#fff" style="background:#fff;border-color:var(--border)" onclick="setPlayerColor('#ffffff',this)"></div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-label">Position Label</div>
+      <div class="pos-grid">
+        <button class="pos-btn" onclick="setPos('QB')">QB</button>
+        <button class="pos-btn" onclick="setPos('RB')">RB</button>
+        <button class="pos-btn" onclick="setPos('WR')">WR</button>
+        <button class="pos-btn" onclick="setPos('TE')">TE</button>
+        <button class="pos-btn" onclick="setPos('OL')">OL</button>
+        <button class="pos-btn" onclick="setPos('C')">C</button>
+        <button class="pos-btn" onclick="setPos('DE')">DE</button>
+        <button class="pos-btn" onclick="setPos('DT')">DT</button>
+        <button class="pos-btn" onclick="setPos('LB')">LB</button>
+        <button class="pos-btn" onclick="setPos('CB')">CB</button>
+        <button class="pos-btn" onclick="setPos('S')">S</button>
+        <button class="pos-btn" onclick="setPos('K')">K</button>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-label">Line Style</div>
+      <div style="display:flex;gap:6px;">
+        <button class="tool-btn active" id="line-solid" onclick="setLineStyle('solid')" style="flex:1;justify-content:center">—</button>
+        <button class="tool-btn" id="line-dashed" onclick="setLineStyle('dashed')" style="flex:1;justify-content:center">- -</button>
+        <button class="tool-btn" id="line-arrow" onclick="setLineStyle('arrow')" style="flex:1;justify-content:center">→</button>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-label">Route Color</div>
+      <div class="color-swatches" id="routeColorSwatches">
+        <div class="color-swatch active" data-color="#22c55e" style="background:#22c55e" onclick="setRouteColor('#22c55e',this)"></div>
+        <div class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" onclick="setRouteColor('#f59e0b',this)"></div>
+        <div class="color-swatch" data-color="#3b82f6" style="background:#3b82f6" onclick="setRouteColor('#3b82f6',this)"></div>
+        <div class="color-swatch" data-color="#ef4444" style="background:#ef4444" onclick="setRouteColor('#ef4444',this)"></div>
+        <div class="color-swatch" data-color="#fff" style="background:#fff;border-color:var(--border)" onclick="setRouteColor('#ffffff',this)"></div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-label">Zoom</div>
+      <div class="rp-row">
+        <label>Scale</label>
+        <span id="zoomLabel" style="font-size:12px">100%</span>
+      </div>
+      <input type="range" min="30" max="250" value="100" id="zoomSlider" style="width:100%;accent-color:var(--accent)" oninput="setZoom(this.value)">
+      <button class="tool-btn" style="width:100%;margin-top:6px;justify-content:center" onclick="resetView()">Reset View</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- BROWSE VIEW (hidden initially) -->
+<div id="browseView" style="display:none;flex:1;overflow-y:auto;padding:24px;">
+  <div style="max-width:900px;margin:0 auto;">
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:6px;">Browse Plays</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:24px;">Click a play to open it in the editor. Organized by formation.</p>
+    <div id="browseContent"></div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Formation Modal -->
+<div class="modal-overlay" id="formationModal">
+  <div class="modal">
+    <h2>New Formation</h2>
+    <p>Create a formation to group your plays under.</p>
+    <div class="modal-field">
+      <label>Formation Name</label>
+      <input class="modal-input" id="fmName" placeholder="e.g. Shotgun Spread, I-Form, 4-3">
+    </div>
+    <div class="modal-field">
+      <label>Type</label>
+      <select class="modal-select" id="fmType">
+        <option value="off">Offense</option>
+        <option value="def">Defense</option>
+        <option value="st">Special Teams</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Notes (optional)</label>
+      <input class="modal-input" id="fmNotes" placeholder="Describe when to use this formation">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('formationModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addFormation()">Create Formation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase Modal -->
+<div class="modal-overlay" id="supabaseModal">
+  <div class="modal">
+    <h2>Connect Supabase</h2>
+    <p>Enter your Supabase project URL and anon key. Data is stored in your browser until connected.</p>
+    <div class="modal-field">
+      <label>Supabase URL</label>
+      <input class="modal-input" id="sbUrl" placeholder="https://xxxx.supabase.co" value="">
+    </div>
+    <div class="modal-field">
+      <label>Anon Key</label>
+      <input class="modal-input" id="sbKey" placeholder="eyJhbGc..." value="">
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:-10px;margin-bottom:16px;">
+      ① Create a free project at <strong>supabase.com</strong><br>
+      ② Go to Settings → API → copy Project URL + anon key<br>
+      ③ Run the SQL below in Supabase SQL Editor to create tables
+    </p>
+    <details style="font-size:11px;color:var(--muted);margin-bottom:16px;">
+      <summary style="cursor:pointer;color:var(--accent2)">Show setup SQL ▾</summary>
+      <pre style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:8px;overflow-x:auto;font-size:10px;line-height:1.6;color:#9ca3af">create table formations (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  type text,
+  notes text,
+  created_at timestamptz default now()
+);
+
+create table plays (
+  id uuid primary key default gen_random_uuid(),
+  formation_id uuid references formations(id) on delete cascade,
+  name text not null,
+  notes text,
+  data jsonb,
+  created_at timestamptz default now()
+);
+
+-- Enable RLS + read-only public access
+alter table formations enable row level security;
+alter table plays enable row level security;
+create policy "public read" on formations for select using (true);
+create policy "public read" on plays for select using (true);
+create policy "anon write" on formations for all using (true);
+create policy "anon write" on plays for all using (true);</pre>
+    </details>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('supabaseModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="connectSupabase()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h2>Share Playbook</h2>
+    <p>Anyone with this link can view plays but cannot edit or delete them.</p>
+    <div class="share-link-box" id="shareLinkBox">Connect to Supabase to generate a share link.</div>
+    <button class="btn btn-primary" onclick="copyShareLink()" style="width:100%">Copy Share Link</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="btn btn-ghost" onclick="closeModal('shareModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let formations = JSON.parse(localStorage.getItem('pb_formations') || '[]');
+let plays = JSON.parse(localStorage.getItem('pb_plays') || '[]');
+let sbUrl = localStorage.getItem('pb_sbUrl') || '';
+let sbKey = localStorage.getItem('pb_sbKey') || '';
+let sbConnected = false;
+
+let currentFormationId = null;
+let currentPlayId = null;
+let currentTool = 'select';
+let playerColor = '#f59e0b';
+let routeColor = '#22c55e';
+let lineStyle = 'arrow';
+let currentPos = 'WR';
+let selectedPlayer = null;
+let history = [];
+
+// Canvas state
+let players = [];
+let routes = [];
+let dragging = false;
+let dragPlayer = null;
+let dragOffX = 0, dragOffY = 0;
+let drawingRoute = null;
+let routePoints = [];
+
+// Viewport / pan-zoom
+let viewX = 0, viewY = 0, viewScale = 1;
+let isPanning = false;
+let panStart = {x:0, y:0};
+let spaceDown = false;
+let middleDown = false;
+
+// ─── CANVAS SETUP ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('playCanvas');
+const ctx = canvas.getContext('2d');
+const wrapper = document.getElementById('canvasWrapper');
+
+// Field dimensions (virtual px)
+const FIELD_W = 1000;
+const FIELD_H = 600;
+
+function resizeCanvas() {
+  canvas.width = wrapper.clientWidth;
+  canvas.height = wrapper.clientHeight;
+  drawAll();
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ─── DRAW ─────────────────────────────────────────────────────────────────────
+function toScreen(fx, fy) {
+  return {
+    x: fx * viewScale + viewX + canvas.width/2 - FIELD_W/2 * viewScale,
+    y: fy * viewScale + viewY + canvas.height/2 - FIELD_H/2 * viewScale
+  };
+}
+
+function toField(sx, sy) {
+  return {
+    x: (sx - viewX - canvas.width/2 + FIELD_W/2 * viewScale) / viewScale,
+    y: (sy - viewY - canvas.height/2 + FIELD_H/2 * viewScale) / viewScale
+  };
+}
+
+function drawField() {
+  const tl = toScreen(0, 0);
+  const br = toScreen(FIELD_W, FIELD_H);
+  const fw = br.x - tl.x;
+  const fh = br.y - tl.y;
+
+  // BG
+  ctx.fillStyle = '#1a3d16';
+  ctx.fillRect(tl.x, tl.y, fw, fh);
+
+  // Alternating yard stripes
+  const yards = 10;
+  const stripeW = fw / yards;
+  for (let i = 0; i < yards; i++) {
+    if (i % 2 === 0) {
+      ctx.fillStyle = '#1e4a19';
+      ctx.fillRect(tl.x + i * stripeW, tl.y, stripeW, fh);
+    }
+  }
+
+  // Grid lines (minor)
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 1;
+  const gridCols = 20, gridRows = 12;
+  for (let i = 0; i <= gridCols; i++) {
+    const x = tl.x + i * fw/gridCols;
+    ctx.beginPath(); ctx.moveTo(x, tl.y); ctx.lineTo(x, br.y); ctx.stroke();
+  }
+  for (let j = 0; j <= gridRows; j++) {
+    const y = tl.y + j * fh/gridRows;
+    ctx.beginPath(); ctx.moveTo(tl.x, y); ctx.lineTo(br.x, y); ctx.stroke();
+  }
+
+  // Yard lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i <= yards; i++) {
+    const x = tl.x + i * stripeW;
+    ctx.beginPath(); ctx.moveTo(x, tl.y); ctx.lineTo(x, br.y); ctx.stroke();
+  }
+
+  // Line of scrimmage (middle)
+  ctx.strokeStyle = 'rgba(232,180,42,0.6)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 6]);
+  const midY = toScreen(0, FIELD_H/2).y;
+  ctx.beginPath(); ctx.moveTo(tl.x, midY); ctx.lineTo(br.x, midY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Border
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(tl.x, tl.y, fw, fh);
+
+  // LOS label
+  ctx.fillStyle = 'rgba(232,180,42,0.7)';
+  ctx.font = `${Math.max(9, 11 * viewScale)}px Inter`;
+  ctx.fillText('LOS', tl.x + 4, midY - 4);
+}
+
+function drawArrow(ctx, x, y, angle, size) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-size, -size * 0.6);
+  ctx.lineTo(-size, size * 0.6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawRoutes() {
+  routes.forEach(r => {
+    if (!r.points || r.points.length < 2) return;
+    const pts = r.points.map(p => toScreen(p.x, p.y));
+    ctx.save();
+    ctx.strokeStyle = r.color || '#22c55e';
+    ctx.lineWidth = 2.5 * Math.min(viewScale, 1.5);
+    if (r.style === 'dashed' || r.motion) {
+      ctx.setLineDash([8, 5]);
+    } else {
+      ctx.setLineDash([]);
+    }
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Arrow at end
+    if (r.style !== 'dashed' && !r.motion && pts.length >= 2) {
+      const last = pts[pts.length - 1];
+      const prev = pts[pts.length - 2];
+      const angle = Math.atan2(last.y - prev.y, last.x - prev.x);
+      ctx.fillStyle = r.color || '#22c55e';
+      drawArrow(ctx, last.x, last.y, angle, 10 * Math.min(viewScale, 1.5));
+    }
+    ctx.restore();
+  });
+
+  // In-progress route
+  if (drawingRoute && routePoints.length >= 1) {
+    const pts = routePoints.map(p => toScreen(p.x, p.y));
+    ctx.save();
+    ctx.strokeStyle = routeColor;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(currentTool === 'motion' ? [8,5] : []);
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawPlayers() {
+  players.forEach(p => {
+    const s = toScreen(p.x, p.y);
+    const r = Math.max(10, 16 * Math.min(viewScale, 1.5));
+
+    ctx.save();
+    if (p === selectedPlayer) {
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = 12;
+    }
+
+    // Circle fill
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color || '#f59e0b';
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = p === selectedPlayer ? '#fff' : 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = p === selectedPlayer ? 2.5 : 1.5;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#000';
+    ctx.font = `bold ${Math.max(8, 10 * Math.min(viewScale, 1.5))}px Inter`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.pos || '?', s.x, s.y);
+
+    ctx.restore();
+  });
+}
+
+function drawAll() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0a0c10';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawField();
+  drawRoutes();
+  drawPlayers();
+}
+
+// ─── TOOL HANDLING ───────────────────────────────────────────────────────────
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function playerAtScreen(sx, sy) {
+  return players.find(p => {
+    const s = toScreen(p.x, p.y);
+    const r = Math.max(10, 16 * Math.min(viewScale, 1.5));
+    return Math.hypot(sx - s.x, sy - s.y) < r + 4;
+  });
+}
+
+canvas.addEventListener('mousedown', e => {
+  const mp = getMousePos(e);
+  const fp = toField(mp.x, mp.y);
+
+  // Middle mouse or space = pan
+  if (e.button === 1 || spaceDown) {
+    isPanning = true;
+    panStart = {x: mp.x - viewX, y: mp.y - viewY};
+    canvas.style.cursor = 'grabbing';
+    e.preventDefault();
+    return;
+  }
+
+  if (currentTool === 'select') {
+    const hit = playerAtScreen(mp.x, mp.y);
+    if (hit) {
+      selectedPlayer = hit;
+      dragging = true;
+      dragPlayer = hit;
+      const sp = toScreen(hit.x, hit.y);
+      dragOffX = mp.x - sp.x;
+      dragOffY = mp.y - sp.y;
+      showSelInfo();
+    } else {
+      selectedPlayer = null;
+      hideSelInfo();
+    }
+    drawAll();
+  } else if (currentTool === 'player') {
+    pushHistory();
+    players.push({ x: fp.x, y: fp.y, color: playerColor, pos: currentPos, id: Date.now() });
+    drawAll();
+  } else if (currentTool === 'route' || currentTool === 'motion') {
+    const hit = playerAtScreen(mp.x, mp.y);
+    if (hit) {
+      drawingRoute = hit;
+      routePoints = [{ x: hit.x, y: hit.y }];
+    } else if (drawingRoute) {
+      routePoints.push(fp);
+      drawAll();
+    }
+  } else if (currentTool === 'line') {
+    drawingRoute = true;
+    routePoints = [fp];
+  } else if (currentTool === 'erase') {
+    const hit = playerAtScreen(mp.x, mp.y);
+    if (hit) {
+      pushHistory();
+      players = players.filter(p => p !== hit);
+      routes = routes.filter(r => r.playerId !== hit.id);
+      drawAll();
+    } else {
+      // Erase nearest route
+      const nearest = nearestRoute(mp.x, mp.y);
+      if (nearest) {
+        pushHistory();
+        routes = routes.filter(r => r !== nearest);
+        drawAll();
+      }
+    }
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const mp = getMousePos(e);
+  const fp = toField(mp.x, mp.y);
+
+  if (isPanning) {
+    viewX = mp.x - panStart.x;
+    viewY = mp.y - panStart.y;
+    drawAll();
+    return;
+  }
+
+  if (dragging && dragPlayer) {
+    const fp2 = toField(mp.x - dragOffX, mp.y - dragOffY);
+    // Update route endpoints that start from this player
+    const dx = fp2.x - dragPlayer.x;
+    const dy = fp2.y - dragPlayer.y;
+    routes.forEach(r => {
+      if (r.playerId === dragPlayer.id && r.points.length > 0) {
+        r.points[0].x += dx;
+        r.points[0].y += dy;
+      }
+    });
+    dragPlayer.x = fp2.x;
+    dragPlayer.y = fp2.y;
+    drawAll();
+  }
+
+  if ((currentTool === 'route' || currentTool === 'motion') && drawingRoute) {
+    if (routePoints.length >= 1) {
+      const preview = [...routePoints, fp];
+      drawAll();
+      const pts = preview.map(p => toScreen(p.x, p.y));
+      ctx.save();
+      ctx.strokeStyle = routeColor;
+      ctx.lineWidth = 2;
+      ctx.setLineDash(currentTool === 'motion' ? [8,5] : [3,3]);
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      pts.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  if (currentTool === 'line' && drawingRoute === true && routePoints.length >= 1) {
+    drawAll();
+    const pts = [...routePoints, fp].map(p => toScreen(p.x, p.y));
+    ctx.save();
+    ctx.strokeStyle = routeColor;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5,4]);
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    ctx.restore();
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (isPanning) {
+    isPanning = false;
+    canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
+    return;
+  }
+  if (dragging) {
+    dragging = false;
+    dragPlayer = null;
+  }
+});
+
+canvas.addEventListener('dblclick', e => {
+  const mp = getMousePos(e);
+  const fp = toField(mp.x, mp.y);
+
+  if ((currentTool === 'route' || currentTool === 'motion') && drawingRoute && routePoints.length >= 2) {
+    pushHistory();
+    routes.push({
+      points: [...routePoints],
+      color: routeColor,
+      style: currentTool === 'motion' ? 'dashed' : lineStyle,
+      motion: currentTool === 'motion',
+      playerId: drawingRoute.id || null
+    });
+    drawingRoute = null;
+    routePoints = [];
+    drawAll();
+  }
+
+  if (currentTool === 'line' && drawingRoute === true && routePoints.length >= 2) {
+    pushHistory();
+    routes.push({
+      points: [...routePoints],
+      color: routeColor,
+      style: 'solid',
+      motion: false,
+      playerId: null
+    });
+    drawingRoute = null;
+    routePoints = [];
+    drawAll();
+  }
+});
+
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  if ((currentTool === 'route' || currentTool === 'motion' || currentTool === 'line') && drawingRoute) {
+    if (routePoints.length >= 2) {
+      const mp = getMousePos(e);
+      const fp = toField(mp.x, mp.y);
+      pushHistory();
+      routes.push({
+        points: [...routePoints, fp],
+        color: routeColor,
+        style: currentTool === 'motion' ? 'dashed' : lineStyle,
+        motion: currentTool === 'motion',
+        playerId: drawingRoute.id || null
+      });
+    }
+    drawingRoute = null;
+    routePoints = [];
+    drawAll();
+  }
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const mp = getMousePos(e);
+  const zoomFactor = e.deltaY > 0 ? 0.92 : 1.09;
+  const newScale = Math.min(4, Math.max(0.2, viewScale * zoomFactor));
+  viewX = mp.x - (mp.x - viewX) * (newScale / viewScale);
+  viewY = mp.y - (mp.y - viewY) * (newScale / viewScale);
+  viewScale = newScale;
+  document.getElementById('zoomSlider').value = Math.round(viewScale * 100);
+  document.getElementById('zoomLabel').textContent = Math.round(viewScale * 100) + '%';
+  drawAll();
+}, { passive: false });
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space') { spaceDown = true; canvas.style.cursor = 'grab'; }
+  if (e.key === 'Escape') {
+    drawingRoute = null; routePoints = [];
+    selectedPlayer = null; hideSelInfo(); drawAll();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoAction(); }
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space') { spaceDown = false; canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair'; }
+});
+
+function nearestRoute(sx, sy) {
+  let best = null, bestD = 20;
+  routes.forEach(r => {
+    for (let i = 0; i < r.points.length - 1; i++) {
+      const a = toScreen(r.points[i].x, r.points[i].y);
+      const b = toScreen(r.points[i+1].x, r.points[i+1].y);
+      const d = distToSegment(sx, sy, a.x, a.y, b.x, b.y);
+      if (d < bestD) { bestD = d; best = r; }
+    }
+  });
+  return best;
+}
+
+function distToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  if (dx === 0 && dy === 0) return Math.hypot(px-ax, py-ay);
+  const t = Math.max(0, Math.min(1, ((px-ax)*dx + (py-ay)*dy) / (dx*dx+dy*dy)));
+  return Math.hypot(px - (ax+t*dx), py - (ay+t*dy));
+}
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+function setTool(t) {
+  currentTool = t;
+  drawingRoute = null; routePoints = [];
+  document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('tool-' + t);
+  if (el) el.classList.add('active');
+  canvas.style.cursor = t === 'select' ? 'default' : 'crosshair';
+}
+
+function setPlayerColor(c, el) {
+  playerColor = c;
+  document.querySelectorAll('#colorSwatches .color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  if (selectedPlayer) { selectedPlayer.color = c; drawAll(); }
+}
+
+function setRouteColor(c, el) {
+  routeColor = c;
+  document.querySelectorAll('#routeColorSwatches .color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setLineStyle(s) {
+  lineStyle = s;
+  document.querySelectorAll('[id^="line-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('line-' + s).classList.add('active');
+}
+
+function setPos(p) { currentPos = p; if (selectedPlayer) { selectedPlayer.pos = p; drawAll(); } }
+
+function setZoom(v) {
+  viewScale = v / 100;
+  document.getElementById('zoomLabel').textContent = v + '%';
+  drawAll();
+}
+
+function resetView() {
+  viewX = 0; viewY = 0; viewScale = 1;
+  document.getElementById('zoomSlider').value = 100;
+  document.getElementById('zoomLabel').textContent = '100%';
+  drawAll();
+}
+
+function clearCanvas() {
+  if (!confirm('Clear all players and routes?')) return;
+  pushHistory();
+  players = []; routes = [];
+  selectedPlayer = null; drawAll();
+}
+
+function showSelInfo() { document.getElementById('selInfo').classList.add('show'); }
+function hideSelInfo() { document.getElementById('selInfo').classList.remove('show'); }
+
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+function pushHistory() {
+  history.push({ players: JSON.parse(JSON.stringify(players)), routes: JSON.parse(JSON.stringify(routes)) });
+  if (history.length > 30) history.shift();
+}
+
+function undoAction() {
+  if (!history.length) return;
+  const h = history.pop();
+  players = h.players;
+  routes = h.routes;
+  selectedPlayer = null;
+  drawAll();
+  toast('Undone', 'success');
+}
+
+// ─── FORMATIONS & PLAYS ──────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('sidebarList');
+  const sel = document.getElementById('formationSelect');
+  list.innerHTML = '';
+  sel.innerHTML = '<option value="">— select formation —</option>';
+
+  if (!formations.length) {
+    list.innerHTML = `<div style="padding:20px 14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7">No formations yet.<br>Click <strong style="color:var(--accent)">＋</strong> above to create one.</div>`;
+    return;
+  }
+
+  formations.forEach(f => {
+    sel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+    const fPlays = plays.filter(p => p.formationId === f.id);
+    const group = document.createElement('div');
+    group.className = 'formation-group';
+    const typeLabel = f.type === 'off' ? 'OFF' : f.type === 'def' ? 'DEF' : 'ST';
+    group.innerHTML = `
+      <div class="formation-header" onclick="toggleFormation('${f.id}')">
+        <span class="formation-chevron" id="chev-${f.id}">▶</span>
+        <span class="formation-name">${f.name}</span>
+        <span class="formation-type-tag ${f.type}">${typeLabel}</span>
+        <span class="formation-badge">${fPlays.length}</span>
+      </div>
+      <div class="play-list" id="plays-${f.id}">
+        ${fPlays.map(pl => `
+          <div class="play-item ${pl.id === currentPlayId ? 'active' : ''}" onclick="loadPlay('${pl.id}')">
+            <span class="play-dot"></span>${pl.name}
+          </div>`).join('')}
+        <div class="play-item" style="color:var(--accent2);font-style:italic" onclick="newPlay('${f.id}')">
+          ＋ New play
+        </div>
+      </div>`;
+    list.appendChild(group);
+  });
+
+  if (currentFormationId) {
+    const el = document.getElementById(`plays-${currentFormationId}`);
+    if (el) { el.classList.add('open'); document.getElementById(`chev-${currentFormationId}`).classList.add('open'); }
+  }
+}
+
+function toggleFormation(id) {
+  const el = document.getElementById('plays-' + id);
+  const chev = document.getElementById('chev-' + id);
+  el.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function selectFormation(id) {
+  currentFormationId = id || null;
+  renderSidebar();
+}
+
+function addFormation() {
+  const name = document.getElementById('fmName').value.trim();
+  if (!name) { toast('Enter a formation name', 'error'); return; }
+  const f = { id: uid(), name, type: document.getElementById('fmType').value, notes: document.getElementById('fmNotes').value };
+  formations.push(f);
+  persist();
+  if (sbConnected) syncFormation(f);
+  currentFormationId = f.id;
+  closeModal('formationModal');
+  renderSidebar();
+  document.getElementById('formationSelect').value = f.id;
+  toast('Formation created!', 'success');
+  document.getElementById('fmName').value = '';
+  document.getElementById('fmNotes').value = '';
+}
+
+function newPlay(formationId) {
+  currentFormationId = formationId;
+  currentPlayId = null;
+  players = []; routes = [];
+  selectedPlayer = null;
+  document.getElementById('playNameInput').value = 'New Play';
+  document.getElementById('formationSelect').value = formationId;
+  renderSidebar();
+  drawAll();
+  setView('editor');
+}
+
+function savePlay() {
+  const name = document.getElementById('playNameInput').value.trim();
+  if (!name) { toast('Enter a play name', 'error'); return; }
+  if (!currentFormationId) { toast('Select a formation first', 'error'); return; }
+
+  const data = { players, routes };
+
+  if (currentPlayId) {
+    const idx = plays.findIndex(p => p.id === currentPlayId);
+    if (idx !== -1) {
+      plays[idx] = { ...plays[idx], name, data };
+      if (sbConnected) syncPlay(plays[idx]);
+    }
+  } else {
+    const pl = { id: uid(), formationId: currentFormationId, name, notes: '', data };
+    plays.push(pl);
+    currentPlayId = pl.id;
+    if (sbConnected) syncPlay(pl);
+  }
+
+  persist();
+  renderSidebar();
+  toast('Play saved!', 'success');
+}
+
+function loadPlay(id) {
+  const pl = plays.find(p => p.id === id);
+  if (!pl) return;
+  currentPlayId = pl.id;
+  currentFormationId = pl.formationId;
+  document.getElementById('playNameInput').value = pl.name;
+  document.getElementById('formationSelect').value = pl.formationId;
+  players = JSON.parse(JSON.stringify(pl.data?.players || []));
+  routes = JSON.parse(JSON.stringify(pl.data?.routes || []));
+  selectedPlayer = null;
+  history = [];
+  renderSidebar();
+  drawAll();
+  setView('editor');
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────────────────────
+function setView(v) {
+  document.getElementById('editorView').style.display = v === 'editor' ? 'flex' : 'none';
+  document.getElementById('browseView').style.display = v === 'browse' ? 'block' : 'none';
+  document.getElementById('rightPanel').style.display = v === 'editor' ? 'flex' : 'none';
+  document.querySelectorAll('nav .nav-btn').forEach((b, i) => b.classList.toggle('active', (v === 'editor' && i === 0) || (v === 'browse' && i === 1)));
+  if (v === 'browse') renderBrowse();
+}
+
+function renderBrowse() {
+  const el = document.getElementById('browseContent');
+  if (!formations.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>No Plays Yet</h3><p>Create a formation and add some plays to see them here.</p></div>`; return; }
+
+  el.innerHTML = formations.map(f => {
+    const fPlays = plays.filter(p => p.formationId === f.id);
+    const typeLabel = f.type === 'off' ? 'OFFENSE' : f.type === 'def' ? 'DEFENSE' : 'SPECIAL TEAMS';
+    return `
+      <div style="margin-bottom:32px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px">
+          <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px">${f.name}</h3>
+          <span class="formation-type-tag ${f.type}" style="font-size:10px">${typeLabel}</span>
+          ${f.notes ? `<span style="font-size:12px;color:var(--muted)">${f.notes}</span>` : ''}
+        </div>
+        ${fPlays.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+          ${fPlays.map(pl => `
+            <div onclick="loadPlay('${pl.id}')" style="background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px">${pl.name}</div>
+              <div style="font-size:11px;color:var(--muted)">${(pl.data?.players||[]).length} players · ${(pl.data?.routes||[]).length} routes</div>
+            </div>`).join('')}
+        </div>` : `<div style="color:var(--muted);font-size:13px;font-style:italic">No plays in this formation yet.</div>`}
+      </div>`;
+  }).join('');
+}
+
+// ─── PRINT ────────────────────────────────────────────────────────────────────
+function printPlay() {
+  const playName = document.getElementById('playNameInput').value || 'Play';
+  const win = window.open('', '_blank');
+  const dataUrl = canvas.toDataURL('image/png');
+  win.document.write(`<!DOCTYPE html><html><head><title>${playName}</title>
+    <style>body{margin:0;padding:20px;background:#fff;font-family:sans-serif}
+    h1{font-size:22px;margin-bottom:4px}p{color:#666;font-size:13px;margin-bottom:16px}
+    img{max-width:100%;border:2px solid #ccc;border-radius:8px}
+    @media print{h1,p{color:#000}}</style></head>
+    <body><h1>${playName}</h1><p>Formation: ${formations.find(f=>f.id===currentFormationId)?.name||'—'}</p>
+    <img src="${dataUrl}"><script>window.print();<\/script></body></html>`);
+  win.document.close();
+}
+
+// ─── SUPABASE ────────────────────────────────────────────────────────────────
+async function connectSupabase() {
+  const url = document.getElementById('sbUrl').value.trim();
+  const key = document.getElementById('sbKey').value.trim();
+  if (!url || !key) { toast('Enter URL and key', 'error'); return; }
+  sbUrl = url; sbKey = key;
+  localStorage.setItem('pb_sbUrl', url);
+  localStorage.setItem('pb_sbKey', key);
+
+  try {
+    // Test connection
+    const r = await sbFetch('formations?limit=1');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    sbConnected = true;
+    updateStatus(true);
+    closeModal('supabaseModal');
+    toast('Connected to Supabase!', 'success');
+    await loadFromSupabase();
+  } catch(e) {
+    toast('Connection failed: ' + e.message, 'error');
+  }
+}
+
+function sbFetch(path, options = {}) {
+  return fetch(`${sbUrl}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': sbKey,
+      'Authorization': 'Bearer ' + sbKey,
+      'Content-Type': 'application/json',
+      'Prefer': options.method === 'POST' ? 'return=representation' : undefined,
+      ...(options.headers || {})
+    }
+  });
+}
+
+async function loadFromSupabase() {
+  try {
+    const [fRes, pRes] = await Promise.all([sbFetch('formations?order=created_at'), sbFetch('plays?order=created_at')]);
+    const fData = await fRes.json();
+    const pData = await pRes.json();
+    if (Array.isArray(fData)) {
+      formations = fData.map(f => ({ id: f.id, name: f.name, type: f.type, notes: f.notes }));
+    }
+    if (Array.isArray(pData)) {
+      plays = pData.map(p => ({ id: p.id, formationId: p.formation_id, name: p.name, notes: p.notes, data: p.data }));
+    }
+    persist();
+    renderSidebar();
+    toast('Plays loaded from cloud ✓', 'success');
+  } catch(e) {
+    toast('Failed to load from Supabase', 'error');
+  }
+}
+
+async function syncFormation(f) {
+  try {
+    await sbFetch('formations', {
+      method: 'POST',
+      body: JSON.stringify({ id: f.id, name: f.name, type: f.type, notes: f.notes }),
+      headers: { 'Prefer': 'return=representation,resolution=merge-duplicates' }
+    });
+  } catch(e) { console.warn('Sync formation failed', e); }
+}
+
+async function syncPlay(pl) {
+  try {
+    await sbFetch('plays', {
+      method: 'POST',
+      body: JSON.stringify({ id: pl.id, formation_id: pl.formationId, name: pl.name, notes: pl.notes || '', data: pl.data }),
+      headers: { 'Prefer': 'return=representation,resolution=merge-duplicates' }
+    });
+  } catch(e) { console.warn('Sync play failed', e); }
+}
+
+function updateStatus(connected) {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  if (connected) {
+    dot.classList.add('connected');
+    txt.textContent = 'Cloud connected';
+    sbConnected = true;
+  } else {
+    dot.classList.remove('connected');
+    txt.textContent = 'Local only';
+  }
+}
+
+// Share: generate a read-only URL with encoded data
+function openShareModal() {
+  const encoded = btoa(JSON.stringify({ formations, plays: plays.map(p => ({...p, data: p.data})) }));
+  const link = `${location.origin}${location.pathname}?share=${encoded}`;
+  document.getElementById('shareLinkBox').textContent = link.substring(0, 80) + '...';
+  document.getElementById('shareLinkBox').dataset.full = link;
+  openModal('shareModal');
+}
+
+function copyShareLink() {
+  const link = document.getElementById('shareLinkBox').dataset.full ||
+    `${location.origin}${location.pathname}?share=${btoa(JSON.stringify({formations, plays}))}`;
+  navigator.clipboard.writeText(link).then(() => toast('Link copied!', 'success'));
+}
+
+// Check for share param on load
+function checkShareMode() {
+  const params = new URLSearchParams(location.search);
+  if (params.has('share')) {
+    try {
+      const d = JSON.parse(atob(params.get('share')));
+      formations = d.formations || [];
+      plays = d.plays || [];
+      renderSidebar();
+      // Disable edit controls
+      document.querySelectorAll('.tool-btn, .icon-btn, .nav-btn').forEach(b => {
+        if (!b.textContent.includes('Browse') && !b.textContent.includes('Editor')) b.disabled = true;
+      });
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 14px;margin:10px;font-size:12px;color:#60a5fa';
+      banner.textContent = '👁 View-only mode — you can browse and print, but not edit.';
+      document.querySelector('.sidebar').insertBefore(banner, document.querySelector('.sidebar-list'));
+      toast('Viewing shared playbook (read-only)', 'success');
+    } catch(e) {}
+  }
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+function persist() {
+  localStorage.setItem('pb_formations', JSON.stringify(formations));
+  localStorage.setItem('pb_plays', JSON.stringify(plays));
+}
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = 'toast', 2500);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.getElementById('sbUrl').value = sbUrl;
+document.getElementById('sbKey').value = sbKey;
+
+if (sbUrl && sbKey) {
+  connectSupabase().catch(() => {});
+} else {
+  document.getElementById('setupBanner').classList.add('show');
+}
+
+checkShareMode();
+renderSidebar();
+drawAll();
+</script>
+</body>
+</html>
