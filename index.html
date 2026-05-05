@@ -1042,27 +1042,7 @@ function handleMove(sx,sy){
     dragP.x=fp.x;dragP.y=fp.y;drawAll();
   }
   if((tool==='route'||tool==='motion'||tool==='block')&&drawingRoute&&routePts.length>=1){
-    const fp=toF(sx,sy);
-    const preview=[...routePts,fp].map(p=>toS(p.x,p.y));
-    drawAll();
-    ctx.save();ctx.strokeStyle=rColor;ctx.lineWidth=2.5*Math.min(vs,1.5);
-    ctx.setLineDash(tool==='motion'?[9,5]:tool==='block'?[]:[5,4]);
-    ctx.beginPath();preview.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
-    ctx.setLineDash([]);ctx.restore();
-  }
-}
 
-function finishRoute(){
-  if((tool==='route'||tool==='motion'||tool==='block')&&drawingRoute&&routePts.length>=2){
-    pushH();
-    eRoutes.push({
-      points:[...routePts],
-      color:rColor,
-      type:tool==='block'?'block':tool==='motion'?'motion':'route',
-      motion:tool==='motion',
-      playerId:drawingRoute.id||null
-    });
-    drawingRoute=null;routePts=[];drawAll();buildOpts();
 // ═══════════════════════════════════════════════
 // PLAY CANVAS
 // ═══════════════════════════════════════════════
