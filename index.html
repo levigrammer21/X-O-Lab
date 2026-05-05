@@ -684,77 +684,7 @@ function handleFormMove(sx,sy){
   }
 }
 
-// ═══════════════════════════════════════════════
-// PLAYS
-// ═══════════════════════════════════════════════
-function renderPlays(){
-  const el=document.getElementById('playsList');
-  if(!plays.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🏃</div><h3>No Plays Yet</h3><p>${canEdit?'Tap + Play to draw your first play.':'No plays yet.'}</p></div>`;return;}
-  el.innerHTML=`<div class="play-grid">${plays.map(p=>`
-    <div class="play-card" onclick="openPlay('${p.id}')">
-      <div class="play-preview" id="prev-${p.id}"></div>
-      <div class="play-card-name">${esc(p.name)}</div>
-      <div class="play-card-sub">
-        <span>${(p.data?.players||[]).length}p · ${(p.data?.routes||[]).length}r</span>
-        ${canEdit?`<button onclick="event.stopPropagation();confirmDel('play','${p.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">🗑</button>`:''}
-      </div>
-    </div>`).join('')}</div>`;
-  plays.forEach(p=>{if(p.data)setTimeout(()=>miniPrev(p),80);});
-}
 
-function miniPrev(play){
-  const wrap=document.getElementById('prev-'+play.id);
-  if(!wrap||wrap.querySelector('canvas'))return;
-  const c=document.createElement('canvas');
-  c.width=wrap.clientWidth||148;c.height=wrap.clientHeight||70;
-  wrap.appendChild(c);
-  const cx=c.getContext('2d');
-  cx.fillStyle='#1a3d16';cx.fillRect(0,0,c.width,c.height);
-  cx.strokeStyle='rgba(240,180,41,.4)';cx.setLineDash([4,3]);
-  cx.beginPath();cx.moveTo(0,c.height/2);cx.lineTo(c.width,c.height/2);cx.stroke();cx.setLineDash([]);
-  const sx=w=>w/FW*c.width, sy=h=>h/FH*c.height;
-  (play.data?.routes||[]).forEach(r=>{
-    if(!r.points||r.points.length<2)return;
-    cx.strokeStyle=r.color||'#41c97a';cx.lineWidth=1.5;
-    cx.setLineDash(r.motion?[4,3]:[]);
-    cx.beginPath();cx.moveTo(sx(r.points[0].x),sy(r.points[0].y));
-    r.points.forEach(p=>cx.lineTo(sx(p.x),sy(p.y)));cx.stroke();cx.setLineDash([]);
-  });
-  (play.data?.players||[]).forEach(p=>{
-    cx.beginPath();cx.arc(sx(p.x),sy(p.y),5,0,Math.PI*2);
-    cx.fillStyle=p.color||'#f0b429';cx.fill();
-  });
-}
-
-window.newPlay=function(){
-  if(!canEdit){toast('View only','err');return;}
-  currentPlay=null;
-  // Load formation template players
-  ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
-  eRoutes=[];selP=null;eHistory=[];
-  vx=0;vy=0;vs=1;drawingRoute=null;routePts=[];
-  document.getElementById('playNameInput').value='';
-  tool='select';syncToolUI();
-  navTo('editorScreen');
-  setTimeout(()=>{resizeCv();drawAll();},110);
-};
-
-window.openPlay=function(id){
-  currentPlay=plays.find(p=>p.id===id);
-  ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
-  eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
-  selP=null;eHistory=[];vx=0;vy=0;vs=1;drawingRoute=null;routePts=[];
-  document.getElementById('playNameInput').value=currentPlay.name;
-  // Read-only if view only
-  document.getElementById('editorScreen').querySelector('.e-save').style.display=canEdit?'':'none';
-  tool='select';syncToolUI();
-  navTo('editorScreen');
-  setTimeout(()=>{resizeCv();drawAll();},110);
-};
-
-window.savePlay=async function(){
-  if(!canEdit)return;
-  const name=document.getElementById('playNameInput').value.trim();
 // ═══════════════════════════════════════════════
 // PLAYS
 // ═══════════════════════════════════════════════
