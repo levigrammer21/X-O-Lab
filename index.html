@@ -2,1304 +2,815 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Playbook</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>X&O Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0e0f13;
-    --panel: #16181f;
-    --panel2: #1e2029;
-    --border: #2a2d38;
-    --accent: #e8b42a;
-    --accent2: #3b82f6;
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --danger: #ef4444;
-    --green: #22c55e;
-    --field-green: #2d5a27;
-    --field-line: #3a7a32;
-    --radius: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+:root {
+  --bg: #0b0c0f;
+  --card: #13151a;
+  --card2: #1a1d24;
+  --border: #252830;
+  --accent: #f0b429;
+  --accent-dim: rgba(240,180,41,0.12);
+  --red: #f04141;
+  --blue: #4182f0;
+  --green: #41c97a;
+  --text: #eceef2;
+  --muted: #5a5f6e;
+  --radius: 12px;
+  --field: #1f4a1a;
+  --safe: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; touch-action: none; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; display: flex; flex-direction: column; }
 
-  /* TOP NAV */
-  nav { height: 52px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 16px; flex-shrink: 0; z-index: 100; }
-  .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); letter-spacing: 2px; }
-  .nav-sep { width: 1px; height: 24px; background: var(--border); }
-  .nav-btn { background: none; border: 1px solid var(--border); color: var(--text); padding: 5px 14px; border-radius: var(--radius); font-size: 13px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
-  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-  .nav-btn.danger { border-color: var(--danger); color: var(--danger); }
-  .nav-btn.danger:hover { background: var(--danger); color: #fff; }
-  .nav-spacer { flex: 1; }
-  .supabase-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-  .status-dot.connected { background: var(--green); }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s; }
+.screen.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+.screen.slide-left { transform: translateX(-100%); opacity: 0; pointer-events: none; }
 
-  /* MAIN LAYOUT */
-  .app { display: flex; flex: 1; overflow: hidden; }
+.header { display: flex; align-items: center; padding: 16px 16px 12px; gap: 12px; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--card); }
+.header-back { width: 40px; height: 40px; border-radius: 10px; background: var(--card2); border: none; color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.header-title { flex: 1; }
+.header-title h1 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; line-height: 1; }
+.header-title p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.header-action { width: 40px; height: 40px; border-radius: 10px; background: var(--accent); border: none; color: #000; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.header-action.ghost { background: var(--card2); color: var(--text); font-size: 18px; }
 
-  /* SIDEBAR */
-  .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
-  .sidebar-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--muted); }
-  .icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 2px 6px; border-radius: 4px; transition: all .15s; line-height: 1; }
-  .icon-btn:hover { color: var(--text); background: var(--panel2); }
-  .icon-btn.accent:hover { color: var(--accent); }
-  .sidebar-list { flex: 1; overflow-y: auto; }
-  .sidebar-list::-webkit-scrollbar { width: 4px; }
-  .sidebar-list::-webkit-scrollbar-track { background: transparent; }
-  .sidebar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.scroll::-webkit-scrollbar { display: none; }
 
-  /* FORMATION GROUPS */
-  .formation-group { border-bottom: 1px solid var(--border); }
-  .formation-header { display: flex; align-items: center; padding: 9px 14px; cursor: pointer; gap: 8px; transition: background .12s; }
-  .formation-header:hover { background: var(--panel2); }
-  .formation-chevron { font-size: 10px; color: var(--muted); transition: transform .2s; }
-  .formation-chevron.open { transform: rotate(90deg); }
-  .formation-name { font-size: 13px; font-weight: 500; flex: 1; }
-  .formation-badge { font-size: 10px; padding: 1px 7px; border-radius: 10px; background: var(--panel2); color: var(--muted); }
-  .formation-type-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
-  .formation-type-tag.off { background: rgba(232,180,42,.15); color: var(--accent); }
-  .formation-type-tag.def { background: rgba(239,68,68,.15); color: var(--danger); }
-  .formation-type-tag.st { background: rgba(59,130,246,.15); color: var(--accent2); }
+.item-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+.item-card:active { background: var(--card2); border-color: var(--accent); }
+.item-body { flex: 1; min-width: 0; }
+.item-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.badge { display: inline-block; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.badge.off { background: rgba(240,180,41,.12); color: var(--accent); }
+.badge.def { background: rgba(240,65,65,.12); color: var(--red); }
+.badge.st { background: rgba(65,130,240,.12); color: var(--blue); }
 
-  .play-list { display: none; }
-  .play-list.open { display: block; }
-  .play-item { display: flex; align-items: center; padding: 7px 14px 7px 32px; cursor: pointer; font-size: 12.5px; gap: 8px; transition: background .12s; }
-  .play-item:hover { background: var(--panel2); }
-  .play-item.active { background: rgba(232,180,42,.08); color: var(--accent); }
-  .play-item .play-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
-  .play-item.active .play-dot { background: var(--accent); }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 8px 0 4px; }
 
-  /* MAIN AREA */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+.empty { text-align: center; padding: 48px 24px; color: var(--muted); }
+.empty-icon { font-size: 52px; margin-bottom: 12px; opacity: .35; }
+.empty h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+.empty p { font-size: 13px; line-height: 1.6; }
 
-  /* TOOLBAR */
-  .toolbar { height: 46px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 6px; flex-shrink: 0; }
-  .tool-btn { background: none; border: 1px solid transparent; color: var(--muted); padding: 5px 10px; border-radius: var(--radius); font-size: 12px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 5px; font-family: 'Inter', sans-serif; white-space: nowrap; }
-  .tool-btn:hover { color: var(--text); border-color: var(--border); }
-  .tool-btn.active { background: var(--panel2); color: var(--text); border-color: var(--accent); }
-  .tool-sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; }
-  .tool-spacer { flex: 1; }
-  .play-name-input { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; width: 200px; }
-  .play-name-input:focus { outline: none; border-color: var(--accent); }
-  .play-name-input::placeholder { color: var(--muted); }
+.sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 200; display: none; }
+.sheet-overlay.open { display: block; }
+.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + var(--safe)); z-index: 201; transform: translateY(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); max-height: 90vh; overflow-y: auto; }
+.sheet.open { transform: translateY(0); }
+.sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.sheet h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; margin-bottom: 4px; }
+.sheet p.sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 
-  /* CANVAS WRAPPER */
-  .canvas-wrapper { flex: 1; overflow: hidden; position: relative; }
-  canvas { display: block; cursor: crosshair; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+.field input, .field select { width: 100%; background: var(--card2); border: 1.5px solid var(--border); color: var(--text); padding: 14px; border-radius: 10px; font-size: 15px; font-family: 'DM Sans', sans-serif; outline: none; -webkit-appearance: none; appearance: none; }
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input::placeholder { color: var(--muted); }
+.field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a5f6e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-color: var(--card2); padding-right: 36px; }
 
-  /* RIGHT PANEL */
-  .right-panel { width: 220px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-  .right-panel::-webkit-scrollbar { width: 4px; }
-  .right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  .rp-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
-  .rp-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
-  .rp-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
-  .rp-row label { color: var(--muted); }
-  .color-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
-  .color-swatch { width: 22px; height: 22px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: all .12s; }
-  .color-swatch.active { border-color: #fff; transform: scale(1.15); }
-  .pos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-  .pos-btn { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 4px 2px; border-radius: 4px; font-size: 10px; cursor: pointer; text-align: center; transition: all .12s; font-family: 'Inter', sans-serif; font-weight: 600; }
-  .pos-btn:hover { border-color: var(--accent); color: var(--accent); }
-  select.rp-select { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 4px; font-size: 12px; width: 100%; font-family: 'Inter', sans-serif; cursor: pointer; }
-  select.rp-select:focus { outline: none; border-color: var(--accent); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: 'DM Sans', sans-serif; border: none; cursor: pointer; width: 100%; }
+.btn:active { opacity: .8; }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-ghost { background: var(--card2); color: var(--text); border: 1.5px solid var(--border); }
+.btn-danger { background: rgba(240,65,65,.12); color: var(--red); border: 1.5px solid rgba(240,65,65,.25); }
+.btn-row { display: flex; gap: 10px; }
+.btn-row .btn { flex: 1; }
 
-  /* MODALS */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 1000; display: none; align-items: center; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 400px; max-width: 95vw; }
-  .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; margin-bottom: 4px; }
-  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-  .modal-field { margin-bottom: 14px; }
-  .modal-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
-  .modal-input { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; }
-  .modal-input:focus { outline: none; border-color: var(--accent); }
-  .modal-select { width: 100%; background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; }
-  .modal-select:focus { outline: none; border-color: var(--accent); }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-  .btn { padding: 8px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all .15s; }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-primary:hover { background: #f5c842; }
-  .btn-ghost { background: none; border: 1px solid var(--border); color: var(--text); }
-  .btn-ghost:hover { border-color: var(--muted); }
+.editor-header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.editor-header .back { width: 38px; height: 38px; background: var(--card2); border: none; border-radius: 10px; color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.play-name-wrap { flex: 1; background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 0 12px; height: 38px; display: flex; align-items: center; }
+.play-name-wrap input { background: none; border: none; color: var(--text); font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; outline: none; width: 100%; }
+.play-name-wrap input::placeholder { color: var(--muted); }
+.save-btn { height: 38px; padding: 0 16px; background: var(--accent); border: none; border-radius: 10px; color: #000; font-weight: 700; font-size: 13px; cursor: pointer; flex-shrink: 0; font-family: 'DM Sans', sans-serif; }
 
-  /* TOAST */
-  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: var(--radius); font-size: 13px; z-index: 2000; transform: translateY(60px); opacity: 0; transition: all .25s; pointer-events: none; }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-color: var(--green); }
-  .toast.error { border-color: var(--danger); }
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; background: #080a0d; }
+canvas { display: block; touch-action: none; }
 
-  /* SHARE MODAL */
-  .share-link-box { background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 11px; word-break: break-all; color: var(--accent2); font-family: monospace; margin-bottom: 12px; }
+.bottom-bar { background: var(--card); border-top: 1px solid var(--border); padding: 10px 10px calc(10px + var(--safe)); flex-shrink: 0; }
+.tool-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.tool-pill { flex: 1; height: 44px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card2); color: var(--muted); font-size: 10px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: all .15s; letter-spacing: .3px; }
+.tool-pill .ti { font-size: 15px; line-height: 1; }
+.tool-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.tool-pill:active { transform: scale(.92); }
 
-  /* SETUP BANNER */
-  .setup-banner { background: rgba(232,180,42,.08); border: 1px solid rgba(232,180,42,.25); border-radius: var(--radius); padding: 10px 14px; margin: 12px; font-size: 12px; color: var(--accent); display: none; }
-  .setup-banner.show { display: block; }
-  .setup-banner a { color: var(--accent); text-decoration: underline; cursor: pointer; }
+.options-row { display: flex; gap: 8px; align-items: center; overflow-x: auto; padding-bottom: 2px; min-height: 32px; }
+.options-row::-webkit-scrollbar { display: none; }
+.color-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; transition: transform .15s; }
+.color-dot.active { border-color: #fff; transform: scale(1.25); }
+.pos-chip { height: 28px; padding: 0 10px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--card2); color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; flex-shrink: 0; }
+.pos-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; margin: 0 2px; }
+.act-chip { height: 28px; padding: 0 12px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--card2); color: var(--text); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; flex-shrink: 0; }
+.act-chip.red { border-color: rgba(240,65,65,.3); color: var(--red); }
+.opt-label { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
 
-  /* EMPTY STATE */
-  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); text-align: center; padding: 40px; }
-  .empty-icon { font-size: 48px; opacity: .3; }
-  .empty-state h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--muted); }
-  .empty-state p { font-size: 13px; max-width: 240px; line-height: 1.6; }
+.toast { position: fixed; bottom: calc(90px + var(--safe)); left: 50%; transform: translateX(-50%) translateY(16px); background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; z-index: 999; opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { border-color: var(--green); color: var(--green); }
+.toast.err { border-color: var(--red); color: var(--red); }
 
-  /* LEGEND */
-  .legend { display: flex; gap: 10px; padding: 6px 12px; background: var(--panel); border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 4px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .legend-line { width: 20px; height: 2px; }
-  .legend-dashed { width: 20px; height: 2px; border-top: 2px dashed currentColor; }
+.logo-screen { align-items: center; justify-content: center; gap: 6px; }
+.logo-screen .logo { font-family: 'Bebas Neue', sans-serif; font-size: 72px; letter-spacing: 8px; color: var(--accent); line-height: 1; }
+.logo-screen .tagline { font-size: 14px; color: var(--muted); letter-spacing: 2px; }
+.logo-screen .spinner { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin-top: 28px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* PLAYER SELECTED INDICATOR */
-  .selection-info { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--muted); pointer-events: none; opacity: 0; transition: opacity .2s; }
-  .selection-info.show { opacity: 1; }
+.play-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.play-card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px; cursor: pointer; }
+.play-card:active { border-color: var(--accent); }
+.play-card-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.play-card-sub { font-size: 11px; color: var(--muted); }
+.play-preview { width: 100%; height: 72px; background: var(--field); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+
+.color-pick-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.tc-dot { width: 38px; height: 38px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: transform .15s; flex-shrink: 0; }
+.tc-dot.active { border-color: #fff; transform: scale(1.18); }
+
+.share-box { background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; font-size: 12px; color: var(--blue); word-break: break-all; margin-bottom: 16px; font-family: monospace; line-height: 1.5; }
+
+.icon-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 6px; border-radius: 8px; }
+.icon-btn:active { background: var(--card2); }
 </style>
 </head>
 <body>
 
-<!-- TOP NAV -->
-<nav>
-  <span class="nav-logo">📋 PLAYBOOK</span>
-  <div class="nav-sep"></div>
-  <button class="nav-btn active" onclick="setView('editor')">Editor</button>
-  <button class="nav-btn" onclick="setView('browse')">Browse Plays</button>
-  <div class="nav-spacer"></div>
-  <div class="supabase-status">
-    <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">Local only</span>
-  </div>
-  <button class="nav-btn" onclick="openModal('supabaseModal')">☁ Connect DB</button>
-  <button class="nav-btn" onclick="openModal('shareModal')">🔗 Share</button>
-</nav>
-
-<!-- MAIN APP -->
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <span class="sidebar-title">Formations</span>
-      <button class="icon-btn accent" onclick="openModal('formationModal')" title="New Formation">＋</button>
-    </div>
-    <div class="setup-banner" id="setupBanner">
-      Connect Supabase to <a onclick="openModal('supabaseModal')">save plays to the cloud</a>. Currently storing locally.
-    </div>
-    <div class="sidebar-list" id="sidebarList"></div>
-  </div>
-
-  <!-- MAIN EDITOR -->
-  <div class="main" id="editorView">
-    <div class="toolbar" id="toolbar">
-      <button class="tool-btn active" id="tool-select" onclick="setTool('select')" title="Select & move players">
-        ↖ Select
-      </button>
-      <button class="tool-btn" id="tool-player" onclick="setTool('player')" title="Add a player">
-        ● Player
-      </button>
-      <button class="tool-btn" id="tool-route" onclick="setTool('route')" title="Draw a route from a player">
-        ↗ Route
-      </button>
-      <button class="tool-btn" id="tool-motion" onclick="setTool('motion')" title="Draw pre-snap motion (dashed)">
-        ⟶ Motion
-      </button>
-      <button class="tool-btn" id="tool-line" onclick="setTool('line')" title="Draw blocking/assignment lines">
-        — Line
-      </button>
-      <button class="tool-btn" id="tool-erase" onclick="setTool('erase')" title="Click player or line to delete">
-        ✕ Erase
-      </button>
-      <div class="tool-sep"></div>
-      <button class="tool-btn" onclick="clearCanvas()" title="Clear all players and routes">🗑 Clear</button>
-      <button class="tool-btn" onclick="undoAction()" title="Undo last action">↩ Undo</button>
-      <div class="tool-spacer"></div>
-      <input class="play-name-input" id="playNameInput" placeholder="Play name…" value="">
-      <button class="tool-btn" onclick="savePlay()" style="border-color:var(--accent);color:var(--accent)">💾 Save Play</button>
-      <button class="tool-btn" onclick="printPlay()">🖨 Print</button>
-    </div>
-
-    <div class="canvas-wrapper" id="canvasWrapper">
-      <canvas id="playCanvas"></canvas>
-      <div class="selection-info" id="selInfo">Click player to select · Drag to move</div>
-    </div>
-
-    <div class="legend">
-      <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> Offense</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> Defense</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> Specialty</span>
-      <span class="legend-item"><span class="legend-line" style="background:#22c55e"></span> Route</span>
-      <span class="legend-item"><span class="legend-dashed" style="color:#f59e0b"></span> Motion</span>
-      <span class="legend-item"><span class="legend-line" style="background:#6b7280"></span> Block</span>
-      <span style="flex:1"></span>
-      <span>Scroll to zoom · Middle-drag or Space+drag to pan</span>
-    </div>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="right-panel" id="rightPanel">
-    <div class="rp-section">
-      <div class="rp-label">Formation</div>
-      <select class="rp-select" id="formationSelect" onchange="selectFormation(this.value)">
-        <option value="">— select formation —</option>
-      </select>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-label">Player Color</div>
-      <div class="color-swatches" id="colorSwatches">
-        <div class="color-swatch active" data-color="#f59e0b" style="background:#f59e0b" onclick="setPlayerColor('#f59e0b',this)"></div>
-        <div class="color-swatch" data-color="#ef4444" style="background:#ef4444" onclick="setPlayerColor('#ef4444',this)"></div>
-        <div class="color-swatch" data-color="#3b82f6" style="background:#3b82f6" onclick="setPlayerColor('#3b82f6',this)"></div>
-        <div class="color-swatch" data-color="#a855f7" style="background:#a855f7" onclick="setPlayerColor('#a855f7',this)"></div>
-        <div class="color-swatch" data-color="#22c55e" style="background:#22c55e" onclick="setPlayerColor('#22c55e',this)"></div>
-        <div class="color-swatch" data-color="#fff" style="background:#fff;border-color:var(--border)" onclick="setPlayerColor('#ffffff',this)"></div>
-      </div>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-label">Position Label</div>
-      <div class="pos-grid">
-        <button class="pos-btn" onclick="setPos('QB')">QB</button>
-        <button class="pos-btn" onclick="setPos('RB')">RB</button>
-        <button class="pos-btn" onclick="setPos('WR')">WR</button>
-        <button class="pos-btn" onclick="setPos('TE')">TE</button>
-        <button class="pos-btn" onclick="setPos('OL')">OL</button>
-        <button class="pos-btn" onclick="setPos('C')">C</button>
-        <button class="pos-btn" onclick="setPos('DE')">DE</button>
-        <button class="pos-btn" onclick="setPos('DT')">DT</button>
-        <button class="pos-btn" onclick="setPos('LB')">LB</button>
-        <button class="pos-btn" onclick="setPos('CB')">CB</button>
-        <button class="pos-btn" onclick="setPos('S')">S</button>
-        <button class="pos-btn" onclick="setPos('K')">K</button>
-      </div>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-label">Line Style</div>
-      <div style="display:flex;gap:6px;">
-        <button class="tool-btn active" id="line-solid" onclick="setLineStyle('solid')" style="flex:1;justify-content:center">—</button>
-        <button class="tool-btn" id="line-dashed" onclick="setLineStyle('dashed')" style="flex:1;justify-content:center">- -</button>
-        <button class="tool-btn" id="line-arrow" onclick="setLineStyle('arrow')" style="flex:1;justify-content:center">→</button>
-      </div>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-label">Route Color</div>
-      <div class="color-swatches" id="routeColorSwatches">
-        <div class="color-swatch active" data-color="#22c55e" style="background:#22c55e" onclick="setRouteColor('#22c55e',this)"></div>
-        <div class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" onclick="setRouteColor('#f59e0b',this)"></div>
-        <div class="color-swatch" data-color="#3b82f6" style="background:#3b82f6" onclick="setRouteColor('#3b82f6',this)"></div>
-        <div class="color-swatch" data-color="#ef4444" style="background:#ef4444" onclick="setRouteColor('#ef4444',this)"></div>
-        <div class="color-swatch" data-color="#fff" style="background:#fff;border-color:var(--border)" onclick="setRouteColor('#ffffff',this)"></div>
-      </div>
-    </div>
-
-    <div class="rp-section">
-      <div class="rp-label">Zoom</div>
-      <div class="rp-row">
-        <label>Scale</label>
-        <span id="zoomLabel" style="font-size:12px">100%</span>
-      </div>
-      <input type="range" min="30" max="250" value="100" id="zoomSlider" style="width:100%;accent-color:var(--accent)" oninput="setZoom(this.value)">
-      <button class="tool-btn" style="width:100%;margin-top:6px;justify-content:center" onclick="resetView()">Reset View</button>
-    </div>
-  </div>
-
+<!-- SPLASH -->
+<div class="screen logo-screen" id="splashScreen">
+  <div class="logo">X&O</div>
+  <div class="tagline">PLAYBOOK</div>
+  <div class="spinner"></div>
 </div>
 
-<!-- BROWSE VIEW (hidden initially) -->
-<div id="browseView" style="display:none;flex:1;overflow-y:auto;padding:24px;">
-  <div style="max-width:900px;margin:0 auto;">
-    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:6px;">Browse Plays</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:24px;">Click a play to open it in the editor. Organized by formation.</p>
-    <div id="browseContent"></div>
+<!-- TEAMS -->
+<div class="screen hidden" id="teamsScreen">
+  <div class="header">
+    <div class="header-title">
+      <h1>X&O LAB</h1>
+      <p id="connStatus">Connecting…</p>
+    </div>
+    <button class="header-action" onclick="openSheet('newTeamSheet')">+</button>
+  </div>
+  <div class="scroll" id="teamsList"></div>
+</div>
+
+<!-- FORMATIONS -->
+<div class="screen hidden" id="formationsScreen">
+  <div class="header">
+    <button class="header-back" onclick="goBack('teamsScreen','formationsScreen')">←</button>
+    <div class="header-title">
+      <h1 id="formTeamName">Team</h1>
+      <p id="formTeamSub">Formations</p>
+    </div>
+    <button class="header-action ghost" id="shareBtn" onclick="buildShare();openSheet('shareSheet')">🔗</button>
+    <button class="header-action" onclick="openSheet('newFormSheet')">+</button>
+  </div>
+  <div class="scroll" id="formationsList"></div>
+</div>
+
+<!-- PLAYS -->
+<div class="screen hidden" id="playsScreen">
+  <div class="header">
+    <button class="header-back" onclick="goBack('formationsScreen','playsScreen')">←</button>
+    <div class="header-title">
+      <h1 id="playsFormName">Formation</h1>
+      <p id="playsFormSub">Plays</p>
+    </div>
+    <button class="header-action" onclick="newPlay()">+</button>
+  </div>
+  <div class="scroll" id="playsList"></div>
+</div>
+
+<!-- EDITOR -->
+<div class="screen hidden" id="editorScreen">
+  <div class="editor-header">
+    <button class="back" onclick="goBack('playsScreen','editorScreen')">←</button>
+    <div class="play-name-wrap"><input id="playNameInput" placeholder="Play name…" maxlength="40"></div>
+    <button class="save-btn" onclick="savePlay()">SAVE</button>
+    <button class="back" onclick="printPlay()" style="background:var(--card2);margin-left:2px">🖨</button>
+  </div>
+  <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas></div>
+  <div class="bottom-bar">
+    <div class="tool-row">
+      <button class="tool-pill active" id="tool-select" onclick="setTool('select')"><span class="ti">↖</span>SELECT</button>
+      <button class="tool-pill" id="tool-player" onclick="setTool('player')"><span class="ti">●</span>PLAYER</button>
+      <button class="tool-pill" id="tool-route" onclick="setTool('route')"><span class="ti">↗</span>ROUTE</button>
+      <button class="tool-pill" id="tool-motion" onclick="setTool('motion')"><span class="ti">⟶</span>MOTION</button>
+      <button class="tool-pill" id="tool-line" onclick="setTool('line')"><span class="ti">—</span>LINE</button>
+      <button class="tool-pill" id="tool-erase" onclick="setTool('erase')"><span class="ti">✕</span>ERASE</button>
+    </div>
+    <div class="options-row" id="optionsRow"></div>
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- SHEETS -->
 
-<!-- Formation Modal -->
-<div class="modal-overlay" id="formationModal">
-  <div class="modal">
-    <h2>New Formation</h2>
-    <p>Create a formation to group your plays under.</p>
-    <div class="modal-field">
-      <label>Formation Name</label>
-      <input class="modal-input" id="fmName" placeholder="e.g. Shotgun Spread, I-Form, 4-3">
+<!-- New Team -->
+<div class="sheet-overlay" id="newTeamOverlay" onclick="closeSheet('newTeamSheet')"></div>
+<div class="sheet" id="newTeamSheet">
+  <div class="sheet-handle"></div>
+  <h2>New Team</h2>
+  <p class="sub">Organize your playbooks by team.</p>
+  <div class="field"><label>Team Name</label><input id="ntName" placeholder="e.g. Eagles 8U"></div>
+  <div class="field"><label>Season / Notes</label><input id="ntSeason" placeholder="e.g. Fall 2025"></div>
+  <div class="field"><label>Team Color</label>
+    <div class="color-pick-row">
+      <div class="tc-dot active" style="background:#f0b429" onclick="pickTC('#f0b429',this)"></div>
+      <div class="tc-dot" style="background:#f04141" onclick="pickTC('#f04141',this)"></div>
+      <div class="tc-dot" style="background:#4182f0" onclick="pickTC('#4182f0',this)"></div>
+      <div class="tc-dot" style="background:#41c97a" onclick="pickTC('#41c97a',this)"></div>
+      <div class="tc-dot" style="background:#a855f7" onclick="pickTC('#a855f7',this)"></div>
+      <div class="tc-dot" style="background:#fff;border-color:#333" onclick="pickTC('#ffffff',this)"></div>
     </div>
-    <div class="modal-field">
-      <label>Type</label>
-      <select class="modal-select" id="fmType">
-        <option value="off">Offense</option>
-        <option value="def">Defense</option>
-        <option value="st">Special Teams</option>
-      </select>
-    </div>
-    <div class="modal-field">
-      <label>Notes (optional)</label>
-      <input class="modal-input" id="fmNotes" placeholder="Describe when to use this formation">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('formationModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addFormation()">Create Formation</button>
-    </div>
+  </div>
+  <button class="btn btn-primary" style="margin-top:6px" onclick="addTeam()">Create Team</button>
+</div>
+
+<!-- New Formation -->
+<div class="sheet-overlay" id="newFormOverlay" onclick="closeSheet('newFormSheet')"></div>
+<div class="sheet" id="newFormSheet">
+  <div class="sheet-handle"></div>
+  <h2>New Formation</h2>
+  <p class="sub">Group plays under a formation.</p>
+  <div class="field"><label>Formation Name</label><input id="nfName" placeholder="e.g. Shotgun Spread, 4-3"></div>
+  <div class="field"><label>Type</label>
+    <select id="nfType">
+      <option value="off">⚡ Offense</option>
+      <option value="def">🛡 Defense</option>
+      <option value="st">⭐ Special Teams</option>
+    </select>
+  </div>
+  <div class="field"><label>Notes (optional)</label><input id="nfNotes" placeholder="When to use this"></div>
+  <button class="btn btn-primary" style="margin-top:6px" onclick="addFormation()">Create Formation</button>
+</div>
+
+<!-- Share -->
+<div class="sheet-overlay" id="shareOverlay" onclick="closeSheet('shareSheet')"></div>
+<div class="sheet" id="shareSheet">
+  <div class="sheet-handle"></div>
+  <h2>Share Playbook</h2>
+  <p class="sub">View-only link — recipients can browse and print but not edit.</p>
+  <div class="share-box" id="shareBox">Building link…</div>
+  <button class="btn btn-primary" onclick="copyShare()">📋 Copy Link</button>
+  <div style="height:10px"></div>
+  <button class="btn btn-ghost" onclick="closeSheet('shareSheet')">Close</button>
+</div>
+
+<!-- Delete -->
+<div class="sheet-overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
+<div class="sheet" id="deleteSheet">
+  <div class="sheet-handle"></div>
+  <h2 id="delTitle">Delete?</h2>
+  <p class="sub" id="delMsg">This cannot be undone.</p>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="closeSheet('deleteSheet')">Cancel</button>
+    <button class="btn btn-danger" id="delConfirm">Delete</button>
   </div>
 </div>
 
-<!-- Supabase Modal -->
-<div class="modal-overlay" id="supabaseModal">
-  <div class="modal">
-    <h2>Connect Supabase</h2>
-    <p>Enter your Supabase project URL and anon key. Data is stored in your browser until connected.</p>
-    <div class="modal-field">
-      <label>Supabase URL</label>
-      <input class="modal-input" id="sbUrl" placeholder="https://xxxx.supabase.co" value="">
-    </div>
-    <div class="modal-field">
-      <label>Anon Key</label>
-      <input class="modal-input" id="sbKey" placeholder="eyJhbGc..." value="">
-    </div>
-    <p style="font-size:11px;color:var(--muted);margin-top:-10px;margin-bottom:16px;">
-      ① Create a free project at <strong>supabase.com</strong><br>
-      ② Go to Settings → API → copy Project URL + anon key<br>
-      ③ Run the SQL below in Supabase SQL Editor to create tables
-    </p>
-    <details style="font-size:11px;color:var(--muted);margin-bottom:16px;">
-      <summary style="cursor:pointer;color:var(--accent2)">Show setup SQL ▾</summary>
-      <pre style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:8px;overflow-x:auto;font-size:10px;line-height:1.6;color:#9ca3af">create table formations (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  type text,
-  notes text,
-  created_at timestamptz default now()
-);
-
-create table plays (
-  id uuid primary key default gen_random_uuid(),
-  formation_id uuid references formations(id) on delete cascade,
-  name text not null,
-  notes text,
-  data jsonb,
-  created_at timestamptz default now()
-);
-
--- Enable RLS + read-only public access
-alter table formations enable row level security;
-alter table plays enable row level security;
-create policy "public read" on formations for select using (true);
-create policy "public read" on plays for select using (true);
-create policy "anon write" on formations for all using (true);
-create policy "anon write" on plays for all using (true);</pre>
-    </details>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('supabaseModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="connectSupabase()">Connect</button>
-    </div>
-  </div>
-</div>
-
-<!-- Share Modal -->
-<div class="modal-overlay" id="shareModal">
-  <div class="modal">
-    <h2>Share Playbook</h2>
-    <p>Anyone with this link can view plays but cannot edit or delete them.</p>
-    <div class="share-link-box" id="shareLinkBox">Connect to Supabase to generate a share link.</div>
-    <button class="btn btn-primary" onclick="copyShareLink()" style="width:100%">Copy Share Link</button>
-    <div class="modal-actions" style="margin-top:12px">
-      <button class="btn btn-ghost" onclick="closeModal('shareModal')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let formations = JSON.parse(localStorage.getItem('pb_formations') || '[]');
-let plays = JSON.parse(localStorage.getItem('pb_plays') || '[]');
-let sbUrl = localStorage.getItem('pb_sbUrl') || '';
-let sbKey = localStorage.getItem('pb_sbKey') || '';
-let sbConnected = false;
+// ── CONFIG ─────────────────────────────────────────
+const SB_URL = 'https://puknpufuwssovzhyjnye.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1a25wdWZ1d3Nzb3Z6aHlqbnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODUxMTQsImV4cCI6MjA5MzU2MTExNH0.LogqKHWhxK85gRPClEuX3EqGoiC7MckpN30SqXZSskc';
 
-let currentFormationId = null;
-let currentPlayId = null;
-let currentTool = 'select';
-let playerColor = '#f59e0b';
-let routeColor = '#22c55e';
-let lineStyle = 'arrow';
-let currentPos = 'WR';
-let selectedPlayer = null;
-let history = [];
+// ── STATE ──────────────────────────────────────────
+let teams=[], formations=[], plays=[];
+let currentTeam=null, currentFormation=null, currentPlay=null;
+let dbOk=false, readOnly=false;
+let newTC='#f0b429';
 
-// Canvas state
-let players = [];
-let routes = [];
-let dragging = false;
-let dragPlayer = null;
-let dragOffX = 0, dragOffY = 0;
-let drawingRoute = null;
-let routePoints = [];
+// Editor
+let ePlayers=[], eRoutes=[];
+let selP=null, tool='select';
+let pColor='#f0b429', rColor='#41c97a', lStyle='arrow', pPos='WR';
+let drawingRoute=null, routePts=[];
+let dragP=null, dragOX=0, dragOY=0, isDragging=false, isPanning=false;
+let panSX=0, panSY=0;
+let eHistory=[];
 
-// Viewport / pan-zoom
-let viewX = 0, viewY = 0, viewScale = 1;
-let isPanning = false;
-let panStart = {x:0, y:0};
-let spaceDown = false;
-let middleDown = false;
+// Viewport
+let vx=0,vy=0,vs=1;
+let pinching=false, pd0=0, pvx0=0, pvy0=0;
+let lastTap=0, tStart=0;
 
-// ─── CANVAS SETUP ────────────────────────────────────────────────────────────
-const canvas = document.getElementById('playCanvas');
-const ctx = canvas.getContext('2d');
-const wrapper = document.getElementById('canvasWrapper');
-
-// Field dimensions (virtual px)
-const FIELD_W = 1000;
-const FIELD_H = 600;
-
-function resizeCanvas() {
-  canvas.width = wrapper.clientWidth;
-  canvas.height = wrapper.clientHeight;
-  drawAll();
+// ── SUPABASE ───────────────────────────────────────
+async function sb(path, opts={}) {
+  const h={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+  if (opts.method==='POST'||opts.method==='PATCH') h['Prefer']='return=representation,resolution=merge-duplicates';
+  const r=await fetch(`${SB_URL}/rest/v1/${path}`,{...opts,headers:h});
+  if (!r.ok) throw new Error(r.status);
+  const ct=r.headers.get('content-type')||'';
+  return ct.includes('json')?r.json():null;
 }
 
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// ─── DRAW ─────────────────────────────────────────────────────────────────────
-function toScreen(fx, fy) {
-  return {
-    x: fx * viewScale + viewX + canvas.width/2 - FIELD_W/2 * viewScale,
-    y: fy * viewScale + viewY + canvas.height/2 - FIELD_H/2 * viewScale
-  };
+async function initDB() {
+  try {
+    await sb('teams?limit=1');
+    dbOk=true;
+    setStatus('● Cloud connected','var(--green)');
+    const [t,f,p]=await Promise.all([sb('teams?order=created_at'),sb('formations?order=created_at'),sb('plays?order=created_at')]);
+    teams=t||[]; formations=f||[]; plays=p||[];
+    saveLocal();
+  } catch(e) {
+    setStatus('● Saved locally','var(--muted)');
+    loadLocal();
+  }
 }
 
-function toField(sx, sy) {
-  return {
-    x: (sx - viewX - canvas.width/2 + FIELD_W/2 * viewScale) / viewScale,
-    y: (sy - viewY - canvas.height/2 + FIELD_H/2 * viewScale) / viewScale
-  };
+function setStatus(txt,color){const el=document.getElementById('connStatus');if(el){el.textContent=txt;el.style.color=color;}}
+function loadLocal(){teams=JSON.parse(localStorage.getItem('xo_t')||'[]');formations=JSON.parse(localStorage.getItem('xo_f')||'[]');plays=JSON.parse(localStorage.getItem('xo_p')||'[]');}
+function saveLocal(){localStorage.setItem('xo_t',JSON.stringify(teams));localStorage.setItem('xo_f',JSON.stringify(formations));localStorage.setItem('xo_p',JSON.stringify(plays));}
+
+async function dbPost(table, row) { if(dbOk){try{await sb(table,{method:'POST',body:JSON.stringify(row)});}catch(e){}} }
+async function dbPatch(table, filter, data) { if(dbOk){try{await sb(`${table}?${filter}`,{method:'PATCH',body:JSON.stringify(data)});}catch(e){}} }
+async function dbDel(table, filter) { if(dbOk){try{await sb(`${table}?${filter}`,{method:'DELETE'});}catch(e){}} }
+
+// ── SCREENS ────────────────────────────────────────
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('hidden','slide-left');if(s.id!==id)s.classList.add('hidden');});}
+function goBack(toId,fromId){document.getElementById(fromId).classList.add('hidden');document.getElementById(toId).classList.remove('hidden','slide-left');}
+function navTo(id){const cur=document.querySelector('.screen:not(.hidden):not(.slide-left)');if(cur)cur.classList.add('slide-left');document.getElementById(id).classList.remove('hidden','slide-left');}
+
+// ── TEAMS ──────────────────────────────────────────
+function renderTeams() {
+  const el=document.getElementById('teamsList');
+  if(!teams.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🏈</div><h3>No Teams Yet</h3><p>Tap + to create your first team.</p></div>`;return;}
+  el.innerHTML=teams.map(t=>{
+    const fc=formations.filter(f=>f.team_id===t.id).length;
+    const pc=plays.filter(p=>formations.find(f=>f.id===p.formation_id&&f.team_id===t.id)).length;
+    return `<div class="item-card" onclick="openTeam('${t.id}')">
+      <div style="width:46px;height:46px;border-radius:12px;background:${t.color||'var(--accent)'}22;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🏈</div>
+      <div class="item-body">
+        <div class="item-name">${esc(t.name)}</div>
+        <div class="item-sub">${t.season?esc(t.season)+' · ':''}${fc} formation${fc!==1?'s':''} · ${pc} play${pc!==1?'s':''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <span style="color:var(--muted);font-size:20px">›</span>
+        <button onclick="event.stopPropagation();confirmDel('team','${t.id}','${esc(t.name)}')" class="icon-btn">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function drawField() {
-  const tl = toScreen(0, 0);
-  const br = toScreen(FIELD_W, FIELD_H);
-  const fw = br.x - tl.x;
-  const fh = br.y - tl.y;
+function pickTC(c,el){newTC=c;document.querySelectorAll('.tc-dot').forEach(d=>d.classList.remove('active'));el.classList.add('active');}
 
-  // BG
-  ctx.fillStyle = '#1a3d16';
-  ctx.fillRect(tl.x, tl.y, fw, fh);
-
-  // Alternating yard stripes
-  const yards = 10;
-  const stripeW = fw / yards;
-  for (let i = 0; i < yards; i++) {
-    if (i % 2 === 0) {
-      ctx.fillStyle = '#1e4a19';
-      ctx.fillRect(tl.x + i * stripeW, tl.y, stripeW, fh);
-    }
-  }
-
-  // Grid lines (minor)
-  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
-  ctx.lineWidth = 1;
-  const gridCols = 20, gridRows = 12;
-  for (let i = 0; i <= gridCols; i++) {
-    const x = tl.x + i * fw/gridCols;
-    ctx.beginPath(); ctx.moveTo(x, tl.y); ctx.lineTo(x, br.y); ctx.stroke();
-  }
-  for (let j = 0; j <= gridRows; j++) {
-    const y = tl.y + j * fh/gridRows;
-    ctx.beginPath(); ctx.moveTo(tl.x, y); ctx.lineTo(br.x, y); ctx.stroke();
-  }
-
-  // Yard lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 1.5;
-  for (let i = 0; i <= yards; i++) {
-    const x = tl.x + i * stripeW;
-    ctx.beginPath(); ctx.moveTo(x, tl.y); ctx.lineTo(x, br.y); ctx.stroke();
-  }
-
-  // Line of scrimmage (middle)
-  ctx.strokeStyle = 'rgba(232,180,42,0.6)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([8, 6]);
-  const midY = toScreen(0, FIELD_H/2).y;
-  ctx.beginPath(); ctx.moveTo(tl.x, midY); ctx.lineTo(br.x, midY); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Border
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(tl.x, tl.y, fw, fh);
-
-  // LOS label
-  ctx.fillStyle = 'rgba(232,180,42,0.7)';
-  ctx.font = `${Math.max(9, 11 * viewScale)}px Inter`;
-  ctx.fillText('LOS', tl.x + 4, midY - 4);
+async function addTeam() {
+  const name=document.getElementById('ntName').value.trim();
+  if(!name){toast('Enter a team name','err');return;}
+  const t={id:uid(),name,season:document.getElementById('ntSeason').value.trim(),color:newTC};
+  teams.push(t); saveLocal();
+  await dbPost('teams',t);
+  document.getElementById('ntName').value='';document.getElementById('ntSeason').value='';
+  closeSheet('newTeamSheet'); renderTeams(); toast('Team created!','ok');
 }
 
-function drawArrow(ctx, x, y, angle, size) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(-size, -size * 0.6);
-  ctx.lineTo(-size, size * 0.6);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+function openTeam(id) {
+  currentTeam=teams.find(t=>t.id===id);
+  document.getElementById('formTeamName').textContent=currentTeam.name;
+  document.getElementById('formTeamSub').textContent=(currentTeam.season||'')+' · Formations';
+  renderFormations(); navTo('formationsScreen');
+}
+
+// ── FORMATIONS ─────────────────────────────────────
+function renderFormations() {
+  const el=document.getElementById('formationsList');
+  const fms=formations.filter(f=>f.team_id===currentTeam.id);
+  if(!fms.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><h3>No Formations</h3><p>Tap + to add a formation.</p></div>`;return;}
+  const groups={off:fms.filter(f=>f.type==='off'),def:fms.filter(f=>f.type==='def'),st:fms.filter(f=>f.type==='st')};
+  let html='';
+  if(groups.off.length) html+=`<div class="section-label">⚡ Offense</div>`+groups.off.map(fCard).join('');
+  if(groups.def.length) html+=`<div class="section-label">🛡 Defense</div>`+groups.def.map(fCard).join('');
+  if(groups.st.length) html+=`<div class="section-label">⭐ Special Teams</div>`+groups.st.map(fCard).join('');
+  el.innerHTML=html;
+}
+
+function fCard(f) {
+  const pc=plays.filter(p=>p.formation_id===f.id).length;
+  const tm={off:['off','⚡ Off'],def:['def','🛡 Def'],st:['st','⭐ ST']};
+  const[cls,lbl]=tm[f.type]||['off','Off'];
+  return `<div class="item-card" onclick="openFormation('${f.id}')">
+    <div class="item-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="item-name">${esc(f.name)}</div>
+        <span class="badge ${cls}">${lbl}</span>
+      </div>
+      <div class="item-sub">${pc} play${pc!==1?'s':''}${f.notes?' · '+esc(f.notes):''}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <span style="color:var(--muted);font-size:20px">›</span>
+      <button onclick="event.stopPropagation();confirmDel('form','${f.id}','${esc(f.name)}')" class="icon-btn">🗑</button>
+    </div>
+  </div>`;
+}
+
+async function addFormation() {
+  const name=document.getElementById('nfName').value.trim();
+  if(!name){toast('Enter a name','err');return;}
+  const f={id:uid(),team_id:currentTeam.id,name,type:document.getElementById('nfType').value,notes:document.getElementById('nfNotes').value.trim()};
+  formations.push(f); saveLocal();
+  await dbPost('formations',f);
+  document.getElementById('nfName').value='';document.getElementById('nfNotes').value='';
+  closeSheet('newFormSheet'); renderFormations(); toast('Formation created!','ok');
+}
+
+function openFormation(id) {
+  currentFormation=formations.find(f=>f.id===id);
+  document.getElementById('playsFormName').textContent=currentFormation.name;
+  const tl={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
+  document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+' · Plays';
+  renderPlays(); navTo('playsScreen');
+}
+
+// ── PLAYS ──────────────────────────────────────────
+function renderPlays() {
+  const el=document.getElementById('playsList');
+  const ps=plays.filter(p=>p.formation_id===currentFormation.id);
+  if(!ps.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🏃</div><h3>No Plays Yet</h3><p>Tap + to draw your first play.</p></div>`;return;}
+  el.innerHTML=`<div class="play-grid">${ps.map(p=>`
+    <div class="play-card" onclick="openPlay('${p.id}')">
+      <div class="play-preview" id="prev-${p.id}"></div>
+      <div class="play-card-name">${esc(p.name)}</div>
+      <div class="play-card-sub">${(p.data?.players||[]).length}p · ${(p.data?.routes||[]).length}r
+        <button onclick="event.stopPropagation();confirmDelPlay('${p.id}','${esc(p.name)}')" style="float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0">🗑</button>
+      </div>
+    </div>`).join('')}</div>`;
+  ps.forEach(p=>{if(p.data)setTimeout(()=>miniPreview(p),80);});
+}
+
+function miniPreview(play) {
+  const wrap=document.getElementById('prev-'+play.id);
+  if(!wrap||wrap.querySelector('canvas')) return;
+  const c=document.createElement('canvas');
+  c.width=wrap.clientWidth||150; c.height=wrap.clientHeight||72;
+  wrap.appendChild(c);
+  const cx=c.getContext('2d');
+  cx.fillStyle='#1f4a1a'; cx.fillRect(0,0,c.width,c.height);
+  cx.strokeStyle='rgba(240,180,41,0.4)'; cx.setLineDash([4,3]);
+  cx.beginPath();cx.moveTo(0,c.height/2);cx.lineTo(c.width,c.height/2);cx.stroke();
+  cx.setLineDash([]);
+  const pl=play.data?.players||[], ro=play.data?.routes||[];
+  const sx=w=>w/1000*c.width, sy=h=>h/600*c.height;
+  ro.forEach(r=>{
+    if(!r.points||r.points.length<2)return;
+    cx.strokeStyle=r.color||'#41c97a'; cx.lineWidth=1.5;
+    cx.setLineDash(r.motion?[4,3]:[]);
+    cx.beginPath(); cx.moveTo(sx(r.points[0].x),sy(r.points[0].y));
+    r.points.forEach(p=>cx.lineTo(sx(p.x),sy(p.y))); cx.stroke(); cx.setLineDash([]);
+  });
+  pl.forEach(p=>{
+    cx.beginPath(); cx.arc(sx(p.x),sy(p.y),5,0,Math.PI*2);
+    cx.fillStyle=p.color||'#f0b429'; cx.fill();
+  });
+}
+
+function newPlay() {
+  currentPlay=null; ePlayers=[]; eRoutes=[]; selP=null; eHistory=[];
+  vx=0;vy=0;vs=1; drawingRoute=null; routePts=[];
+  document.getElementById('playNameInput').value='';
+  tool='select'; syncToolUI();
+  navTo('editorScreen');
+  setTimeout(()=>{resizeCv();drawAll();},120);
+}
+
+function openPlay(id) {
+  currentPlay=plays.find(p=>p.id===id);
+  ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
+  eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
+  selP=null; eHistory=[]; vx=0;vy=0;vs=1; drawingRoute=null; routePts=[];
+  document.getElementById('playNameInput').value=currentPlay.name;
+  tool='select'; syncToolUI();
+  navTo('editorScreen');
+  setTimeout(()=>{resizeCv();drawAll();},120);
+}
+
+async function savePlay() {
+  const name=document.getElementById('playNameInput').value.trim();
+  if(!name){toast('Enter a play name','err');return;}
+  const data={players:ePlayers,routes:eRoutes};
+  if(currentPlay){
+    currentPlay.name=name; currentPlay.data=data;
+    const i=plays.findIndex(p=>p.id===currentPlay.id);
+    if(i!==-1) plays[i]=currentPlay;
+    await dbPatch('plays','id=eq.'+currentPlay.id,{name,data});
+  } else {
+    const p={id:uid(),formation_id:currentFormation.id,name,data};
+    plays.push(p); currentPlay=p;
+    await dbPost('plays',p);
+  }
+  saveLocal(); toast('Saved!','ok');
+}
+
+// ── DELETE ─────────────────────────────────────────
+let pendDel=null;
+function confirmDel(type,id,name) {
+  pendDel={type,id};
+  document.getElementById('delTitle').textContent='Delete '+name+'?';
+  document.getElementById('delMsg').textContent=type==='team'
+    ?'Deletes this team and ALL its formations and plays. Cannot be undone.'
+    :'Deletes this formation and all its plays. Cannot be undone.';
+  document.getElementById('delConfirm').onclick=execDel;
+  openSheet('deleteSheet');
+}
+function confirmDelPlay(id,name) {
+  pendDel={type:'play',id};
+  document.getElementById('delTitle').textContent='Delete '+name+'?';
+  document.getElementById('delMsg').textContent='This play will be permanently deleted.';
+  document.getElementById('delConfirm').onclick=execDel;
+  openSheet('deleteSheet');
+}
+async function execDel() {
+  const{type,id}=pendDel; closeSheet('deleteSheet');
+  if(type==='team'){
+    const fIds=formations.filter(f=>f.team_id===id).map(f=>f.id);
+    plays=plays.filter(p=>!fIds.includes(p.formation_id));
+    formations=formations.filter(f=>f.team_id!==id);
+    teams=teams.filter(t=>t.id!==id);
+    if(fIds.length){await dbDel('plays','formation_id=in.('+fIds.join(',')+')');await dbDel('formations','team_id=eq.'+id);}
+    await dbDel('teams','id=eq.'+id);
+    saveLocal(); renderTeams(); toast('Team deleted','ok');
+  } else if(type==='form'){
+    plays=plays.filter(p=>p.formation_id!==id);
+    formations=formations.filter(f=>f.id!==id);
+    await dbDel('plays','formation_id=eq.'+id);
+    await dbDel('formations','id=eq.'+id);
+    saveLocal(); renderFormations(); toast('Formation deleted','ok');
+  } else if(type==='play'){
+    plays=plays.filter(p=>p.id!==id);
+    await dbDel('plays','id=eq.'+id);
+    saveLocal(); renderPlays(); toast('Play deleted','ok');
+  }
+}
+
+// ── CANVAS ─────────────────────────────────────────
+const cv=document.getElementById('playCanvas');
+const cx=cv.getContext('2d');
+const FW=1000,FH=600;
+
+function resizeCv(){const w=document.getElementById('canvasWrap');cv.width=w.clientWidth;cv.height=w.clientHeight;drawAll();}
+function toS(fx,fy){return{x:fx*vs+vx+cv.width/2-FW/2*vs,y:fy*vs+vy+cv.height/2-FH/2*vs};}
+function toF(sx,sy){return{x:(sx-vx-cv.width/2+FW/2*vs)/vs,y:(sy-vy-cv.height/2+FH/2*vs)/vs};}
+
+function drawAll() {
+  cx.clearRect(0,0,cv.width,cv.height);
+  cx.fillStyle='#080a0d'; cx.fillRect(0,0,cv.width,cv.height);
+  const tl=toS(0,0),br=toS(FW,FH);
+  const fw=br.x-tl.x,fh=br.y-tl.y;
+  cx.fillStyle='#1f4a1a'; cx.fillRect(tl.x,tl.y,fw,fh);
+  for(let i=0;i<10;i++){if(i%2===0){cx.fillStyle='#234f1e';cx.fillRect(tl.x+i*fw/10,tl.y,fw/10,fh);}}
+  cx.strokeStyle='rgba(255,255,255,0.06)';cx.lineWidth=1;
+  for(let i=0;i<=20;i++){const x=tl.x+i*fw/20;cx.beginPath();cx.moveTo(x,tl.y);cx.lineTo(x,br.y);cx.stroke();}
+  for(let j=0;j<=12;j++){const y=tl.y+j*fh/12;cx.beginPath();cx.moveTo(tl.x,y);cx.lineTo(br.x,y);cx.stroke();}
+  cx.strokeStyle='rgba(255,255,255,0.22)';cx.lineWidth=1.5;
+  for(let i=0;i<=10;i++){const x=tl.x+i*fw/10;cx.beginPath();cx.moveTo(x,tl.y);cx.lineTo(x,br.y);cx.stroke();}
+  const midY=toS(0,FH/2).y;
+  cx.strokeStyle='rgba(240,180,41,0.55)';cx.lineWidth=2;cx.setLineDash([10,7]);
+  cx.beginPath();cx.moveTo(tl.x,midY);cx.lineTo(br.x,midY);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle='rgba(240,180,41,0.5)';cx.font=`${Math.max(9,11*vs)}px DM Sans`;cx.fillText('LOS',tl.x+6,midY-5);
+  cx.strokeStyle='rgba(255,255,255,0.45)';cx.lineWidth=2;cx.strokeRect(tl.x,tl.y,fw,fh);
+  drawRoutes(); drawPlayers();
 }
 
 function drawRoutes() {
-  routes.forEach(r => {
-    if (!r.points || r.points.length < 2) return;
-    const pts = r.points.map(p => toScreen(p.x, p.y));
-    ctx.save();
-    ctx.strokeStyle = r.color || '#22c55e';
-    ctx.lineWidth = 2.5 * Math.min(viewScale, 1.5);
-    if (r.style === 'dashed' || r.motion) {
-      ctx.setLineDash([8, 5]);
-    } else {
-      ctx.setLineDash([]);
+  eRoutes.forEach(r=>{
+    if(!r.points||r.points.length<2)return;
+    const pts=r.points.map(p=>toS(p.x,p.y));
+    cx.save();cx.strokeStyle=r.color||'#41c97a';cx.lineWidth=2.5*Math.min(vs,1.5);
+    cx.setLineDash(r.motion?[8,5]:[]);
+    cx.beginPath();cx.moveTo(pts[0].x,pts[0].y);pts.forEach(p=>cx.lineTo(p.x,p.y));cx.stroke();
+    cx.setLineDash([]);
+    if(!r.motion&&pts.length>=2){
+      const l=pts[pts.length-1],pv=pts[pts.length-2];
+      const a=Math.atan2(l.y-pv.y,l.x-pv.x);
+      cx.fillStyle=r.color||'#41c97a';
+      cx.save();cx.translate(l.x,l.y);cx.rotate(a);
+      cx.beginPath();cx.moveTo(0,0);cx.lineTo(-10,-6);cx.lineTo(-10,6);cx.closePath();cx.fill();cx.restore();
     }
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) {
-      ctx.lineTo(pts[i].x, pts[i].y);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Arrow at end
-    if (r.style !== 'dashed' && !r.motion && pts.length >= 2) {
-      const last = pts[pts.length - 1];
-      const prev = pts[pts.length - 2];
-      const angle = Math.atan2(last.y - prev.y, last.x - prev.x);
-      ctx.fillStyle = r.color || '#22c55e';
-      drawArrow(ctx, last.x, last.y, angle, 10 * Math.min(viewScale, 1.5));
-    }
-    ctx.restore();
+    cx.restore();
   });
-
-  // In-progress route
-  if (drawingRoute && routePoints.length >= 1) {
-    const pts = routePoints.map(p => toScreen(p.x, p.y));
-    ctx.save();
-    ctx.strokeStyle = routeColor;
-    ctx.lineWidth = 2;
-    ctx.setLineDash(currentTool === 'motion' ? [8,5] : []);
-    ctx.globalAlpha = 0.7;
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    pts.forEach(p => ctx.lineTo(p.x, p.y));
-    ctx.stroke();
-    ctx.restore();
+  if(drawingRoute&&routePts.length>=1){
+    const pts=routePts.map(p=>toS(p.x,p.y));
+    cx.save();cx.strokeStyle=rColor;cx.lineWidth=2;cx.setLineDash(tool==='motion'?[8,5]:[3,3]);cx.globalAlpha=0.55;
+    cx.beginPath();cx.moveTo(pts[0].x,pts[0].y);pts.forEach(p=>cx.lineTo(p.x,p.y));cx.stroke();cx.restore();
   }
 }
 
 function drawPlayers() {
-  players.forEach(p => {
-    const s = toScreen(p.x, p.y);
-    const r = Math.max(10, 16 * Math.min(viewScale, 1.5));
-
-    ctx.save();
-    if (p === selectedPlayer) {
-      ctx.shadowColor = '#fff';
-      ctx.shadowBlur = 12;
-    }
-
-    // Circle fill
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = p.color || '#f59e0b';
-    ctx.fill();
-
-    // Border
-    ctx.strokeStyle = p === selectedPlayer ? '#fff' : 'rgba(0,0,0,0.4)';
-    ctx.lineWidth = p === selectedPlayer ? 2.5 : 1.5;
-    ctx.stroke();
-
-    // Label
-    ctx.fillStyle = '#000';
-    ctx.font = `bold ${Math.max(8, 10 * Math.min(viewScale, 1.5))}px Inter`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(p.pos || '?', s.x, s.y);
-
-    ctx.restore();
+  ePlayers.forEach(p=>{
+    const s=toS(p.x,p.y),r=Math.max(14,18*Math.min(vs,1.4));
+    cx.save();
+    if(p===selP){cx.shadowColor='#fff';cx.shadowBlur=14;}
+    cx.beginPath();cx.arc(s.x,s.y,r,0,Math.PI*2);
+    cx.fillStyle=p.color||'#f0b429';cx.fill();
+    cx.strokeStyle=p===selP?'#fff':'rgba(0,0,0,0.45)';cx.lineWidth=p===selP?2.5:1.5;cx.stroke();
+    cx.fillStyle='#000';cx.font=`bold ${Math.max(9,11*Math.min(vs,1.4))}px DM Sans`;
+    cx.textAlign='center';cx.textBaseline='middle';cx.fillText(p.pos||'?',s.x,s.y);
+    cx.restore();
   });
 }
 
-function drawAll() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#0a0c10';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawField();
-  drawRoutes();
-  drawPlayers();
-}
+function playerAt(sx,sy){return ePlayers.find(p=>{const s=toS(p.x,p.y),r=Math.max(14,18*Math.min(vs,1.4));return Math.hypot(sx-s.x,sy-s.y)<r+10;});}
 
-// ─── TOOL HANDLING ───────────────────────────────────────────────────────────
-function getMousePos(e) {
-  const rect = canvas.getBoundingClientRect();
-  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-}
+// ── TOUCH / MOUSE ──────────────────────────────────
+function cvPos(t){const r=cv.getBoundingClientRect();return{x:t.clientX-r.left,y:t.clientY-r.top};}
+function pd(e){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;return Math.hypot(dx,dy);}
+function pm(e){const r=cv.getBoundingClientRect();return{x:(e.touches[0].clientX+e.touches[1].clientX)/2-r.left,y:(e.touches[0].clientY+e.touches[1].clientY)/2-r.top};}
 
-function playerAtScreen(sx, sy) {
-  return players.find(p => {
-    const s = toScreen(p.x, p.y);
-    const r = Math.max(10, 16 * Math.min(viewScale, 1.5));
-    return Math.hypot(sx - s.x, sy - s.y) < r + 4;
-  });
-}
-
-canvas.addEventListener('mousedown', e => {
-  const mp = getMousePos(e);
-  const fp = toField(mp.x, mp.y);
-
-  // Middle mouse or space = pan
-  if (e.button === 1 || spaceDown) {
-    isPanning = true;
-    panStart = {x: mp.x - viewX, y: mp.y - viewY};
-    canvas.style.cursor = 'grabbing';
-    e.preventDefault();
-    return;
-  }
-
-  if (currentTool === 'select') {
-    const hit = playerAtScreen(mp.x, mp.y);
-    if (hit) {
-      selectedPlayer = hit;
-      dragging = true;
-      dragPlayer = hit;
-      const sp = toScreen(hit.x, hit.y);
-      dragOffX = mp.x - sp.x;
-      dragOffY = mp.y - sp.y;
-      showSelInfo();
-    } else {
-      selectedPlayer = null;
-      hideSelInfo();
-    }
-    drawAll();
-  } else if (currentTool === 'player') {
-    pushHistory();
-    players.push({ x: fp.x, y: fp.y, color: playerColor, pos: currentPos, id: Date.now() });
-    drawAll();
-  } else if (currentTool === 'route' || currentTool === 'motion') {
-    const hit = playerAtScreen(mp.x, mp.y);
-    if (hit) {
-      drawingRoute = hit;
-      routePoints = [{ x: hit.x, y: hit.y }];
-    } else if (drawingRoute) {
-      routePoints.push(fp);
-      drawAll();
-    }
-  } else if (currentTool === 'line') {
-    drawingRoute = true;
-    routePoints = [fp];
-  } else if (currentTool === 'erase') {
-    const hit = playerAtScreen(mp.x, mp.y);
-    if (hit) {
-      pushHistory();
-      players = players.filter(p => p !== hit);
-      routes = routes.filter(r => r.playerId !== hit.id);
-      drawAll();
-    } else {
-      // Erase nearest route
-      const nearest = nearestRoute(mp.x, mp.y);
-      if (nearest) {
-        pushHistory();
-        routes = routes.filter(r => r !== nearest);
-        drawAll();
-      }
-    }
-  }
-});
-
-canvas.addEventListener('mousemove', e => {
-  const mp = getMousePos(e);
-  const fp = toField(mp.x, mp.y);
-
-  if (isPanning) {
-    viewX = mp.x - panStart.x;
-    viewY = mp.y - panStart.y;
-    drawAll();
-    return;
-  }
-
-  if (dragging && dragPlayer) {
-    const fp2 = toField(mp.x - dragOffX, mp.y - dragOffY);
-    // Update route endpoints that start from this player
-    const dx = fp2.x - dragPlayer.x;
-    const dy = fp2.y - dragPlayer.y;
-    routes.forEach(r => {
-      if (r.playerId === dragPlayer.id && r.points.length > 0) {
-        r.points[0].x += dx;
-        r.points[0].y += dy;
-      }
-    });
-    dragPlayer.x = fp2.x;
-    dragPlayer.y = fp2.y;
-    drawAll();
-  }
-
-  if ((currentTool === 'route' || currentTool === 'motion') && drawingRoute) {
-    if (routePoints.length >= 1) {
-      const preview = [...routePoints, fp];
-      drawAll();
-      const pts = preview.map(p => toScreen(p.x, p.y));
-      ctx.save();
-      ctx.strokeStyle = routeColor;
-      ctx.lineWidth = 2;
-      ctx.setLineDash(currentTool === 'motion' ? [8,5] : [3,3]);
-      ctx.globalAlpha = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      pts.forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  if (currentTool === 'line' && drawingRoute === true && routePoints.length >= 1) {
-    drawAll();
-    const pts = [...routePoints, fp].map(p => toScreen(p.x, p.y));
-    ctx.save();
-    ctx.strokeStyle = routeColor;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5,4]);
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-    ctx.stroke();
-    ctx.restore();
-  }
-});
-
-canvas.addEventListener('mouseup', e => {
-  if (isPanning) {
-    isPanning = false;
-    canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
-    return;
-  }
-  if (dragging) {
-    dragging = false;
-    dragPlayer = null;
-  }
-});
-
-canvas.addEventListener('dblclick', e => {
-  const mp = getMousePos(e);
-  const fp = toField(mp.x, mp.y);
-
-  if ((currentTool === 'route' || currentTool === 'motion') && drawingRoute && routePoints.length >= 2) {
-    pushHistory();
-    routes.push({
-      points: [...routePoints],
-      color: routeColor,
-      style: currentTool === 'motion' ? 'dashed' : lineStyle,
-      motion: currentTool === 'motion',
-      playerId: drawingRoute.id || null
-    });
-    drawingRoute = null;
-    routePoints = [];
-    drawAll();
-  }
-
-  if (currentTool === 'line' && drawingRoute === true && routePoints.length >= 2) {
-    pushHistory();
-    routes.push({
-      points: [...routePoints],
-      color: routeColor,
-      style: 'solid',
-      motion: false,
-      playerId: null
-    });
-    drawingRoute = null;
-    routePoints = [];
-    drawAll();
-  }
-});
-
-canvas.addEventListener('contextmenu', e => {
+cv.addEventListener('touchstart',e=>{
   e.preventDefault();
-  if ((currentTool === 'route' || currentTool === 'motion' || currentTool === 'line') && drawingRoute) {
-    if (routePoints.length >= 2) {
-      const mp = getMousePos(e);
-      const fp = toField(mp.x, mp.y);
-      pushHistory();
-      routes.push({
-        points: [...routePoints, fp],
-        color: routeColor,
-        style: currentTool === 'motion' ? 'dashed' : lineStyle,
-        motion: currentTool === 'motion',
-        playerId: drawingRoute.id || null
-      });
-    }
-    drawingRoute = null;
-    routePoints = [];
-    drawAll();
-  }
-});
+  if(e.touches.length===2){pinching=true;pd0=pd(e);pvx0=vx;pvy0=vy;return;}
+  const p=cvPos(e.touches[0]); tStart=Date.now();
+  handleDown(p.x,p.y);
+},{passive:false});
 
-canvas.addEventListener('wheel', e => {
+cv.addEventListener('touchmove',e=>{
   e.preventDefault();
-  const mp = getMousePos(e);
-  const zoomFactor = e.deltaY > 0 ? 0.92 : 1.09;
-  const newScale = Math.min(4, Math.max(0.2, viewScale * zoomFactor));
-  viewX = mp.x - (mp.x - viewX) * (newScale / viewScale);
-  viewY = mp.y - (mp.y - viewY) * (newScale / viewScale);
-  viewScale = newScale;
-  document.getElementById('zoomSlider').value = Math.round(viewScale * 100);
-  document.getElementById('zoomLabel').textContent = Math.round(viewScale * 100) + '%';
-  drawAll();
-}, { passive: false });
-
-window.addEventListener('keydown', e => {
-  if (e.code === 'Space') { spaceDown = true; canvas.style.cursor = 'grab'; }
-  if (e.key === 'Escape') {
-    drawingRoute = null; routePoints = [];
-    selectedPlayer = null; hideSelInfo(); drawAll();
+  if(e.touches.length===2&&pinching){
+    const d=pd(e),f=d/pd0,mc=pm(e);
+    const ns=Math.min(4,Math.max(0.25,vs*f));
+    vx=mc.x-(mc.x-pvx0)*(ns/vs); vy=mc.y-(mc.y-pvy0)*(ns/vs);
+    vs=ns; pd0=d; pvx0=vx; pvy0=vy; drawAll(); return;
   }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoAction(); }
-});
-window.addEventListener('keyup', e => {
-  if (e.code === 'Space') { spaceDown = false; canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair'; }
-});
+  if(e.touches.length===1){const p=cvPos(e.touches[0]);handleMove(p.x,p.y);}
+},{passive:false});
 
-function nearestRoute(sx, sy) {
-  let best = null, bestD = 20;
-  routes.forEach(r => {
-    for (let i = 0; i < r.points.length - 1; i++) {
-      const a = toScreen(r.points[i].x, r.points[i].y);
-      const b = toScreen(r.points[i+1].x, r.points[i+1].y);
-      const d = distToSegment(sx, sy, a.x, a.y, b.x, b.y);
-      if (d < bestD) { bestD = d; best = r; }
+cv.addEventListener('touchend',e=>{
+  e.preventDefault(); pinching=false;
+  const now=Date.now();
+  if(now-lastTap<320&&now-tStart<200){finishRoute();lastTap=0;return;}
+  lastTap=now;
+  isDragging=false; dragP=null;
+  if(!e.touches.length) isPanning=false;
+},{passive:false});
+
+cv.addEventListener('mousedown',e=>handleDown(e.offsetX,e.offsetY));
+cv.addEventListener('mousemove',e=>{if(isDragging||isPanning||(drawingRoute&&routePts.length))handleMove(e.offsetX,e.offsetY);});
+cv.addEventListener('mouseup',()=>{isDragging=false;dragP=null;isPanning=false;});
+cv.addEventListener('dblclick',e=>finishRoute());
+cv.addEventListener('contextmenu',e=>{e.preventDefault();finishRoute();});
+cv.addEventListener('wheel',e=>{e.preventDefault();const zf=e.deltaY>0?.92:1.09,ns=Math.min(4,Math.max(.25,vs*zf));vx=e.offsetX-(e.offsetX-vx)*(ns/vs);vy=e.offsetY-(e.offsetY-vy)*(ns/vs);vs=ns;drawAll();},{passive:false});
+
+function handleDown(sx,sy) {
+  const fp=toF(sx,sy);
+  if(tool==='select'){
+    const hit=playerAt(sx,sy);
+    if(hit){selP=hit;isDragging=true;dragP=hit;const s=toS(hit.x,hit.y);dragOX=sx-s.x;dragOY=sy-s.y;}
+    else{selP=null;isPanning=true;panSX=sx-vx;panSY=sy-vy;}
+    buildOpts(); drawAll();
+  } else if(tool==='player'){
+    pushH(); ePlayers.push({x:fp.x,y:fp.y,color:pColor,pos:pPos,id:uid()}); drawAll();
+  } else if(tool==='route'||tool==='motion'){
+    const hit=playerAt(sx,sy);
+    if(hit&&!drawingRoute){drawingRoute=hit;routePts=[{x:hit.x,y:hit.y}];}
+    else if(drawingRoute){routePts.push(fp);drawAll();}
+  } else if(tool==='line'){
+    if(!drawingRoute){drawingRoute=true;routePts=[fp];}
+    else{routePts.push(fp);drawAll();}
+  } else if(tool==='erase'){
+    const hit=playerAt(sx,sy);
+    if(hit){pushH();ePlayers=ePlayers.filter(p=>p!==hit);eRoutes=eRoutes.filter(r=>r.playerId!==hit.id);drawAll();}
+    else{const nr=nearR(sx,sy);if(nr){pushH();eRoutes=eRoutes.filter(r=>r!==nr);drawAll();}}
+  }
+}
+
+function handleMove(sx,sy) {
+  if(isPanning&&tool==='select'&&!isDragging){vx=sx-panSX;vy=sy-panSY;drawAll();return;}
+  if(isDragging&&dragP){
+    const fp=toF(sx-dragOX,sy-dragOY);
+    const dx=fp.x-dragP.x,dy=fp.y-dragP.y;
+    eRoutes.forEach(r=>{if(r.playerId===dragP.id&&r.points.length>0){r.points[0].x+=dx;r.points[0].y+=dy;}});
+    dragP.x=fp.x;dragP.y=fp.y;drawAll();
+  }
+  if((tool==='route'||tool==='motion'||tool==='line')&&drawingRoute&&routePts.length>=1){
+    const fp=toF(sx,sy);
+    const preview=[...routePts,fp].map(p=>toS(p.x,p.y));
+    drawAll();
+    cx.save();cx.strokeStyle=rColor;cx.lineWidth=2;cx.setLineDash(tool==='motion'?[8,5]:[3,3]);cx.globalAlpha=0.5;
+    cx.beginPath();preview.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y));cx.stroke();cx.restore();
+  }
+}
+
+function finishRoute() {
+  if((tool==='route'||tool==='motion')&&drawingRoute&&routePts.length>=2){
+    pushH(); eRoutes.push({points:[...routePts],color:rColor,style:tool==='motion'?'dashed':lStyle,motion:tool==='motion',playerId:drawingRoute.id||null});
+    drawingRoute=null;routePts=[];drawAll();buildOpts();
+  } else if(tool==='line'&&drawingRoute&&routePts.length>=2){
+    pushH(); eRoutes.push({points:[...routePts],color:rColor,style:'solid',motion:false,playerId:null});
+    drawingRoute=null;routePts=[];drawAll();buildOpts();
+  }
+}
+
+function nearR(sx,sy){let best=null,bd=26;eRoutes.forEach(r=>{for(let i=0;i<r.points.length-1;i++){const a=toS(r.points[i].x,r.points[i].y),b=toS(r.points[i+1].x,r.points[i+1].y);const d=dSeg(sx,sy,a.x,a.y,b.x,b.y);if(d<bd){bd=d;best=r;}}});return best;}
+function dSeg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay;if(!dx&&!dy)return Math.hypot(px-ax,py-ay);const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
+
+// ── TOOLS ──────────────────────────────────────────
+const POSITIONS=['QB','RB','FB','WR','TE','OL','C','DE','DT','LB','CB','S','K','P'];
+const PCOLORS=['#f0b429','#f04141','#4182f0','#a855f7','#41c97a','#ffffff'];
+const RCOLORS=['#41c97a','#f0b429','#4182f0','#f04141','#ffffff'];
+
+function setTool(t){tool=t;drawingRoute=null;routePts=[];syncToolUI();buildOpts();}
+function syncToolUI(){document.querySelectorAll('.tool-pill').forEach(b=>b.classList.remove('active'));const el=document.getElementById('tool-'+tool);if(el)el.classList.add('active');}
+
+function buildOpts() {
+  const row=document.getElementById('optionsRow');
+  let h='';
+  if(tool==='player'){
+    h+=`<span class="opt-label">COLOR</span>`;
+    PCOLORS.forEach(c=>h+=`<div class="color-dot${pColor===c?' active':''}" style="background:${c}${c==='#ffffff'?';border:2px solid #444':''}" onclick="setPCol('${c}',this)"></div>`);
+    h+=`<div class="sep"></div>`;
+    POSITIONS.forEach(p=>h+=`<button class="pos-chip${pPos===p?' active':''}" onclick="setPPos('${p}',this)">${p}</button>`);
+  } else if(tool==='route'||tool==='motion'||tool==='line'){
+    h+=`<span class="opt-label">COLOR</span>`;
+    RCOLORS.forEach(c=>h+=`<div class="color-dot${rColor===c?' active':''}" style="background:${c}${c==='#ffffff'?';border:2px solid #444':''}" onclick="setRCol('${c}',this)"></div>`);
+    if(drawingRoute) h+=`<div class="sep"></div><button class="act-chip" onclick="finishRoute()">✓ Done</button>`;
+    h+=`<div class="sep"></div><button class="act-chip" onclick="undoA()">↩ Undo</button>`;
+  } else if(tool==='select'){
+    if(selP){
+      h+=`<span class="opt-label">PLAYER</span>`;
+      PCOLORS.forEach(c=>h+=`<div class="color-dot${selP.color===c?' active':''}" style="background:${c}${c==='#ffffff'?';border:2px solid #444':''}" onclick="selCol('${c}',this)"></div>`);
+      h+=`<div class="sep"></div>`;
+      POSITIONS.forEach(p=>h+=`<button class="pos-chip${selP.pos===p?' active':''}" onclick="selPos('${p}',this)">${p}</button>`);
+    } else {
+      h+=`<span class="opt-label" style="color:var(--muted)">Tap player · drag to move · pinch to zoom</span>`;
+      h+=`<div class="sep"></div><button class="act-chip" onclick="undoA()">↩ Undo</button>`;
+      h+=`<button class="act-chip red" onclick="clearCv()">✕ Clear</button>`;
     }
-  });
-  return best;
-}
-
-function distToSegment(px, py, ax, ay, bx, by) {
-  const dx = bx - ax, dy = by - ay;
-  if (dx === 0 && dy === 0) return Math.hypot(px-ax, py-ay);
-  const t = Math.max(0, Math.min(1, ((px-ax)*dx + (py-ay)*dy) / (dx*dx+dy*dy)));
-  return Math.hypot(px - (ax+t*dx), py - (ay+t*dy));
-}
-
-// ─── CONTROLS ────────────────────────────────────────────────────────────────
-function setTool(t) {
-  currentTool = t;
-  drawingRoute = null; routePoints = [];
-  document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b => b.classList.remove('active'));
-  const el = document.getElementById('tool-' + t);
-  if (el) el.classList.add('active');
-  canvas.style.cursor = t === 'select' ? 'default' : 'crosshair';
-}
-
-function setPlayerColor(c, el) {
-  playerColor = c;
-  document.querySelectorAll('#colorSwatches .color-swatch').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
-  if (selectedPlayer) { selectedPlayer.color = c; drawAll(); }
-}
-
-function setRouteColor(c, el) {
-  routeColor = c;
-  document.querySelectorAll('#routeColorSwatches .color-swatch').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function setLineStyle(s) {
-  lineStyle = s;
-  document.querySelectorAll('[id^="line-"]').forEach(b => b.classList.remove('active'));
-  document.getElementById('line-' + s).classList.add('active');
-}
-
-function setPos(p) { currentPos = p; if (selectedPlayer) { selectedPlayer.pos = p; drawAll(); } }
-
-function setZoom(v) {
-  viewScale = v / 100;
-  document.getElementById('zoomLabel').textContent = v + '%';
-  drawAll();
-}
-
-function resetView() {
-  viewX = 0; viewY = 0; viewScale = 1;
-  document.getElementById('zoomSlider').value = 100;
-  document.getElementById('zoomLabel').textContent = '100%';
-  drawAll();
-}
-
-function clearCanvas() {
-  if (!confirm('Clear all players and routes?')) return;
-  pushHistory();
-  players = []; routes = [];
-  selectedPlayer = null; drawAll();
-}
-
-function showSelInfo() { document.getElementById('selInfo').classList.add('show'); }
-function hideSelInfo() { document.getElementById('selInfo').classList.remove('show'); }
-
-// ─── HISTORY ─────────────────────────────────────────────────────────────────
-function pushHistory() {
-  history.push({ players: JSON.parse(JSON.stringify(players)), routes: JSON.parse(JSON.stringify(routes)) });
-  if (history.length > 30) history.shift();
-}
-
-function undoAction() {
-  if (!history.length) return;
-  const h = history.pop();
-  players = h.players;
-  routes = h.routes;
-  selectedPlayer = null;
-  drawAll();
-  toast('Undone', 'success');
-}
-
-// ─── FORMATIONS & PLAYS ──────────────────────────────────────────────────────
-function renderSidebar() {
-  const list = document.getElementById('sidebarList');
-  const sel = document.getElementById('formationSelect');
-  list.innerHTML = '';
-  sel.innerHTML = '<option value="">— select formation —</option>';
-
-  if (!formations.length) {
-    list.innerHTML = `<div style="padding:20px 14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7">No formations yet.<br>Click <strong style="color:var(--accent)">＋</strong> above to create one.</div>`;
-    return;
+  } else if(tool==='erase'){
+    h+=`<span class="opt-label" style="color:var(--muted)">Tap player or route to erase</span>`;
+    h+=`<div class="sep"></div><button class="act-chip" onclick="undoA()">↩ Undo</button>`;
   }
-
-  formations.forEach(f => {
-    sel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-    const fPlays = plays.filter(p => p.formationId === f.id);
-    const group = document.createElement('div');
-    group.className = 'formation-group';
-    const typeLabel = f.type === 'off' ? 'OFF' : f.type === 'def' ? 'DEF' : 'ST';
-    group.innerHTML = `
-      <div class="formation-header" onclick="toggleFormation('${f.id}')">
-        <span class="formation-chevron" id="chev-${f.id}">▶</span>
-        <span class="formation-name">${f.name}</span>
-        <span class="formation-type-tag ${f.type}">${typeLabel}</span>
-        <span class="formation-badge">${fPlays.length}</span>
-      </div>
-      <div class="play-list" id="plays-${f.id}">
-        ${fPlays.map(pl => `
-          <div class="play-item ${pl.id === currentPlayId ? 'active' : ''}" onclick="loadPlay('${pl.id}')">
-            <span class="play-dot"></span>${pl.name}
-          </div>`).join('')}
-        <div class="play-item" style="color:var(--accent2);font-style:italic" onclick="newPlay('${f.id}')">
-          ＋ New play
-        </div>
-      </div>`;
-    list.appendChild(group);
-  });
-
-  if (currentFormationId) {
-    const el = document.getElementById(`plays-${currentFormationId}`);
-    if (el) { el.classList.add('open'); document.getElementById(`chev-${currentFormationId}`).classList.add('open'); }
-  }
+  row.innerHTML=h;
 }
 
-function toggleFormation(id) {
-  const el = document.getElementById('plays-' + id);
-  const chev = document.getElementById('chev-' + id);
-  el.classList.toggle('open');
-  chev.classList.toggle('open');
+function setPCol(c,el){pColor=c;document.querySelectorAll('#optionsRow .color-dot').forEach(d=>d.classList.remove('active'));el.classList.add('active');}
+function setRCol(c,el){rColor=c;document.querySelectorAll('#optionsRow .color-dot').forEach(d=>d.classList.remove('active'));el.classList.add('active');}
+function setPPos(p,el){pPos=p;document.querySelectorAll('#optionsRow .pos-chip').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function selCol(c,el){if(selP){selP.color=c;drawAll();}document.querySelectorAll('#optionsRow .color-dot').forEach(d=>d.classList.remove('active'));el.classList.add('active');}
+function selPos(p,el){if(selP){selP.pos=p;drawAll();}document.querySelectorAll('#optionsRow .pos-chip').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+
+function pushH(){eHistory.push({p:JSON.parse(JSON.stringify(ePlayers)),r:JSON.parse(JSON.stringify(eRoutes))});if(eHistory.length>30)eHistory.shift();}
+function undoA(){if(!eHistory.length)return;const h=eHistory.pop();ePlayers=h.p;eRoutes=h.r;selP=null;drawAll();toast('Undone','ok');}
+function clearCv(){if(!confirm('Clear the field?'))return;pushH();ePlayers=[];eRoutes=[];selP=null;drawAll();}
+
+function printPlay(){
+  const name=document.getElementById('playNameInput').value||'Play';
+  const url=cv.toDataURL('image/png');
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${name}</title><style>body{margin:20px;font-family:sans-serif}img{max-width:100%;border:2px solid #ccc;border-radius:8px}h2{margin-bottom:4px}p{color:#666;margin-bottom:16px;font-size:13px}</style></head><body><h2>${name}</h2><p>${currentFormation?.name||''} · ${currentTeam?.name||''}</p><img src="${url}"><script>window.print();<\/script></body></html>`);
+  w.document.close();
 }
 
-function selectFormation(id) {
-  currentFormationId = id || null;
-  renderSidebar();
+// ── SHARE ──────────────────────────────────────────
+let shareLink='';
+function buildShare(){
+  if(!currentTeam){shareLink='';document.getElementById('shareBox').textContent='Open a team first.';return;}
+  const tid=currentTeam.id;
+  const payload={teams:teams.filter(t=>t.id===tid),formations:formations.filter(f=>f.team_id===tid),plays:plays.filter(p=>formations.find(f=>f.id===p.formation_id&&f.team_id===tid))};
+  const enc=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  shareLink=`${location.origin}${location.pathname}?share=${enc}`;
+  document.getElementById('shareBox').textContent=shareLink;
+}
+function copyShare(){if(!shareLink)return;navigator.clipboard.writeText(shareLink).then(()=>toast('Link copied!','ok'));}
+
+function checkShare(){
+  const p=new URLSearchParams(location.search);
+  if(!p.has('share'))return false;
+  try{const d=JSON.parse(decodeURIComponent(escape(atob(p.get('share')))));teams=d.teams||[];formations=d.formations||[];plays=d.plays||[];readOnly=true;return true;}
+  catch(e){return false;}
 }
 
-function addFormation() {
-  const name = document.getElementById('fmName').value.trim();
-  if (!name) { toast('Enter a formation name', 'error'); return; }
-  const f = { id: uid(), name, type: document.getElementById('fmType').value, notes: document.getElementById('fmNotes').value };
-  formations.push(f);
-  persist();
-  if (sbConnected) syncFormation(f);
-  currentFormationId = f.id;
-  closeModal('formationModal');
-  renderSidebar();
-  document.getElementById('formationSelect').value = f.id;
-  toast('Formation created!', 'success');
-  document.getElementById('fmName').value = '';
-  document.getElementById('fmNotes').value = '';
+// ── SHEETS ─────────────────────────────────────────
+function openSheet(id){
+  const ov=id.replace('Sheet','Overlay');
+  document.getElementById(ov).classList.add('open');
+  setTimeout(()=>document.getElementById(id).classList.add('open'),10);
+}
+function closeSheet(id){
+  document.getElementById(id).classList.remove('open');
+  document.getElementById(id.replace('Sheet','Overlay')).classList.remove('open');
 }
 
-function newPlay(formationId) {
-  currentFormationId = formationId;
-  currentPlayId = null;
-  players = []; routes = [];
-  selectedPlayer = null;
-  document.getElementById('playNameInput').value = 'New Play';
-  document.getElementById('formationSelect').value = formationId;
-  renderSidebar();
-  drawAll();
-  setView('editor');
-}
+// ── TOAST ──────────────────────────────────────────
+function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show'+(type?' '+type:'');clearTimeout(el._t);el._t=setTimeout(()=>el.className='toast',2400);}
 
-function savePlay() {
-  const name = document.getElementById('playNameInput').value.trim();
-  if (!name) { toast('Enter a play name', 'error'); return; }
-  if (!currentFormationId) { toast('Select a formation first', 'error'); return; }
+// ── UTILS ──────────────────────────────────────────
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function esc(s){return String(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
 
-  const data = { players, routes };
+window.addEventListener('resize',()=>{if(!document.getElementById('editorScreen').classList.contains('hidden'))resizeCv();});
 
-  if (currentPlayId) {
-    const idx = plays.findIndex(p => p.id === currentPlayId);
-    if (idx !== -1) {
-      plays[idx] = { ...plays[idx], name, data };
-      if (sbConnected) syncPlay(plays[idx]);
-    }
-  } else {
-    const pl = { id: uid(), formationId: currentFormationId, name, notes: '', data };
-    plays.push(pl);
-    currentPlayId = pl.id;
-    if (sbConnected) syncPlay(pl);
-  }
-
-  persist();
-  renderSidebar();
-  toast('Play saved!', 'success');
-}
-
-function loadPlay(id) {
-  const pl = plays.find(p => p.id === id);
-  if (!pl) return;
-  currentPlayId = pl.id;
-  currentFormationId = pl.formationId;
-  document.getElementById('playNameInput').value = pl.name;
-  document.getElementById('formationSelect').value = pl.formationId;
-  players = JSON.parse(JSON.stringify(pl.data?.players || []));
-  routes = JSON.parse(JSON.stringify(pl.data?.routes || []));
-  selectedPlayer = null;
-  history = [];
-  renderSidebar();
-  drawAll();
-  setView('editor');
-}
-
-// ─── VIEWS ────────────────────────────────────────────────────────────────────
-function setView(v) {
-  document.getElementById('editorView').style.display = v === 'editor' ? 'flex' : 'none';
-  document.getElementById('browseView').style.display = v === 'browse' ? 'block' : 'none';
-  document.getElementById('rightPanel').style.display = v === 'editor' ? 'flex' : 'none';
-  document.querySelectorAll('nav .nav-btn').forEach((b, i) => b.classList.toggle('active', (v === 'editor' && i === 0) || (v === 'browse' && i === 1)));
-  if (v === 'browse') renderBrowse();
-}
-
-function renderBrowse() {
-  const el = document.getElementById('browseContent');
-  if (!formations.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>No Plays Yet</h3><p>Create a formation and add some plays to see them here.</p></div>`; return; }
-
-  el.innerHTML = formations.map(f => {
-    const fPlays = plays.filter(p => p.formationId === f.id);
-    const typeLabel = f.type === 'off' ? 'OFFENSE' : f.type === 'def' ? 'DEFENSE' : 'SPECIAL TEAMS';
-    return `
-      <div style="margin-bottom:32px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px">
-          <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px">${f.name}</h3>
-          <span class="formation-type-tag ${f.type}" style="font-size:10px">${typeLabel}</span>
-          ${f.notes ? `<span style="font-size:12px;color:var(--muted)">${f.notes}</span>` : ''}
-        </div>
-        ${fPlays.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
-          ${fPlays.map(pl => `
-            <div onclick="loadPlay('${pl.id}')" style="background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-              <div style="font-weight:600;font-size:14px;margin-bottom:4px">${pl.name}</div>
-              <div style="font-size:11px;color:var(--muted)">${(pl.data?.players||[]).length} players · ${(pl.data?.routes||[]).length} routes</div>
-            </div>`).join('')}
-        </div>` : `<div style="color:var(--muted);font-size:13px;font-style:italic">No plays in this formation yet.</div>`}
-      </div>`;
-  }).join('');
-}
-
-// ─── PRINT ────────────────────────────────────────────────────────────────────
-function printPlay() {
-  const playName = document.getElementById('playNameInput').value || 'Play';
-  const win = window.open('', '_blank');
-  const dataUrl = canvas.toDataURL('image/png');
-  win.document.write(`<!DOCTYPE html><html><head><title>${playName}</title>
-    <style>body{margin:0;padding:20px;background:#fff;font-family:sans-serif}
-    h1{font-size:22px;margin-bottom:4px}p{color:#666;font-size:13px;margin-bottom:16px}
-    img{max-width:100%;border:2px solid #ccc;border-radius:8px}
-    @media print{h1,p{color:#000}}</style></head>
-    <body><h1>${playName}</h1><p>Formation: ${formations.find(f=>f.id===currentFormationId)?.name||'—'}</p>
-    <img src="${dataUrl}"><script>window.print();<\/script></body></html>`);
-  win.document.close();
-}
-
-// ─── SUPABASE ────────────────────────────────────────────────────────────────
-async function connectSupabase() {
-  const url = document.getElementById('sbUrl').value.trim();
-  const key = document.getElementById('sbKey').value.trim();
-  if (!url || !key) { toast('Enter URL and key', 'error'); return; }
-  sbUrl = url; sbKey = key;
-  localStorage.setItem('pb_sbUrl', url);
-  localStorage.setItem('pb_sbKey', key);
-
-  try {
-    // Test connection
-    const r = await sbFetch('formations?limit=1');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    sbConnected = true;
-    updateStatus(true);
-    closeModal('supabaseModal');
-    toast('Connected to Supabase!', 'success');
-    await loadFromSupabase();
-  } catch(e) {
-    toast('Connection failed: ' + e.message, 'error');
-  }
-}
-
-function sbFetch(path, options = {}) {
-  return fetch(`${sbUrl}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      'apikey': sbKey,
-      'Authorization': 'Bearer ' + sbKey,
-      'Content-Type': 'application/json',
-      'Prefer': options.method === 'POST' ? 'return=representation' : undefined,
-      ...(options.headers || {})
-    }
-  });
-}
-
-async function loadFromSupabase() {
-  try {
-    const [fRes, pRes] = await Promise.all([sbFetch('formations?order=created_at'), sbFetch('plays?order=created_at')]);
-    const fData = await fRes.json();
-    const pData = await pRes.json();
-    if (Array.isArray(fData)) {
-      formations = fData.map(f => ({ id: f.id, name: f.name, type: f.type, notes: f.notes }));
-    }
-    if (Array.isArray(pData)) {
-      plays = pData.map(p => ({ id: p.id, formationId: p.formation_id, name: p.name, notes: p.notes, data: p.data }));
-    }
-    persist();
-    renderSidebar();
-    toast('Plays loaded from cloud ✓', 'success');
-  } catch(e) {
-    toast('Failed to load from Supabase', 'error');
-  }
-}
-
-async function syncFormation(f) {
-  try {
-    await sbFetch('formations', {
-      method: 'POST',
-      body: JSON.stringify({ id: f.id, name: f.name, type: f.type, notes: f.notes }),
-      headers: { 'Prefer': 'return=representation,resolution=merge-duplicates' }
-    });
-  } catch(e) { console.warn('Sync formation failed', e); }
-}
-
-async function syncPlay(pl) {
-  try {
-    await sbFetch('plays', {
-      method: 'POST',
-      body: JSON.stringify({ id: pl.id, formation_id: pl.formationId, name: pl.name, notes: pl.notes || '', data: pl.data }),
-      headers: { 'Prefer': 'return=representation,resolution=merge-duplicates' }
-    });
-  } catch(e) { console.warn('Sync play failed', e); }
-}
-
-function updateStatus(connected) {
-  const dot = document.getElementById('statusDot');
-  const txt = document.getElementById('statusText');
-  if (connected) {
-    dot.classList.add('connected');
-    txt.textContent = 'Cloud connected';
-    sbConnected = true;
-  } else {
-    dot.classList.remove('connected');
-    txt.textContent = 'Local only';
-  }
-}
-
-// Share: generate a read-only URL with encoded data
-function openShareModal() {
-  const encoded = btoa(JSON.stringify({ formations, plays: plays.map(p => ({...p, data: p.data})) }));
-  const link = `${location.origin}${location.pathname}?share=${encoded}`;
-  document.getElementById('shareLinkBox').textContent = link.substring(0, 80) + '...';
-  document.getElementById('shareLinkBox').dataset.full = link;
-  openModal('shareModal');
-}
-
-function copyShareLink() {
-  const link = document.getElementById('shareLinkBox').dataset.full ||
-    `${location.origin}${location.pathname}?share=${btoa(JSON.stringify({formations, plays}))}`;
-  navigator.clipboard.writeText(link).then(() => toast('Link copied!', 'success'));
-}
-
-// Check for share param on load
-function checkShareMode() {
-  const params = new URLSearchParams(location.search);
-  if (params.has('share')) {
-    try {
-      const d = JSON.parse(atob(params.get('share')));
-      formations = d.formations || [];
-      plays = d.plays || [];
-      renderSidebar();
-      // Disable edit controls
-      document.querySelectorAll('.tool-btn, .icon-btn, .nav-btn').forEach(b => {
-        if (!b.textContent.includes('Browse') && !b.textContent.includes('Editor')) b.disabled = true;
-      });
-      const banner = document.createElement('div');
-      banner.style.cssText = 'background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 14px;margin:10px;font-size:12px;color:#60a5fa';
-      banner.textContent = '👁 View-only mode — you can browse and print, but not edit.';
-      document.querySelector('.sidebar').insertBefore(banner, document.querySelector('.sidebar-list'));
-      toast('Viewing shared playbook (read-only)', 'success');
-    } catch(e) {}
-  }
-}
-
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
-
-function persist() {
-  localStorage.setItem('pb_formations', JSON.stringify(formations));
-  localStorage.setItem('pb_plays', JSON.stringify(plays));
-}
-
-function toast(msg, type = '') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show ' + type;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.className = 'toast', 2500);
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-});
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-document.getElementById('sbUrl').value = sbUrl;
-document.getElementById('sbKey').value = sbKey;
-
-if (sbUrl && sbKey) {
-  connectSupabase().catch(() => {});
-} else {
-  document.getElementById('setupBanner').classList.add('show');
-}
-
-checkShareMode();
-renderSidebar();
-drawAll();
+// ── INIT ───────────────────────────────────────────
+(async()=>{
+  const shared=checkShare();
+  if(shared){renderTeams();setTimeout(()=>{showScreen('teamsScreen');},900);return;}
+  await initDB();
+  renderTeams();
+  setTimeout(()=>{showScreen('teamsScreen');},900);
+})();
 </script>
 </body>
 </html>
