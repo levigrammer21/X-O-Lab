@@ -747,11 +747,23 @@ window.openPlay=function(id){
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
   selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value=currentPlay.name;
-  // Read-only if view only
   document.getElementById('editorScreen').querySelector('.e-save').style.display=canEdit?'':'none';
+  document.getElementById('segTypeRow').style.display=canEdit?'':'none';
+  document.getElementById('optionsRow').style.display=canEdit?'':'none';
   tool='draw';setSegType('route');
   navTo('editorScreen');
-  setTimeout(()=>{resizeCv();drawAll();},110);
+  setTimeout(()=>{
+    resizeCv();
+    if(!canEdit){
+      // Auto-fit entire field into view with padding
+      const pad=40;
+      const scaleX=(cv.width-pad*2)/FW;
+      const scaleY=(cv.height-pad*2)/FH;
+      vs=Math.min(scaleX,scaleY,1);
+      vx=0;vy=0;
+    }
+    drawAll();
+  },110);
 };
 
 window.savePlay=async function(){
@@ -815,20 +827,57 @@ function toF(sx,sy){return{x:(sx-vx-cv.width/2+FW/2*vs)/vs,y:(sy-vy-cv.height/2+
 
 // Shared field drawer
 function drawFieldOn(c,canv,sc,toScreen){
+  // We draw a play-diagram style field — grass stripes, yard lines, hash marks
   const tl=toScreen(0,0),br=toScreen(FW,FH);
   const fw=br.x-tl.x,fh=br.y-tl.y;
-  c.fillStyle='#1a3d16';c.fillRect(tl.x,tl.y,fw,fh);
-  for(let i=0;i<10;i++){if(i%2===0){c.fillStyle='#1f4819';c.fillRect(tl.x+i*fw/10,tl.y,fw/10,fh);}}
-  c.strokeStyle='rgba(255,255,255,0.07)';c.lineWidth=1;
-  for(let i=0;i<=20;i++){const x=tl.x+i*fw/20;c.beginPath();c.moveTo(x,tl.y);c.lineTo(x,br.y);c.stroke();}
-  for(let j=0;j<=12;j++){const y=tl.y+j*fh/12;c.beginPath();c.moveTo(tl.x,y);c.lineTo(br.x,y);c.stroke();}
-  c.strokeStyle='rgba(255,255,255,0.2)';c.lineWidth=1.5;
-  for(let i=0;i<=10;i++){const x=tl.x+i*fw/10;c.beginPath();c.moveTo(x,tl.y);c.lineTo(x,br.y);c.stroke();}
+
+  // Grass base
+  c.fillStyle='#1e4d18';c.fillRect(tl.x,tl.y,fw,fh);
+
+  // Alternating grass stripes (5 yard bands)
+  const numStripes=10;
+  for(let i=0;i<numStripes;i++){
+    if(i%2===0){c.fillStyle='#234f1c';}
+    else{c.fillStyle='#1a4516';}
+    c.fillRect(tl.x,tl.y+i*fh/numStripes,fw,fh/numStripes);
+  }
+
+  // Yard lines (horizontal — every 5 yards across the play view)
+  const numYards=10;
+  c.strokeStyle='rgba(255,255,255,0.3)';c.lineWidth=Math.max(1,1.5*Math.min(sc,1));
+  for(let i=0;i<=numYards;i++){
+    const y=tl.y+i*fh/numYards;
+    c.beginPath();c.moveTo(tl.x,y);c.lineTo(br.x,y);c.stroke();
+  }
+
+  // Hash marks — two sets of short vertical ticks on each yard line
+  const hashW=fw*0.06; // hash width relative to field
+  const hash1X=tl.x+fw*0.28; // left hash
+  const hash2X=tl.x+fw*0.72; // right hash
+  c.strokeStyle='rgba(255,255,255,0.4)';c.lineWidth=Math.max(1,1.2*Math.min(sc,1));
+  for(let i=0;i<=numYards;i++){
+    const y=tl.y+i*fh/numYards;
+    const hlen=fh*0.025;
+    // left hash
+    c.beginPath();c.moveTo(hash1X-hlen,y);c.lineTo(hash1X+hlen,y);c.stroke();
+    // right hash
+    c.beginPath();c.moveTo(hash2X-hlen,y);c.lineTo(hash2X+hlen,y);c.stroke();
+  }
+
+  // Sideline borders
+  c.strokeStyle='rgba(255,255,255,0.5)';c.lineWidth=2;
+  c.strokeRect(tl.x,tl.y,fw,fh);
+
+  // LOS line — solid gold, prominent
   const midY=toScreen(0,FH/2).y;
-  c.strokeStyle='rgba(240,180,41,.6)';c.lineWidth=2;c.setLineDash([10,7]);
-  c.beginPath();c.moveTo(tl.x,midY);c.lineTo(br.x,midY);c.stroke();c.setLineDash([]);
-  c.fillStyle='rgba(240,180,41,.55)';c.font=`${Math.max(9,11*sc)}px DM Sans`;c.fillText('LOS',tl.x+6,midY-5);
-  c.strokeStyle='rgba(255,255,255,.4)';c.lineWidth=2;c.strokeRect(tl.x,tl.y,fw,fh);
+  c.strokeStyle='rgba(240,180,41,0.85)';c.lineWidth=3;c.setLineDash([]);
+  c.beginPath();c.moveTo(tl.x,midY);c.lineTo(br.x,midY);c.stroke();
+
+  // LOS label
+  c.fillStyle='rgba(240,180,41,0.9)';
+  c.font=`bold ${Math.max(9,12*Math.min(sc,1.2))}px DM Sans`;
+  c.textAlign='left';c.textBaseline='bottom';
+  c.fillText('LOS',tl.x+6,midY-3);
 }
 
 function drawPlayersOn(c,canv,sc,players,selected,toScreen){
@@ -836,7 +885,13 @@ function drawPlayersOn(c,canv,sc,players,selected,toScreen){
     const s=toScreen(p.x,p.y),r=Math.max(14,18*Math.min(sc,1.4));
     c.save();
     if(p===selected){c.shadowColor='#fff';c.shadowBlur=14;}
-    c.beginPath();c.arc(s.x,s.y,r,0,Math.PI*2);
+    if(p.pos==='C'){
+      // Square for center
+      c.beginPath();
+      c.rect(s.x-r,s.y-r,r*2,r*2);
+    } else {
+      c.beginPath();c.arc(s.x,s.y,r,0,Math.PI*2);
+    }
     c.fillStyle=p.color||'#f0b429';c.fill();
     c.strokeStyle=p===selected?'#fff':'rgba(0,0,0,.5)';c.lineWidth=p===selected?2.5:1.5;c.stroke();
     c.fillStyle='#000';c.font=`bold ${Math.max(9,11*Math.min(sc,1.4))}px DM Sans`;
@@ -986,6 +1041,9 @@ cv.addEventListener('touchmove',e=>{
   }
   if(e.touches.length===1){
     const p=cvPos(e.touches[0],cv);
+    if(isPanning){
+      vx=p.x-panSX;vy=p.y-panSY;drawAll();
+    }
     // Live preview of next tap point
     if(activeRoute){
       const seg=activeRoute.segments[activeRoute.segments.length-1];
@@ -1024,9 +1082,13 @@ cv.addEventListener('wheel',e=>{
 },{passive:false});
 
 function handleDown(sx,sy){
-  if(!canEdit) return;
   const fp=toF(sx,sy);
   const hit=playerAt(sx,sy);
+  // View-only: only allow panning
+  if(!canEdit){
+    isPanning=true;panSX=sx-vx;panSY=sy-vy;
+    return;
+  }
 
   // ── ERASE MODE ──
   if(tool==='erase'){
