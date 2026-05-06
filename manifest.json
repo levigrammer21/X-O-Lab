@@ -1,7 +1,8 @@
 {
   "name": "X&O Lab",
   "short_name": "X&O Lab",
-  "start_url": "/",
+  "start_url": "/X-O-Lab/",
+"scope": "/X-O-Lab/"
   "display": "standalone",
   "background_color": "#0b0c0f",
   "theme_color": "#f0b429",
