@@ -261,11 +261,31 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- PLAYBOOKS LIST (admin only) -->
 <div class="screen hidden" id="playbooksScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('landingScreen','playbooksScreen')">←</button>
+    <button class="hdr-back" onclick="logoutToLanding()">←</button>
     <div class="hdr-title"><h1>PLAYBOOKS</h1><p id="pbConn">Coach view</p></div>
+    <button class="hdr-btn ghost icon" onclick="openManageCoaches()" id="manageCoachesBtn" style="display:none">👥</button>
     <button class="hdr-btn" onclick="openSheet('newPlaybookSheet')">+ New</button>
   </div>
   <div class="scroll" id="playbooksList"></div>
+</div>
+
+<!-- MANAGE COACHES (super admin only) -->
+<div class="screen hidden" id="coachesScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('playbooksScreen','coachesScreen')">←</button>
+    <div class="hdr-title"><h1>COACHES</h1><p>Manage coach accounts</p></div>
+    <button class="hdr-btn" onclick="openSheet('newCoachSheet')">+ Coach</button>
+  </div>
+  <div class="scroll" id="coachesList"></div>
+</div>
+
+<!-- ASSIGN PLAYBOOK TO COACH (super admin only) -->
+<div class="screen hidden" id="assignScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','assignScreen')">←</button>
+    <div class="hdr-title"><h1>ASSIGN COACH</h1><p id="assignPbName">Playbook</p></div>
+  </div>
+  <div class="scroll" id="assignList"></div>
 </div>
 
 <!-- FORMATIONS -->
@@ -416,17 +436,29 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="handle"></div>
   <h2 id="pbMenuTitle">Playbook</h2>
   <p class="sub" id="pbMenuCode">View code: —</p>
+  <p class="sub" id="pbMenuOwner" style="display:none;color:var(--accent)">Owner: —</p>
   <button class="btn btn-p" onclick="closeSheet('pbMenuSheet');startQuiz()">🎯 Play Test (Quiz)</button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openLeaderboard()">🏆 Leaderboard</button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="copyPlaybookId()" id="pbCopyIdBtn">🆔 Copy Playbook ID</button>
-  <div style="height:8px"></div>
   <button class="btn btn-g" onclick="printPlaybook()">🖨 Print Full Playbook</button>
+  <div style="height:8px" id="pbAssignSpacer"></div>
+  <button class="btn btn-g" onclick="openAssignScreen()" id="pbAssignBtn" style="display:none">👤 Assign to Coach</button>
   <div style="height:8px" id="pbAdminSpacer"></div>
   <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
+</div>
+
+<!-- NEW COACH SHEET -->
+<div class="overlay" id="newCoachOverlay" onclick="closeSheet('newCoachSheet')"></div>
+<div class="sheet" id="newCoachSheet">
+  <div class="handle"></div>
+  <h2>New Coach</h2>
+  <p class="sub">They'll log in with this password and only see their own playbooks.</p>
+  <div class="field"><label>Coach Name</label><input id="ncName" placeholder="e.g. Coach Mike, 3/4 Coach"></div>
+  <div class="field"><label>Password</label><input id="ncPw" placeholder="e.g. coach34" autocomplete="off"></div>
+  <button class="btn btn-p" onclick="addCoach()">Create Coach</button>
 </div>
 
 <div class="overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
@@ -463,27 +495,20 @@ const db = getFirestore(fbApp);
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
-// Each admin entry can optionally restrict access to a single playbook.
-// - password: what the coach types in
-// - playbookId: (optional) Firestore ID — if set, this admin can only see/edit
-//   that one playbook. Leave empty/null for full access to all playbooks.
-//
-// To find a playbook ID: log in as full admin → open the playbook →
-// tap ⋯ menu → "Copy Playbook ID", then paste it below.
-const ADMINS = [
-  { password: 'coach2026', playbookId: null },      // Head coach — sees all
-  { password: 'admin2026', playbookId: null },      // Head coach — sees all
-  { password: 'coach34',   playbookId: '' },        // 3/4 coach — paste ID here
-  // Add more like: { password: 'coach56', playbookId: 'xxxxx' },
-];
+// SUPER_ADMIN_PASSWORDS = head coach / app owner. Sees everything,
+// can manage coaches, can reassign playbooks. Edit this list in code.
+// All other coaches are managed through the in-app "Manage Coaches" UI.
+const SUPER_ADMIN_PASSWORDS = ['coach2026', 'admin2026'];
 
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
 let currentPlaybook = null, currentFormation = null, currentPlay = null;
 let canEdit = false, isViewOnly = false;
-let adminRestrictedTo = null;   // playbook ID if admin is restricted, else null
-let playbooks = [], formations = [], plays = [];
+let isSuperAdmin = false;       // true only for SUPER_ADMIN_PASSWORDS users
+let currentCoachId = null;      // Firestore coach doc ID if logged in as a coach
+let currentCoachName = '';      // display name of current coach
+let playbooks = [], formations = [], plays = [], coaches = [];
 
 // Formation editor state
 let fPlayers = [];
@@ -602,11 +627,15 @@ function pbCol(){ return collection(db,'playbooks'); }
 function fmCol(pbId){ return collection(db,'playbooks',pbId,'formations'); }
 function plCol(pbId,formId){ return collection(db,'playbooks',pbId,'formations',formId,'plays'); }
 function lbCol(pbId){ return collection(db,'playbooks',pbId,'leaderboard'); }
+function coachCol(){ return collection(db,'coaches'); }
 
-async function loadPlaybooks(){
+async function loadPlaybooks(ownerId=null){
   try{
     const snap=await getDocs(query(pbCol(),orderBy('createdAt')));
-    return snap.docs.map(d=>({id:d.id,...d.data()}));
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // If ownerId provided, filter; else return all
+    if(ownerId) return all.filter(p=>p.ownerId===ownerId);
+    return all;
   }catch(e){ console.error(e); return []; }
 }
 async function findPlaybookByCode(code){
@@ -623,6 +652,21 @@ async function loadFormations(pbId){
 async function loadPlays(pbId,formId){
   const snap=await getDocs(query(plCol(pbId,formId),orderBy('createdAt')));
   return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+async function loadCoaches(){
+  try{
+    const snap=await getDocs(query(coachCol(),orderBy('createdAt')));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ console.error(e); return []; }
+}
+async function findCoachByPassword(pw){
+  try{
+    const q=query(coachCol(),where('password','==',pw));
+    const snap=await getDocs(q);
+    if(snap.empty) return null;
+    const d=snap.docs[0];
+    return {id:d.id, ...d.data()};
+  }catch(e){ return null; }
 }
 
 // ═══════════════════════════════════════════════
@@ -641,38 +685,32 @@ window.goViewCode = ()=>{
 
 window.checkAdminPw = async ()=>{
   const pw=document.getElementById('adminPwInput').value.trim();
-  const admin = ADMINS.find(a=>a.password===pw);
-  if(!admin){
+  if(!pw){
+    document.getElementById('adminPwErr').textContent='Enter a password';
     document.getElementById('adminPwErr').style.display='block';
     return;
   }
-  canEdit=true; isViewOnly=false;
-  adminRestrictedTo = admin.playbookId || null;
 
-  // Restricted admin → jump straight into their playbook
-  if(adminRestrictedTo){
-    try{
-      const ref=doc(db,'playbooks',adminRestrictedTo);
-      const snap=await getDoc(ref);
-      if(!snap.exists()){
-        document.getElementById('adminPwErr').textContent='Assigned playbook not found — contact head coach';
-        document.getElementById('adminPwErr').style.display='block';
-        canEdit=false; adminRestrictedTo=null;
-        return;
-      }
-      const pb={id:snap.id, ...snap.data()};
-      playbooks=[pb];   // keeps menus/back-nav happy
-      await openPlaybook(pb);
-    }catch(e){
-      document.getElementById('adminPwErr').textContent='Could not load: '+(e.message||'').slice(0,40);
-      document.getElementById('adminPwErr').style.display='block';
-      canEdit=false; adminRestrictedTo=null;
-    }
+  // ── Super admin (you) ──
+  if(SUPER_ADMIN_PASSWORDS.includes(pw)){
+    canEdit=true; isViewOnly=false; isSuperAdmin=true;
+    currentCoachId=null; currentCoachName='Head Coach';
+    [playbooks, coaches] = await Promise.all([loadPlaybooks(), loadCoaches()]);
+    renderPlaybooks();
+    navTo('playbooksScreen');
     return;
   }
 
-  // Unrestricted admin → full playbook list
-  playbooks = await loadPlaybooks();
+  // ── Coach (stored in Firestore) ──
+  const coach = await findCoachByPassword(pw);
+  if(!coach){
+    document.getElementById('adminPwErr').textContent='Incorrect password';
+    document.getElementById('adminPwErr').style.display='block';
+    return;
+  }
+  canEdit=true; isViewOnly=false; isSuperAdmin=false;
+  currentCoachId=coach.id; currentCoachName=coach.name||'Coach';
+  playbooks = await loadPlaybooks(currentCoachId);
   renderPlaybooks();
   navTo('playbooksScreen');
 };
@@ -710,21 +748,150 @@ async function checkUrlCode(){
 // PLAYBOOKS LIST (admin)
 // ═══════════════════════════════════════════════
 function renderPlaybooks(){
+  // Show super-admin-only "Manage Coaches" button
+  const mcBtn=document.getElementById('manageCoachesBtn');
+  if(mcBtn) mcBtn.style.display = isSuperAdmin ? '' : 'none';
+  // Show whose view we're in
+  const conn=document.getElementById('pbConn');
+  if(conn) conn.textContent = isSuperAdmin ? 'Head Coach · All playbooks' : (currentCoachName+' · Your playbooks');
+
   const el=document.getElementById('playbooksList');
   if(!playbooks.length){
     el.innerHTML=`<div class="empty"><div class="empty-ico">📚</div><h3>No Playbooks Yet</h3><p>Tap + New to create your first playbook.</p></div>`;
     return;
   }
-  el.innerHTML=playbooks.map(pb=>`
-    <div class="card" onclick="openPlaybookById('${pb.id}')">
+  el.innerHTML=playbooks.map(pb=>{
+    let ownerLabel='';
+    if(isSuperAdmin){
+      if(pb.ownerId==='head' || !pb.ownerId){
+        ownerLabel=' · <span style="color:var(--accent)">Head Coach</span>';
+      } else {
+        const c=coaches.find(x=>x.id===pb.ownerId);
+        ownerLabel=' · <span style="color:var(--blue)">'+(c?esc(c.name):'Unknown coach')+'</span>';
+      }
+    }
+    return `<div class="card" onclick="openPlaybookById('${pb.id}')">
       <div style="width:46px;height:46px;border-radius:12px;background:rgba(240,180,41,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🏈</div>
       <div class="card-body">
         <div class="card-name">${esc(pb.name)}</div>
-        <div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace;letter-spacing:1px">${esc(pb.viewCode)}</b>${pb.description?' · '+esc(pb.description):''}</div>
+        <div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace;letter-spacing:1px">${esc(pb.viewCode)}</b>${pb.description?' · '+esc(pb.description):''}${ownerLabel}</div>
       </div>
       <span class="chevron">›</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
+
+// Logout = clear session & go to landing
+window.logoutToLanding = ()=>{
+  canEdit=false; isViewOnly=false; isSuperAdmin=false;
+  currentCoachId=null; currentCoachName='';
+  currentPlaybook=null; currentFormation=null; currentPlay=null;
+  playbooks=[]; formations=[]; plays=[];
+  goBack('landingScreen','playbooksScreen');
+};
+
+// ── COACH MANAGEMENT (super admin only) ──
+window.openManageCoaches = async ()=>{
+  if(!isSuperAdmin)return;
+  coaches = await loadCoaches();
+  renderCoaches();
+  navTo('coachesScreen');
+};
+
+function renderCoaches(){
+  const el=document.getElementById('coachesList');
+  if(!coaches.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><h3>No Coaches Yet</h3><p>Tap + Coach to add one.</p></div>`;
+    return;
+  }
+  el.innerHTML=coaches.map(c=>{
+    const playbookCount = playbooks.filter(p=>p.ownerId===c.id).length;
+    return `<div class="card">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(65,130,240,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
+      <div class="card-body">
+        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-sub">Password: <b style="color:var(--accent);font-family:monospace">${esc(c.password)}</b> · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
+      </div>
+      <button class="icon-del" onclick="confirmDelCoach('${c.id}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+window.addCoach = async ()=>{
+  const name=document.getElementById('ncName').value.trim();
+  const pw=document.getElementById('ncPw').value.trim();
+  if(!name || !pw){toast('Name and password required','err');return;}
+  // Block conflicts with super admin passwords
+  if(SUPER_ADMIN_PASSWORDS.includes(pw)){
+    toast('That password is reserved','err');return;
+  }
+  // Block duplicate coach passwords
+  if(coaches.some(c=>c.password===pw)){
+    toast('That password is already in use','err');return;
+  }
+  const coach={name, password:pw, createdAt:Date.now()};
+  const ref=await addDoc(coachCol(),coach);
+  coach.id=ref.id;
+  coaches.push(coach);
+  document.getElementById('ncName').value='';
+  document.getElementById('ncPw').value='';
+  closeSheet('newCoachSheet');
+  renderCoaches();
+  toast('Coach added!','ok');
+};
+
+window.confirmDelCoach = (id)=>{
+  pendDel={type:'coach', id};
+  const c=coaches.find(x=>x.id===id);
+  const owned=playbooks.filter(p=>p.ownerId===id).length;
+  document.getElementById('delTitle').textContent='Delete '+(c?c.name:'this coach')+'?';
+  document.getElementById('delMsg').textContent= owned>0
+    ? `This coach owns ${owned} playbook${owned===1?'':'s'} — those will be returned to the Head Coach pool.`
+    : 'This coach can no longer log in.';
+  document.getElementById('delOk').onclick=execDel;
+  openSheet('deleteSheet');
+};
+
+// ── ASSIGN PLAYBOOK TO COACH (super admin only) ──
+window.openAssignScreen = async ()=>{
+  if(!isSuperAdmin || !currentPlaybook) return;
+  closeSheet('pbMenuSheet');
+  coaches = await loadCoaches();
+  document.getElementById('assignPbName').textContent=currentPlaybook.name;
+  renderAssignList();
+  navTo('assignScreen');
+};
+
+function renderAssignList(){
+  const el=document.getElementById('assignList');
+  const curId = currentPlaybook.ownerId || 'head';
+  const options = [
+    {id:'head', name:'Head Coach (you)', sub:'Default — only super admins can see it'},
+    ...coaches.map(c=>({id:c.id, name:c.name, sub:'Password: '+c.password}))
+  ];
+  el.innerHTML = options.map(o=>{
+    const active = o.id===curId;
+    return `<div class="card" onclick="assignTo('${o.id}')" style="${active?'border-color:var(--accent);background:var(--card2)':''}">
+      <div style="width:42px;height:42px;border-radius:10px;background:${o.id==='head'?'rgba(240,180,41,.15)':'rgba(65,130,240,.15)'};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${o.id==='head'?'👑':'👤'}</div>
+      <div class="card-body">
+        <div class="card-name">${esc(o.name)}</div>
+        <div class="card-sub">${esc(o.sub)}</div>
+      </div>
+      ${active?'<span style="color:var(--accent);font-size:18px;flex-shrink:0">✓</span>':'<span class="chevron">›</span>'}
+    </div>`;
+  }).join('');
+}
+
+window.assignTo = async (ownerId)=>{
+  if(!currentPlaybook) return;
+  await updateDoc(doc(db,'playbooks',currentPlaybook.id),{ownerId});
+  currentPlaybook.ownerId=ownerId;
+  // Keep local list in sync
+  const i=playbooks.findIndex(p=>p.id===currentPlaybook.id);
+  if(i!==-1) playbooks[i].ownerId=ownerId;
+  renderAssignList();
+  toast('Ownership updated','ok');
+};
 
 window.openPlaybookById = async (id)=>{
   const pb=playbooks.find(p=>p.id===id);
@@ -742,9 +909,8 @@ async function openPlaybook(pb){
 }
 
 function backFromFormations(){
-  // Restricted admin or view-only → back to landing (no playbook list to show)
-  // Full admin → back to playbook list
-  if(canEdit && !adminRestrictedTo){
+  // Coaches and super-admins go back to playbook list. View-only → landing.
+  if(canEdit){
     goBack('playbooksScreen','formationsScreen');
   } else {
     goBack('landingScreen','formationsScreen');
@@ -770,10 +936,14 @@ window.addPlaybook = async ()=>{
     if(!existing)break;
     tries++;
   } while(tries<5);
+  // ownerId: super-admin-created playbooks are owned by 'head' so they show
+  // up only for super admin. Coach-created playbooks owned by that coach.
+  const ownerId = isSuperAdmin ? 'head' : currentCoachId;
   const pb={
     name,
     description:document.getElementById('npbDesc').value.trim(),
     viewCode:code,
+    ownerId,
     createdAt:Date.now()
   };
   const ref=await addDoc(pbCol(),pb);
@@ -790,24 +960,27 @@ window.openPlaybookMenu = ()=>{
   if(!currentPlaybook)return;
   document.getElementById('pbMenuTitle').textContent=currentPlaybook.name;
   document.getElementById('pbMenuCode').textContent='View code: '+currentPlaybook.viewCode;
-  // Restricted admins can't delete the playbook (head coach manages that)
-  const canDelete = canEdit && !adminRestrictedTo;
+  // Owner info for super admin
+  const ownerLine=document.getElementById('pbMenuOwner');
+  if(ownerLine){
+    if(isSuperAdmin){
+      const c=coaches.find(x=>x.id===currentPlaybook.ownerId);
+      ownerLine.textContent='Owner: '+(c?c.name:(currentPlaybook.ownerId==='head'?'Head Coach':'Unassigned'));
+      ownerLine.style.display='block';
+    } else {
+      ownerLine.style.display='none';
+    }
+  }
+  // Delete: super admin can delete anything; coach can delete their own
+  const canDelete = canEdit && (isSuperAdmin || currentPlaybook.ownerId===currentCoachId);
   document.getElementById('pbDelBtn').style.display=canDelete?'':'none';
   document.getElementById('pbAdminSpacer').style.display=canDelete?'':'none';
-  // View-only users don't get to copy the code or ID
+  // View-only users don't get to copy the code
   document.getElementById('pbCopyBtn').style.display=canEdit?'':'none';
-  // Only full admins need the playbook ID (to wire up restricted coaches)
-  document.getElementById('pbCopyIdBtn').style.display=(canEdit && !adminRestrictedTo)?'':'none';
+  // Assign-to-coach: super admin only
+  const assignBtn=document.getElementById('pbAssignBtn');
+  if(assignBtn) assignBtn.style.display=isSuperAdmin?'':'none';
   openSheet('pbMenuSheet');
-};
-
-window.copyPlaybookId = ()=>{
-  if(!currentPlaybook)return;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(currentPlaybook.id).then(()=>toast('Playbook ID copied!','ok'));
-  } else {
-    toast('ID: '+currentPlaybook.id,'ok');
-  }
 };
 
 window.copyViewCode = ()=>{
@@ -1175,6 +1348,19 @@ async function execDel(){
     renderPlaybooks();
     goBack('playbooksScreen','formationsScreen');
     toast('Playbook deleted','ok');
+  } else if(type==='coach'){
+    // Reassign coach's playbooks back to head before deleting coach
+    try{
+      const owned=playbooks.filter(p=>p.ownerId===id);
+      for(const p of owned){
+        await updateDoc(doc(db,'playbooks',p.id),{ownerId:'head'});
+        p.ownerId='head';
+      }
+      await deleteDoc(doc(db,'coaches',id));
+    }catch(e){console.error(e);toast('Delete error','err');return;}
+    coaches=coaches.filter(c=>c.id!==id);
+    renderCoaches();
+    toast('Coach deleted','ok');
   }
 }
 
