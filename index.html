@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>X&O Lab</title>
-  <link rel="icon" type="image/png" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -119,6 +119,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .chip.red{border-color:rgba(240,65,65,.3);color:var(--red)}
 .osep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 1px}
 .olbl{font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap;flex-shrink:0}
+.label-input{height:28px;width:64px;padding:0 8px;border-radius:14px;border:1.5px solid var(--accent);background:var(--card2);color:var(--accent);font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;text-align:center;flex-shrink:0;text-transform:uppercase}
 
 /* SPLASH */
 .splash{align-items:center;justify-content:center;gap:6px}
@@ -126,6 +127,19 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .splash .tag{font-size:13px;color:var(--muted);letter-spacing:2px}
 .splash .spin{width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin-top:28px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* LANDING */
+.landing{align-items:center;justify-content:center;padding:28px}
+.landing-box{width:100%;max-width:360px}
+.landing-logo{font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:7px;color:var(--accent);line-height:1;text-align:center}
+.landing-tag{font-size:12px;color:var(--muted);letter-spacing:2px;text-align:center;margin-bottom:38px}
+.landing-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:22px;cursor:pointer;margin-bottom:12px;transition:border-color .12s}
+.landing-card:active{border-color:var(--accent)}
+.landing-card-row{display:flex;align-items:center;gap:14px}
+.landing-card-ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.landing-card-body{flex:1}
+.landing-card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;line-height:1;margin-bottom:4px}
+.landing-card-sub{font-size:12px;color:var(--muted);line-height:1.4}
 
 /* PASSWORD SCREEN */
 .pw-screen{align-items:center;justify-content:center;padding:32px}
@@ -143,6 +157,41 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .color-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
 .tc{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .12s;flex-shrink:0}
 .tc.on{border-color:#fff;transform:scale(1.18)}
+
+/* QUIZ */
+.quiz-screen{padding:0}
+.quiz-top{padding:14px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px}
+.quiz-timer{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.5px;color:var(--accent)}
+.quiz-progress{flex:1;font-size:12px;color:var(--muted);text-align:right}
+.quiz-score{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--green);margin-left:auto}
+.quiz-field{flex:1;position:relative;background:#070809;overflow:hidden;min-height:0}
+.quiz-field canvas{position:absolute;inset:0;width:100%;height:100%}
+.quiz-question{padding:16px;background:var(--card);border-top:1px solid var(--border);text-align:center;flex-shrink:0}
+.quiz-question h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;margin-bottom:4px}
+.quiz-question p{font-size:12px;color:var(--muted)}
+.quiz-options{padding:12px 14px calc(14px + var(--safe));background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:9px;flex-shrink:0}
+.quiz-opt{padding:16px 10px;background:var(--card2);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:62px;line-height:1.25;text-align:center;transition:all .15s}
+.quiz-opt:active{transform:scale(.96)}
+.quiz-opt.correct{background:rgba(65,201,122,.18);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(240,65,65,.18);border-color:var(--red);color:var(--red)}
+.quiz-opt.disabled{pointer-events:none;opacity:.65}
+
+/* QUIZ DONE */
+.quiz-done{padding:24px;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.quiz-done-stat{font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:3px;color:var(--accent);line-height:1}
+.quiz-done-label{font-size:12px;color:var(--muted);letter-spacing:1.5px;margin-top:4px;margin-bottom:24px}
+.quiz-done-detail{font-size:14px;color:var(--text);margin-bottom:6px}
+.quiz-done-detail b{color:var(--accent)}
+
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:22px;width:32px;text-align:center;color:var(--muted);flex-shrink:0}
+.lb-rank.gold{color:#f0b429}
+.lb-rank.silver{color:#c0c0c0}
+.lb-rank.bronze{color:#cd7f32}
+.lb-name{flex:1;font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-stats{font-size:11px;color:var(--muted);text-align:right}
+.lb-stats b{color:var(--accent);font-size:14px;display:block}
 </style>
 </head>
 <body>
@@ -154,33 +203,77 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="spin"></div>
 </div>
 
-<!-- PASSWORD -->
-<div class="screen hidden pw-screen" id="pwScreen">
-  <div class="pw-box">
-    <h2 id="pwTitle">Enter Password</h2>
-    <p id="pwSub">Enter the edit or view password for this team.</p>
-    <div class="field"><label>Password</label><input type="password" id="pwInput" placeholder="••••••••" autocomplete="off"></div>
-    <div id="pwErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Incorrect password</div>
-    <button class="btn btn-p" onclick="checkPw()">Enter</button>
-    <div style="height:10px"></div>
-    <button class="btn btn-g" onclick="showScreen('teamsScreen')">Back</button>
+<!-- LANDING (admin or view code) -->
+<div class="screen hidden landing" id="landingScreen">
+  <div class="landing-box">
+    <div class="landing-logo">X&O</div>
+    <div class="landing-tag">PLAYBOOK</div>
+    <div class="landing-card" onclick="goAdmin()">
+      <div class="landing-card-row">
+        <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🏈</div>
+        <div class="landing-card-body">
+          <div class="landing-card-title">Coach Login</div>
+          <div class="landing-card-sub">Manage playbooks, draw plays, share codes.</div>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+    </div>
+    <div class="landing-card" onclick="goViewCode()">
+      <div class="landing-card-row">
+        <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">🔑</div>
+        <div class="landing-card-body">
+          <div class="landing-card-title">Got a Code?</div>
+          <div class="landing-card-sub">Open a playbook with a view code.</div>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:20px;letter-spacing:.5px" id="connTag">Loading…</div>
   </div>
 </div>
 
-<!-- TEAMS -->
-<div class="screen hidden" id="teamsScreen">
-  <div class="hdr">
-    <div class="hdr-title"><h1>X&O LAB</h1><p id="connStatus">Loading…</p></div>
+<!-- ADMIN PASSWORD -->
+<div class="screen hidden pw-screen" id="adminPwScreen">
+  <div class="pw-box">
+    <h2>Coach Login</h2>
+    <p>Enter the coach password to manage playbooks.</p>
+    <div class="field"><label>Password</label><input type="password" id="adminPwInput" placeholder="••••••••" autocomplete="off"></div>
+    <div id="adminPwErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Incorrect password</div>
+    <button class="btn btn-p" onclick="checkAdminPw()">Enter</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-g" onclick="goBack('landingScreen','adminPwScreen')">Back</button>
   </div>
-  <div class="scroll" id="teamsList"></div>
+</div>
+
+<!-- VIEW CODE ENTRY -->
+<div class="screen hidden pw-screen" id="viewCodeScreen">
+  <div class="pw-box">
+    <h2>Open Playbook</h2>
+    <p>Enter the view code your coach gave you.</p>
+    <div class="field"><label>View Code</label><input type="text" id="viewCodeInput" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
+    <div id="viewCodeErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Code not found</div>
+    <button class="btn btn-p" onclick="checkViewCode()">Open</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-g" onclick="goBack('landingScreen','viewCodeScreen')">Back</button>
+  </div>
+</div>
+
+<!-- PLAYBOOKS LIST (admin only) -->
+<div class="screen hidden" id="playbooksScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('landingScreen','playbooksScreen')">←</button>
+    <div class="hdr-title"><h1>PLAYBOOKS</h1><p id="pbConn">Coach view</p></div>
+    <button class="hdr-btn" onclick="openSheet('newPlaybookSheet')">+ New</button>
+  </div>
+  <div class="scroll" id="playbooksList"></div>
 </div>
 
 <!-- FORMATIONS -->
 <div class="screen hidden" id="formationsScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('teamsScreen','formationsScreen')">←</button>
-    <div class="hdr-title"><h1 id="formTeamName">Team</h1><p id="formTeamSub">Formations</p></div>
-    <button class="hdr-btn ghost icon" onclick="buildShare();openSheet('shareSheet')">🔗</button>
+    <button class="hdr-back" onclick="backFromFormations()">←</button>
+    <div class="hdr-title"><h1 id="formTeamName">Playbook</h1><p id="formTeamSub">Formations</p></div>
+    <button class="hdr-btn ghost icon" onclick="openPlaybookMenu()" id="pbMenuBtn">⋯</button>
     <button class="hdr-btn" id="addFormBtn" onclick="openSheet('newFormSheet')">+ Formation</button>
   </div>
   <div class="scroll" id="formationsList"></div>
@@ -191,7 +284,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="hdr">
     <button class="hdr-back" onclick="goBack('formationsScreen','playsScreen')">←</button>
     <div class="hdr-title"><h1 id="playsFormName">Formation</h1><p id="playsFormSub">Plays</p></div>
-    <button class="hdr-btn ghost icon" onclick="openFormationEditor()">✏️</button>
+    <button class="hdr-btn ghost icon" onclick="openFormationEditor()" id="editFormBtn">✏️</button>
     <button class="hdr-btn" id="addPlayBtn" onclick="newPlay()">+ Play</button>
   </div>
   <div class="scroll" id="playsList"></div>
@@ -221,26 +314,86 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- PLAY EDITOR -->
 <div class="screen hidden" id="editorScreen">
   <div class="editor-hdr">
-    <button class="e-back" onclick="goBack('playsScreen','editorScreen')">←</button>
+    <button class="e-back" onclick="backFromPlayEditor()">←</button>
     <div class="name-wrap"><input id="playNameInput" placeholder="Play name…" maxlength="40"></div>
     <button class="e-save" onclick="savePlay()">SAVE</button>
     <button class="e-back" onclick="printPlay()" style="margin-left:2px">🖨</button>
   </div>
   <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas></div>
   <div class="bot-bar">
-    <!-- Row 1: segment type + erase -->
     <div class="tool-row" id="segTypeRow">
       <button class="tool-btn on" id="seg-route" onclick="setSegType('route')"><span class="ti">↗</span>ROUTE</button>
       <button class="tool-btn" id="seg-motion" onclick="setSegType('motion')"><span class="ti">〰</span>MOTION</button>
       <button class="tool-btn" id="seg-block" onclick="setSegType('block')"><span class="ti">▬</span>BLOCK</button>
       <button class="tool-btn" id="tool-erase" onclick="toggleErase()"><span class="ti">✕</span>ERASE</button>
     </div>
-    <!-- Row 2: context options -->
     <div class="opts" id="optionsRow"></div>
   </div>
 </div>
 
+<!-- QUIZ SCREEN -->
+<div class="screen hidden quiz-screen" id="quizScreen">
+  <div class="quiz-top">
+    <button class="hdr-back" onclick="quitQuiz()">←</button>
+    <div class="quiz-timer" id="quizTimer">0.0s</div>
+    <div class="quiz-progress" id="quizProgress">1 / 10</div>
+    <div class="quiz-score" id="quizScore">0</div>
+  </div>
+  <div class="quiz-field" id="quizField"><canvas id="quizCanvas"></canvas></div>
+  <div class="quiz-question">
+    <h3>What play is this?</h3>
+    <p id="quizFormName">—</p>
+  </div>
+  <div class="quiz-options" id="quizOptions"></div>
+</div>
+
+<!-- QUIZ DONE -->
+<div class="screen hidden" id="quizDoneScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','quizDoneScreen')">←</button>
+    <div class="hdr-title"><h1>QUIZ RESULTS</h1><p id="quizDonePB">Playbook</p></div>
+  </div>
+  <div class="quiz-done">
+    <div class="quiz-done-stat" id="qdScore">0/0</div>
+    <div class="quiz-done-label">CORRECT</div>
+    <div class="quiz-done-detail">Time: <b id="qdTime">0.0s</b></div>
+    <div class="quiz-done-detail">Final Score: <b id="qdFinal">0</b></div>
+    <div style="height:30px"></div>
+    <div id="qdNameRow" style="width:100%;max-width:320px;display:none">
+      <div class="field"><label>Your Name for Leaderboard</label>
+        <input id="qdNameInput" placeholder="Enter name" maxlength="20">
+      </div>
+      <button class="btn btn-p" onclick="submitScore()">Submit Score</button>
+    </div>
+    <div id="qdActions" style="width:100%;max-width:320px;display:none">
+      <button class="btn btn-p" onclick="startQuiz()">Play Again</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-g" onclick="openLeaderboard()">View Leaderboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen hidden" id="leaderboardScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','leaderboardScreen')">←</button>
+    <div class="hdr-title"><h1>LEADERBOARD</h1><p id="lbPbName">Playbook</p></div>
+    <button class="hdr-btn" onclick="startQuiz()">Play</button>
+  </div>
+  <div class="scroll" id="leaderboardList"></div>
+</div>
+
 <!-- SHEETS -->
+<div class="overlay" id="newPlaybookOverlay" onclick="closeSheet('newPlaybookSheet')"></div>
+<div class="sheet" id="newPlaybookSheet">
+  <div class="handle"></div>
+  <h2>New Playbook</h2>
+  <p class="sub">A view code will be generated. Share it with players or parents.</p>
+  <div class="field"><label>Playbook Name</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026"></div>
+  <div class="field"><label>Description (optional)</label><input id="npbDesc" placeholder="Team, season, etc."></div>
+  <button class="btn btn-p" onclick="addPlaybook()">Create Playbook</button>
+</div>
+
 <div class="overlay" id="newFormOverlay" onclick="closeSheet('newFormSheet')"></div>
 <div class="sheet" id="newFormSheet">
   <div class="handle"></div>
@@ -258,15 +411,20 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <button class="btn btn-p" onclick="addFormation()">Create Formation</button>
 </div>
 
-<div class="overlay" id="shareOverlay" onclick="closeSheet('shareSheet')"></div>
-<div class="sheet" id="shareSheet">
+<div class="overlay" id="pbMenuOverlay" onclick="closeSheet('pbMenuSheet')"></div>
+<div class="sheet" id="pbMenuSheet">
   <div class="handle"></div>
-  <h2>Share Playbook</h2>
-  <p class="sub">View-only — recipients can browse and print but not edit.</p>
-  <div style="background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:13px;font-size:11px;color:var(--blue);word-break:break-all;margin-bottom:14px;font-family:monospace;line-height:1.5" id="shareBox">Building…</div>
-  <button class="btn btn-p" onclick="copyShare()">📋 Copy Link</button>
+  <h2 id="pbMenuTitle">Playbook</h2>
+  <p class="sub" id="pbMenuCode">View code: —</p>
+  <button class="btn btn-p" onclick="closeSheet('pbMenuSheet');startQuiz()">🎯 Play Test (Quiz)</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="closeSheet('shareSheet')">Close</button>
+  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openLeaderboard()">🏆 Leaderboard</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="printPlaybook()">🖨 Print Full Playbook</button>
+  <div style="height:8px" id="pbAdminSpacer"></div>
+  <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
 </div>
 
 <div class="overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
@@ -287,7 +445,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 // FIREBASE
 // ═══════════════════════════════════════════════
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const fbConfig = {
   apiKey: "AIzaSyAn23czySBNVndL0myYOctnjq5hZaPSaDg",
@@ -301,24 +459,20 @@ const fbApp = initializeApp(fbConfig);
 const db = getFirestore(fbApp);
 
 // ═══════════════════════════════════════════════
-// TEAMS (hardcoded, password protected)
+// AUTH CONFIG
 // ═══════════════════════════════════════════════
-const TEAMS = [
-  { id: 'team-12', name: '1/2 Grade', color: '#f0b429', editPw: 'coach12', viewPw: 'view12' },
-  { id: 'team-34', name: '3/4 Grade', color: '#f04141', editPw: 'coach34', viewPw: 'view34' },
-  { id: 'team-56', name: '5/6 Grade', color: '#4182f0', editPw: 'coach56', viewPw: 'view56' },
-];
+// To add more admins, just add passwords to this array.
+const ADMIN_PASSWORDS = ['coach2026', 'admin2026'];
 
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
-let currentTeam = null, currentFormation = null, currentPlay = null;
+let currentPlaybook = null, currentFormation = null, currentPlay = null;
 let canEdit = false, isViewOnly = false;
-let formations = [], plays = [];
-let pendTeam = null; // team waiting for password
+let playbooks = [], formations = [], plays = [];
 
 // Formation editor state
-let fPlayers = []; // formation template players
+let fPlayers = [];
 let fTool = 'select', fSelP = null;
 let fVx=0,fVy=0,fVs=1, fDragP=null,fDragOX=0,fDragOY=0,fDragging=false,fPanning=false,fPanSX=0,fPanSY=0;
 let fPinching=false,fPd0=0,fPvx0=0,fPvy0=0;
@@ -326,30 +480,28 @@ let fPColor='#f0b429', fPPos='QB';
 
 // Play editor state
 let ePlayers=[], eRoutes=[];
-let selP=null;          // selected player
-let tool='draw';        // draw | erase
-let segType='route';    // route | motion | block  — current segment type
+let selP=null;
+let tool='draw';
+let segType='route';
 let pColor='#f0b429', rColor='#41c97a', pPos='WR';
-// Active route being built: { playerId, segments:[{type,color,pts:[]}] }
 let activeRoute=null;
 let isPanning=false, panSX=0, panSY=0;
-// undo stack: each entry is a full eRoutes snapshot BEFORE the action
 let eHistory=[];
 let vx=0,vy=0,vs=1;
 let pinching=false,pd0=0,pvx0=0,pvy0=0;
-let lastTap=0,tStart=0;
+
+// Quiz state
+let quizQuestions=[], quizIdx=0, quizScore=0, quizStart=0, quizTimerId=null, quizAnswered=false, quizAllPlays=[];
+let lastQuizResult=null;
 
 const FW=1000, FH=600;
-const POSITIONS=['QB','RB','FB','WR','TE','OL','C','DE','DT','LB','CB','S','K','P'];
+const POSITIONS=['QB','RB','FB','WR','TE','OL','C','DE','DT','LB','CB','S','K','P','X','Y','Z'];
 const PCOLORS=['#f0b429','#f04141','#4182f0','#a855f7','#41c97a','#ffffff'];
 const RCOLORS=['#41c97a','#f0b429','#4182f0','#f04141','#ffffff','#f97316'];
 
 // ═══════════════════════════════════════════════
 // SCREEN NAV
 // ═══════════════════════════════════════════════
-// ── NAV STACK ─────────────────────────────────────
-// Each entry: { screenId }
-// Browser history entries mirror the stack so the OS back button works
 const navStack = [];
 
 function showScreen(id){
@@ -359,7 +511,6 @@ function showScreen(id){
   });
   navStack.length = 0;
   navStack.push(id);
-  // Replace history state (no back entry at root)
   history.replaceState({screen:id,depth:0},'',location.href);
 }
 window.showScreen = showScreen;
@@ -373,7 +524,6 @@ function navTo(id){
 }
 window.navTo = navTo;
 
-// goBack now just pops — used internally or by in-app back buttons
 function goBack(toId, fromId){
   document.getElementById(fromId).classList.add('hidden');
   document.getElementById(toId).classList.remove('hidden','back');
@@ -382,61 +532,45 @@ function goBack(toId, fromId){
 }
 window.goBack = goBack;
 
-// OS/browser back button → always intercept, never exit
-// We keep a permanent pushState entry ahead of the real history
-// so popstate always fires and we handle it ourselves.
-function pushGuard(){
-  history.pushState({guard:true},'',location.href);
-}
+function pushGuard(){ history.pushState({guard:true},'',location.href); }
 
 window.addEventListener('popstate', e => {
-  // Always re-push the guard so next back press also fires popstate
   pushGuard();
-
-  if(navStack.length <= 1){
-    // Already at root — do nothing (stay in app)
-    return;
-  }
+  if(navStack.length <= 1) return;
   const from = navStack.pop();
   const to   = navStack[navStack.length - 1];
   document.getElementById(from).classList.add('hidden');
   document.getElementById(to).classList.remove('hidden','back');
 });
 
-// ── SWIPE-BACK GESTURE ─────────────────────────────
+// SWIPE-BACK
 (()=>{
   let swX=0,swY=0,swiping=false,swEl=null;
   const EDGE=40, THRESH=80, RATIO=1.5;
-
   document.addEventListener('touchstart', e=>{
     if(e.touches.length!==1)return;
     const t=e.touches[0];
     swX=t.clientX; swY=t.clientY; swiping=false; swEl=null;
     if(t.clientX < EDGE){
-      // Started from left edge — potential swipe back
       swEl=document.querySelector('.screen:not(.hidden):not(.back)');
       swiping=true;
     }
   },{passive:true});
-
   document.addEventListener('touchmove', e=>{
     if(!swiping||!swEl||e.touches.length!==1)return;
     const dx=e.touches[0].clientX-swX;
     const dy=Math.abs(e.touches[0].clientY-swY);
     if(dx>0 && dx/Math.max(dy,1)>RATIO){
-      // Drag the current screen with finger for feel
       swEl.style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;
       swEl.style.transition='none';
     }
   },{passive:true});
-
   document.addEventListener('touchend', e=>{
     if(!swiping||!swEl)return;
     const dx=e.changedTouches[0].clientX-swX;
     swEl.style.transform='';
     swEl.style.transition='';
     if(dx > THRESH && navStack.length > 1){
-      // Commit swipe back
       const from=navStack.pop();
       const to=navStack[navStack.length-1];
       document.getElementById(from).classList.add('hidden');
@@ -448,75 +582,205 @@ window.addEventListener('popstate', e => {
 })();
 
 // ═══════════════════════════════════════════════
-// FIREBASE HELPERS
+// FIREBASE HELPERS (new playbook-based schema)
 // ═══════════════════════════════════════════════
-function fmCol(teamId){ return collection(db,'teams',teamId,'formations'); }
-function plCol(teamId,formId){ return collection(db,'teams',teamId,'formations',formId,'plays'); }
+function pbCol(){ return collection(db,'playbooks'); }
+function fmCol(pbId){ return collection(db,'playbooks',pbId,'formations'); }
+function plCol(pbId,formId){ return collection(db,'playbooks',pbId,'formations',formId,'plays'); }
+function lbCol(pbId){ return collection(db,'playbooks',pbId,'leaderboard'); }
 
-async function loadFormations(teamId){
-  const snap=await getDocs(query(fmCol(teamId),orderBy('createdAt')));
+async function loadPlaybooks(){
+  try{
+    const snap=await getDocs(query(pbCol(),orderBy('createdAt')));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ console.error(e); return []; }
+}
+async function findPlaybookByCode(code){
+  const q=query(pbCol(),where('viewCode','==',code.toUpperCase()));
+  const snap=await getDocs(q);
+  if(snap.empty)return null;
+  const d=snap.docs[0];
+  return {id:d.id,...d.data()};
+}
+async function loadFormations(pbId){
+  const snap=await getDocs(query(fmCol(pbId),orderBy('createdAt')));
   return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
-async function loadPlays(teamId,formId){
-  const snap=await getDocs(query(plCol(teamId,formId),orderBy('createdAt')));
+async function loadPlays(pbId,formId){
+  const snap=await getDocs(query(plCol(pbId,formId),orderBy('createdAt')));
   return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
 
 // ═══════════════════════════════════════════════
-// PASSWORD
+// LANDING / AUTH
 // ═══════════════════════════════════════════════
-function promptPw(team){
-  pendTeam=team;
-  document.getElementById('pwTitle').textContent=team.name;
-  document.getElementById('pwSub').textContent='Enter the edit or view-only password.';
-  document.getElementById('pwInput').value='';
-  document.getElementById('pwErr').style.display='none';
-  navTo('pwScreen');
-}
-window.promptPw=promptPw;
-
-window.checkPw=function(){
-  const pw=document.getElementById('pwInput').value.trim();
-  const t=pendTeam;
-  if(pw===t.editPw){ canEdit=true; isViewOnly=false; openTeam(t); }
-  else if(pw===t.viewPw){ canEdit=false; isViewOnly=true; openTeam(t); }
-  else { document.getElementById('pwErr').style.display='block'; }
+window.goAdmin = ()=>{
+  document.getElementById('adminPwInput').value='';
+  document.getElementById('adminPwErr').style.display='none';
+  navTo('adminPwScreen');
+};
+window.goViewCode = ()=>{
+  document.getElementById('viewCodeInput').value='';
+  document.getElementById('viewCodeErr').style.display='none';
+  navTo('viewCodeScreen');
 };
 
+window.checkAdminPw = async ()=>{
+  const pw=document.getElementById('adminPwInput').value.trim();
+  if(!ADMIN_PASSWORDS.includes(pw)){
+    document.getElementById('adminPwErr').style.display='block';
+    return;
+  }
+  canEdit=true; isViewOnly=false;
+  playbooks = await loadPlaybooks();
+  renderPlaybooks();
+  navTo('playbooksScreen');
+};
+
+window.checkViewCode = async ()=>{
+  const code=document.getElementById('viewCodeInput').value.trim().toUpperCase();
+  if(!code){
+    document.getElementById('viewCodeErr').textContent='Enter a code';
+    document.getElementById('viewCodeErr').style.display='block';
+    return;
+  }
+  const pb = await findPlaybookByCode(code);
+  if(!pb){
+    document.getElementById('viewCodeErr').textContent='Code not found';
+    document.getElementById('viewCodeErr').style.display='block';
+    return;
+  }
+  canEdit=false; isViewOnly=true;
+  await openPlaybook(pb);
+};
+
+// Allow viewCode in URL: ?code=ABC123
+async function checkUrlCode(){
+  const p=new URLSearchParams(location.search);
+  const code=p.get('code');
+  if(!code)return false;
+  const pb = await findPlaybookByCode(code);
+  if(!pb)return false;
+  canEdit=false; isViewOnly=true;
+  await openPlaybook(pb);
+  return true;
+}
+
 // ═══════════════════════════════════════════════
-// TEAMS
+// PLAYBOOKS LIST (admin)
 // ═══════════════════════════════════════════════
-function renderTeams(){
-  const el=document.getElementById('teamsList');
-  el.innerHTML=TEAMS.map(t=>`
-    <div class="card" onclick="promptPw(TEAMS.find(x=>x.id==='${t.id}'))">
-      <div style="width:46px;height:46px;border-radius:12px;background:${t.color}22;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🏈</div>
+function renderPlaybooks(){
+  const el=document.getElementById('playbooksList');
+  if(!playbooks.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">📚</div><h3>No Playbooks Yet</h3><p>Tap + New to create your first playbook.</p></div>`;
+    return;
+  }
+  el.innerHTML=playbooks.map(pb=>`
+    <div class="card" onclick="openPlaybookById('${pb.id}')">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(240,180,41,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🏈</div>
       <div class="card-body">
-        <div class="card-name">${t.name}</div>
-        <div class="card-sub">Tap to enter password</div>
+        <div class="card-name">${esc(pb.name)}</div>
+        <div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace;letter-spacing:1px">${esc(pb.viewCode)}</b>${pb.description?' · '+esc(pb.description):''}</div>
       </div>
       <span class="chevron">›</span>
     </div>`).join('');
-  // expose TEAMS globally for onclick
-  window.TEAMS=TEAMS;
 }
 
-async function openTeam(team){
-  currentTeam=team;
-  formations=await loadFormations(team.id);
-  document.getElementById('formTeamName').textContent=team.name;
+window.openPlaybookById = async (id)=>{
+  const pb=playbooks.find(p=>p.id===id);
+  if(pb) await openPlaybook(pb);
+};
+
+async function openPlaybook(pb){
+  currentPlaybook=pb;
+  formations=await loadFormations(pb.id);
+  document.getElementById('formTeamName').textContent=pb.name;
   document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':'✏️ Edit · ')+'Formations';
   document.getElementById('addFormBtn').style.display=canEdit?'':'none';
   renderFormations();
   navTo('formationsScreen');
 }
 
+function backFromFormations(){
+  // Admin → back to playbook list. View-only → back to landing.
+  if(canEdit){
+    goBack('playbooksScreen','formationsScreen');
+  } else {
+    goBack('landingScreen','formationsScreen');
+  }
+}
+window.backFromFormations = backFromFormations;
+
+function genViewCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusing chars
+  let s='';
+  for(let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+
+window.addPlaybook = async ()=>{
+  const name=document.getElementById('npbName').value.trim();
+  if(!name){toast('Enter a name','err');return;}
+  // Generate unique code (very low collision but retry just in case)
+  let code, tries=0;
+  do{
+    code=genViewCode();
+    const existing=await findPlaybookByCode(code);
+    if(!existing)break;
+    tries++;
+  } while(tries<5);
+  const pb={
+    name,
+    description:document.getElementById('npbDesc').value.trim(),
+    viewCode:code,
+    createdAt:Date.now()
+  };
+  const ref=await addDoc(pbCol(),pb);
+  pb.id=ref.id;
+  playbooks.push(pb);
+  document.getElementById('npbName').value='';
+  document.getElementById('npbDesc').value='';
+  closeSheet('newPlaybookSheet');
+  renderPlaybooks();
+  toast('Playbook created — code: '+code,'ok');
+};
+
+window.openPlaybookMenu = ()=>{
+  if(!currentPlaybook)return;
+  document.getElementById('pbMenuTitle').textContent=currentPlaybook.name;
+  document.getElementById('pbMenuCode').textContent='View code: '+currentPlaybook.viewCode;
+  // Hide admin-only buttons in view mode
+  document.getElementById('pbDelBtn').style.display=canEdit?'':'none';
+  document.getElementById('pbAdminSpacer').style.display=canEdit?'':'none';
+  document.getElementById('pbCopyBtn').style.display=canEdit?'':'none';
+  openSheet('pbMenuSheet');
+};
+
+window.copyViewCode = ()=>{
+  if(!currentPlaybook)return;
+  const link=`${location.origin}${location.pathname}?code=${currentPlaybook.viewCode}`;
+  const text=`${currentPlaybook.name}\nView Code: ${currentPlaybook.viewCode}\nLink: ${link}`;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>toast('Code & link copied!','ok'));
+  } else {
+    toast('Code: '+currentPlaybook.viewCode,'ok');
+  }
+};
+
+window.confirmDeletePlaybook = ()=>{
+  closeSheet('pbMenuSheet');
+  confirmDel('playbook',currentPlaybook.id);
+};
+
 // ═══════════════════════════════════════════════
 // FORMATIONS
 // ═══════════════════════════════════════════════
 function renderFormations(){
   const el=document.getElementById('formationsList');
-  if(!formations.length){el.innerHTML=`<div class="empty"><div class="empty-ico">📋</div><h3>No Formations</h3><p>${canEdit?'Tap + Formation to add one.':'No formations yet.'}</p></div>`;return;}
+  if(!formations.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">📋</div><h3>No Formations</h3><p>${canEdit?'Tap + Formation to add one.':'No formations yet.'}</p></div>`;
+    return;
+  }
   const g={off:formations.filter(f=>f.type==='off'),def:formations.filter(f=>f.type==='def'),st:formations.filter(f=>f.type==='st')};
   let h='';
   if(g.off.length) h+=`<div class="sec-label">⚡ Offense</div>`+g.off.map(fCard).join('');
@@ -544,7 +808,7 @@ window.addFormation=async function(){
   const name=document.getElementById('nfName').value.trim();
   if(!name){toast('Enter a name','err');return;}
   const f={name,type:document.getElementById('nfType').value,notes:document.getElementById('nfNotes').value.trim(),templatePlayers:[],createdAt:Date.now()};
-  const ref=await addDoc(fmCol(currentTeam.id),f);
+  const ref=await addDoc(fmCol(currentPlaybook.id),f);
   f.id=ref.id;
   formations.push(f);
   document.getElementById('nfName').value='';document.getElementById('nfNotes').value='';
@@ -555,18 +819,19 @@ window.addFormation=async function(){
 
 async function openFormation(id){
   currentFormation=formations.find(f=>f.id===id);
-  plays=await loadPlays(currentTeam.id,id);
+  plays=await loadPlays(currentPlaybook.id,id);
   document.getElementById('playsFormName').textContent=currentFormation.name;
   const tl={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
   document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(isViewOnly?' · 👁 View only':' · Plays');
   document.getElementById('addPlayBtn').style.display=canEdit?'':'none';
+  document.getElementById('editFormBtn').style.display=canEdit?'':'none';
   renderPlays();
   navTo('playsScreen');
 }
 window.openFormation=openFormation;
 
 // ═══════════════════════════════════════════════
-// FORMATION EDITOR (template)
+// FORMATION EDITOR (unchanged from original)
 // ═══════════════════════════════════════════════
 window.openFormationEditor=function(){
   if(!canEdit){toast('View only','err');return;}
@@ -580,7 +845,7 @@ window.openFormationEditor=function(){
 
 window.saveFormationTemplate=async function(){
   currentFormation.templatePlayers=fPlayers;
-  const ref=doc(db,'teams',currentTeam.id,'formations',currentFormation.id);
+  const ref=doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id);
   await updateDoc(ref,{templatePlayers:fPlayers});
   const i=formations.findIndex(f=>f.id===currentFormation.id);
   if(i!==-1) formations[i]=currentFormation;
@@ -601,10 +866,14 @@ function buildFormOpts(){
     h+=`<span class="olbl">COLOR</span>`;
     PCOLORS.forEach(c=>h+=`<div class="cdot${fPColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setFPC('${c}',this)"></div>`);
     h+=`<div class="osep"></div>`;
+    h+=`<input class="label-input" id="fPLabelInput" value="${esc(fPPos)}" maxlength="3" oninput="setFPPCustom(this.value)" placeholder="LBL">`;
+    h+=`<div class="osep"></div>`;
     POSITIONS.forEach(p=>h+=`<button class="chip${fPPos===p?' on':''}" onclick="setFPP('${p}',this)">${p}</button>`);
   } else if(fTool==='select'&&fSelP){
     h+=`<span class="olbl">PLAYER</span>`;
     PCOLORS.forEach(c=>h+=`<div class="cdot${fSelP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setFSPC('${c}',this)"></div>`);
+    h+=`<div class="osep"></div>`;
+    h+=`<input class="label-input" id="fSelLabelInput" value="${esc(fSelP.pos||'')}" maxlength="3" oninput="setFSPCustom(this.value)" placeholder="LBL">`;
     h+=`<div class="osep"></div>`;
     POSITIONS.forEach(p=>h+=`<button class="chip${fSelP.pos===p?' on':''}" onclick="setFSPP('${p}',this)">${p}</button>`);
   } else {
@@ -615,12 +884,28 @@ function buildFormOpts(){
 }
 
 window.setFPC=(c,el)=>{fPColor=c;document.querySelectorAll('#formOpts .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
-window.setFPP=(p,el)=>{fPPos=p;document.querySelectorAll('#formOpts .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
+window.setFPP=(p,el)=>{
+  fPPos=p;
+  document.querySelectorAll('#formOpts .chip').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const inp=document.getElementById('fPLabelInput');
+  if(inp) inp.value=p;
+};
+window.setFPPCustom=(v)=>{ fPPos=(v||'').toUpperCase().slice(0,3); document.querySelectorAll('#formOpts .chip').forEach(b=>b.classList.remove('on')); };
 window.setFSPC=(c,el)=>{if(fSelP){fSelP.color=c;drawFormAll();}document.querySelectorAll('#formOpts .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
-window.setFSPP=(p,el)=>{if(fSelP){fSelP.pos=p;drawFormAll();}document.querySelectorAll('#formOpts .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
+window.setFSPP=(p,el)=>{
+  if(fSelP){fSelP.pos=p;drawFormAll();}
+  document.querySelectorAll('#formOpts .chip').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const inp=document.getElementById('fSelLabelInput');
+  if(inp) inp.value=p;
+};
+window.setFSPCustom=(v)=>{
+  if(fSelP){ fSelP.pos=(v||'').toUpperCase().slice(0,3); drawFormAll(); }
+  document.querySelectorAll('#formOpts .chip').forEach(b=>b.classList.remove('on'));
+};
 window.clearFormCv=()=>{if(confirm('Clear all players?')){fPlayers=[];fSelP=null;drawFormAll();}};
 
-// Formation canvas
 const fcv=document.getElementById('formCanvas');
 const fctx=fcv.getContext('2d');
 function resizeFormCv(){
@@ -641,12 +926,12 @@ function drawFormAll(){
   drawPlayersOn(fctx,fcv,fVs,fPlayers,fSelP,fToS.bind(this));
 }
 
-function fPlayerAt(sx,sy){return fPlayers.find(p=>{const s=fToS(p.x,p.y),r=Math.max(14,18*Math.min(fVs,1.4));return Math.hypot(sx-s.x,sy-s.y)<r+10;});}
+function fPlayerAt(sx,sy){return fPlayers.find(p=>{const s=fToS(p.x,p.y),r=Math.max(14,18*Math.min(fVs,1.4));return Math.hypot(sx-s.x,sy-s.y)<r+6;});}
 
 fcv.addEventListener('touchstart',e=>{
   e.preventDefault();
   if(e.touches.length===2){fPinching=true;fPd0=pinchD(e,fcv);fPvx0=fVx;fPvy0=fVy;return;}
-  const p=cvPos(e.touches[0],fcv);tStart=Date.now();handleFormDown(p.x,p.y);
+  const p=cvPos(e.touches[0],fcv);handleFormDown(p.x,p.y);
 },{passive:false});
 fcv.addEventListener('touchmove',e=>{
   e.preventDefault();
@@ -734,7 +1019,6 @@ function miniPrev(play){
 window.newPlay=function(){
   if(!canEdit){toast('View only','err');return;}
   currentPlay=null;
-  // Load formation template players
   ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
   eRoutes=[];selP=null;eHistory=[];activeRoute=null;
   vx=0;vy=0;vs=1;
@@ -758,7 +1042,6 @@ window.openPlay=function(id){
   setTimeout(()=>{
     resizeCv();
     if(!canEdit){
-      // Auto-fit entire field into view with padding
       const pad=40;
       const scaleX=(cv.width-pad*2)/FW;
       const scaleY=(cv.height-pad*2)/FH;
@@ -769,17 +1052,25 @@ window.openPlay=function(id){
   },110);
 };
 
+window.backFromPlayEditor = ()=>{
+  // If a route is being drawn, commit it before leaving
+  if(activeRoute) commitRoute();
+  goBack('playsScreen','editorScreen');
+};
+
 window.savePlay=async function(){
   if(!canEdit)return;
+  // ── BUG FIX: commit any in-progress route before saving ──
+  if(activeRoute) commitRoute();
   const name=document.getElementById('playNameInput').value.trim();
   if(!name){toast('Enter a play name','err');return;}
   const data={players:ePlayers,routes:eRoutes};
   if(currentPlay){
     currentPlay.name=name;currentPlay.data=data;
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
-    await updateDoc(doc(db,'teams',currentTeam.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,data});
+    await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,data});
   } else {
-    const ref=await addDoc(plCol(currentTeam.id,currentFormation.id),{name,data,createdAt:Date.now()});
+    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,data,createdAt:Date.now()});
     currentPlay={id:ref.id,name,data};
     plays.push(currentPlay);
   }
@@ -792,8 +1083,12 @@ window.savePlay=async function(){
 let pendDel=null;
 window.confirmDel=function(type,id){
   pendDel={type,id};
-  document.getElementById('delTitle').textContent='Delete this '+(type==='form'?'formation':'play')+'?';
-  document.getElementById('delMsg').textContent=type==='form'?'This will also delete all plays inside it.':'This play will be permanently deleted.';
+  const labels={form:'formation',play:'play',playbook:'playbook'};
+  document.getElementById('delTitle').textContent='Delete this '+(labels[type]||type)+'?';
+  document.getElementById('delMsg').textContent=
+    type==='form'?'This will also delete all plays inside it.':
+    type==='playbook'?'This will delete the playbook AND every formation and play inside it. The view code will stop working.':
+    'This play will be permanently deleted.';
   document.getElementById('delOk').onclick=execDel;
   openSheet('deleteSheet');
 };
@@ -801,13 +1096,31 @@ window.confirmDel=function(type,id){
 async function execDel(){
   const{type,id}=pendDel;closeSheet('deleteSheet');
   if(type==='form'){
-    await deleteDoc(doc(db,'teams',currentTeam.id,'formations',id));
+    await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',id));
     formations=formations.filter(f=>f.id!==id);
     renderFormations();toast('Formation deleted','ok');
-  } else {
-    await deleteDoc(doc(db,'teams',currentTeam.id,'formations',currentFormation.id,'plays',id));
+  } else if(type==='play'){
+    await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',id));
     plays=plays.filter(p=>p.id!==id);
     renderPlays();toast('Play deleted','ok');
+  } else if(type==='playbook'){
+    // Delete nested formations + plays first
+    try{
+      const fs=await loadFormations(id);
+      for(const f of fs){
+        const ps=await loadPlays(id,f.id);
+        for(const p of ps){
+          await deleteDoc(doc(db,'playbooks',id,'formations',f.id,'plays',p.id));
+        }
+        await deleteDoc(doc(db,'playbooks',id,'formations',f.id));
+      }
+      await deleteDoc(doc(db,'playbooks',id));
+    }catch(e){console.error(e);toast('Delete error','err');return;}
+    playbooks=playbooks.filter(p=>p.id!==id);
+    currentPlaybook=null;
+    renderPlaybooks();
+    goBack('playbooksScreen','formationsScreen');
+    toast('Playbook deleted','ok');
   }
 }
 
@@ -828,55 +1141,35 @@ function resizeCv(){
 function toS(fx,fy){return{x:fx*vs+vx+cv.width/2-FW/2*vs,y:fy*vs+vy+cv.height/2-FH/2*vs};}
 function toF(sx,sy){return{x:(sx-vx-cv.width/2+FW/2*vs)/vs,y:(sy-vy-cv.height/2+FH/2*vs)/vs};}
 
-// Shared field drawer
 function drawFieldOn(c,canv,sc,toScreen){
-  // We draw a play-diagram style field — grass stripes, yard lines, hash marks
   const tl=toScreen(0,0),br=toScreen(FW,FH);
   const fw=br.x-tl.x,fh=br.y-tl.y;
-
-  // Grass base
   c.fillStyle='#1e4d18';c.fillRect(tl.x,tl.y,fw,fh);
-
-  // Alternating grass stripes (5 yard bands)
   const numStripes=10;
   for(let i=0;i<numStripes;i++){
-    if(i%2===0){c.fillStyle='#234f1c';}
-    else{c.fillStyle='#1a4516';}
+    c.fillStyle = i%2===0 ? '#234f1c' : '#1a4516';
     c.fillRect(tl.x,tl.y+i*fh/numStripes,fw,fh/numStripes);
   }
-
-  // Yard lines (horizontal — every 5 yards across the play view)
   const numYards=10;
   c.strokeStyle='rgba(255,255,255,0.3)';c.lineWidth=Math.max(1,1.5*Math.min(sc,1));
   for(let i=0;i<=numYards;i++){
     const y=tl.y+i*fh/numYards;
     c.beginPath();c.moveTo(tl.x,y);c.lineTo(br.x,y);c.stroke();
   }
-
-  // Hash marks — two sets of short vertical ticks on each yard line
-  const hashW=fw*0.06; // hash width relative to field
-  const hash1X=tl.x+fw*0.28; // left hash
-  const hash2X=tl.x+fw*0.72; // right hash
+  const hash1X=tl.x+fw*0.28;
+  const hash2X=tl.x+fw*0.72;
   c.strokeStyle='rgba(255,255,255,0.4)';c.lineWidth=Math.max(1,1.2*Math.min(sc,1));
   for(let i=0;i<=numYards;i++){
     const y=tl.y+i*fh/numYards;
     const hlen=fh*0.025;
-    // left hash
     c.beginPath();c.moveTo(hash1X-hlen,y);c.lineTo(hash1X+hlen,y);c.stroke();
-    // right hash
     c.beginPath();c.moveTo(hash2X-hlen,y);c.lineTo(hash2X+hlen,y);c.stroke();
   }
-
-  // Sideline borders
   c.strokeStyle='rgba(255,255,255,0.5)';c.lineWidth=2;
   c.strokeRect(tl.x,tl.y,fw,fh);
-
-  // LOS line — solid gold, prominent
   const midY=toScreen(0,FH/2).y;
   c.strokeStyle='rgba(240,180,41,0.85)';c.lineWidth=3;c.setLineDash([]);
   c.beginPath();c.moveTo(tl.x,midY);c.lineTo(br.x,midY);c.stroke();
-
-  // LOS label
   c.fillStyle='rgba(240,180,41,0.9)';
   c.font=`bold ${Math.max(9,12*Math.min(sc,1.2))}px DM Sans`;
   c.textAlign='left';c.textBaseline='bottom';
@@ -889,23 +1182,23 @@ function drawPlayersOn(c,canv,sc,players,selected,toScreen){
     c.save();
     if(p===selected){c.shadowColor='#fff';c.shadowBlur=14;}
     if(p.pos==='C'){
-      // Square for center
-      c.beginPath();
-      c.rect(s.x-r,s.y-r,r*2,r*2);
+      c.beginPath();c.rect(s.x-r,s.y-r,r*2,r*2);
     } else {
       c.beginPath();c.arc(s.x,s.y,r,0,Math.PI*2);
     }
     c.fillStyle=p.color||'#f0b429';c.fill();
     c.strokeStyle=p===selected?'#fff':'rgba(0,0,0,.5)';c.lineWidth=p===selected?2.5:1.5;c.stroke();
-    c.fillStyle='#000';c.font=`bold ${Math.max(9,11*Math.min(sc,1.4))}px DM Sans`;
-    c.textAlign='center';c.textBaseline='middle';c.fillText(p.pos||'?',s.x,s.y);
+    c.fillStyle='#000';
+    // Auto-shrink font for longer labels
+    const lbl=(p.pos||'?').toString();
+    const baseFs=Math.max(9,11*Math.min(sc,1.4));
+    const fs = lbl.length>=3 ? baseFs*0.78 : baseFs;
+    c.font=`bold ${fs}px DM Sans`;
+    c.textAlign='center';c.textBaseline='middle';c.fillText(lbl,s.x,s.y);
     c.restore();
   });
 }
 
-// ══════════════════════════════════════════════
-// DRAW HELPERS
-// ══════════════════════════════════════════════
 function drawSegment(c, pts, type, color, isLast, sc){
   if(pts.length<2) return;
   const lw=2.8*Math.min(sc,1.5);
@@ -914,9 +1207,7 @@ function drawSegment(c, pts, type, color, isLast, sc){
   c.lineWidth=lw;
   c.lineCap='round';
   c.lineJoin='round';
-
   if(type==='motion'){
-    // Zig-zag: alternate up/down every segment pair
     c.setLineDash([]);
     c.beginPath();
     c.moveTo(pts[0].x,pts[0].y);
@@ -926,7 +1217,7 @@ function drawSegment(c, pts, type, color, isLast, sc){
       const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy);
       if(len===0){c.lineTo(bx,by);continue;}
       const steps=Math.max(2,Math.round(len/12));
-      const nx=-dy/len,ny=dx/len; // normal
+      const nx=-dy/len,ny=dx/len;
       for(let s=1;s<=steps;s++){
         const t=s/steps;
         const mx=ax+dx*t,my=ay+dy*t;
@@ -936,31 +1227,24 @@ function drawSegment(c, pts, type, color, isLast, sc){
     }
     c.stroke();
   } else {
-    // Solid line
     c.setLineDash([]);
     c.beginPath();
     c.moveTo(pts[0].x,pts[0].y);
     pts.forEach(p=>c.lineTo(p.x,p.y));
     c.stroke();
   }
-
-  // End cap (only on the last segment of a route)
   if(isLast && pts.length>=2){
     const last=pts[pts.length-1], prev=pts[pts.length-2];
     const angle=Math.atan2(last.y-prev.y, last.x-prev.x);
     c.setLineDash([]);
     if(type==='block'){
-      // T-bar: perpendicular line
       const tLen=10*Math.min(sc,1.5);
       c.lineWidth=lw;
       c.beginPath();
-      c.moveTo(last.x+Math.cos(angle+Math.PI/2)*tLen,
-               last.y+Math.sin(angle+Math.PI/2)*tLen);
-      c.lineTo(last.x+Math.cos(angle-Math.PI/2)*tLen,
-               last.y+Math.sin(angle-Math.PI/2)*tLen);
+      c.moveTo(last.x+Math.cos(angle+Math.PI/2)*tLen,last.y+Math.sin(angle+Math.PI/2)*tLen);
+      c.lineTo(last.x+Math.cos(angle-Math.PI/2)*tLen,last.y+Math.sin(angle-Math.PI/2)*tLen);
       c.stroke();
     } else if(type==='route'){
-      // Arrow
       const aLen=12*Math.min(sc,1.5);
       c.fillStyle=color;
       c.save();
@@ -970,7 +1254,6 @@ function drawSegment(c, pts, type, color, isLast, sc){
       c.closePath();c.fill();
       c.restore();
     }
-    // motion has no end cap
   }
   c.restore();
 }
@@ -979,8 +1262,6 @@ function drawAll(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
   drawFieldOn(ctx,cv,vs,toS);
-
-  // Draw committed routes (each route = array of segments)
   eRoutes.forEach(route=>{
     route.segments.forEach((seg,si)=>{
       const pts=seg.pts.map(p=>toS(p.x,p.y));
@@ -988,8 +1269,6 @@ function drawAll(){
       drawSegment(ctx,pts,seg.type,seg.color,isLast,vs);
     });
   });
-
-  // Draw active (in-progress) route
   if(activeRoute){
     activeRoute.segments.forEach((seg,si)=>{
       const pts=seg.pts.map(p=>toS(p.x,p.y));
@@ -997,17 +1276,14 @@ function drawAll(){
       drawSegment(ctx,pts,seg.type,seg.color,isLast,vs);
     });
   }
-
   drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
 }
 
-// ══════════════════════════════════════════════
-// PLAY CANVAS INTERACTION
-// ══════════════════════════════════════════════
+// ── BUG FIX: tighter hitbox so blocks/routes near players don't get hijacked ──
 function playerAt(sx,sy){
   return ePlayers.find(p=>{
     const s=toS(p.x,p.y),r=Math.max(14,18*Math.min(vs,1.4));
-    return Math.hypot(sx-s.x,sy-s.y)<r+18;
+    return Math.hypot(sx-s.x,sy-s.y)<r+2;
   });
 }
 
@@ -1026,11 +1302,10 @@ function nearR(sx,sy){
 }
 function dSeg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay;if(!dx&&!dy)return Math.hypot(px-ax,py-ay);const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
 
-// Touch / mouse
 cv.addEventListener('touchstart',e=>{
   e.preventDefault();
   if(e.touches.length===2){pinching=true;pd0=pinchD(e,cv);pvx0=vx;pvy0=vy;return;}
-  const p=cvPos(e.touches[0],cv);tStart=Date.now();
+  const p=cvPos(e.touches[0],cv);
   handleDown(p.x,p.y);
 },{passive:false});
 
@@ -1046,16 +1321,14 @@ cv.addEventListener('touchmove',e=>{
     const p=cvPos(e.touches[0],cv);
     if(isPanning){
       vx=p.x-panSX;vy=p.y-panSY;drawAll();
+      return;
     }
-    // Live preview of next tap point
     if(activeRoute){
       const seg=activeRoute.segments[activeRoute.segments.length-1];
       if(seg&&seg.pts.length>=1){
         const fp=toF(p.x,p.y);
-        // Temporarily extend last segment for preview
         const previewSeg={...seg,pts:[...seg.pts,fp]};
         const previewRoute={...activeRoute,segments:[...activeRoute.segments.slice(0,-1),previewSeg]};
-        // Draw with preview
         ctx.clearRect(0,0,cv.width,cv.height);
         ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
         drawFieldOn(ctx,cv,vs,toS);
@@ -1063,8 +1336,6 @@ cv.addEventListener('touchmove',e=>{
         previewRoute.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===previewRoute.segments.length-1,vs);});
         drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
       }
-    } else if(isPanning){
-      vx=p.x-panSX;vy=p.y-panSY;drawAll();
     }
   }
 },{passive:false});
@@ -1087,13 +1358,10 @@ cv.addEventListener('wheel',e=>{
 function handleDown(sx,sy){
   const fp=toF(sx,sy);
   const hit=playerAt(sx,sy);
-  // View-only: only allow panning
   if(!canEdit){
     isPanning=true;panSX=sx-vx;panSY=sy-vy;
     return;
   }
-
-  // ── ERASE MODE ──
   if(tool==='erase'){
     if(hit){
       pushH();
@@ -1105,16 +1373,11 @@ function handleDown(sx,sy){
     }
     return;
   }
-
-  // ── DRAW MODE ──
-  // Tapping a player always selects it and starts/replaces their route
   if(hit){
     if(activeRoute && activeRoute.playerId!==hit.id){
-      // Commit previous player's route before switching
       commitRoute();
     }
     selP=hit;
-    // Always start fresh route from this player
     activeRoute={
       playerId:hit.id,
       segments:[{type:segType,color:rColor,pts:[{x:hit.x,y:hit.y}]}]
@@ -1123,12 +1386,9 @@ function handleDown(sx,sy){
     buildOpts();drawAll();
     return;
   }
-
-  // Tapping field while a route is active → add a point
   if(activeRoute){
     const seg=activeRoute.segments[activeRoute.segments.length-1];
     const lastPt=seg.pts[seg.pts.length-1];
-    // If type or color changed mid-route, start a new segment
     if(seg.type!==segType || seg.color!==rColor){
       activeRoute.segments.push({type:segType,color:rColor,pts:[{...lastPt},fp]});
     } else {
@@ -1138,14 +1398,11 @@ function handleDown(sx,sy){
     buildOpts();
     return;
   }
-
-  // No active route, no player → pan
   isPanning=true; panSX=sx-vx; panSY=sy-vy;
 }
 
 function commitRoute(){
   if(!activeRoute) return;
-  // Filter out segments with only 1 point
   const segs=activeRoute.segments.filter(s=>s.pts.length>=2);
   if(segs.length>0){
     pushH();
@@ -1155,7 +1412,6 @@ function commitRoute(){
   buildOpts();drawAll();
 }
 
-// ── TOOLS ──────────────────────────────────────
 window.setTool=function(t){
   tool=t;
   if(tool!=='erase' && activeRoute) commitRoute();
@@ -1176,20 +1432,16 @@ window.toggleErase=function(){
 
 window.setSegType=function(t){
   segType=t;
-  // Highlight correct button
   ['route','motion','block'].forEach(s=>{
     const el=document.getElementById('seg-'+s);
     if(el) el.classList.toggle('on',s===t);
   });
-  // If mid-route, start new segment from last pt
   if(activeRoute){
     const seg=activeRoute.segments[activeRoute.segments.length-1];
     const lastPt=seg.pts[seg.pts.length-1];
     if(seg.pts.length>=2){
-      // Already has 2+ pts, start fresh segment
       activeRoute.segments.push({type:t,color:rColor,pts:[{...lastPt}]});
     } else {
-      // Only 1 pt, just change type in place
       seg.type=t;
     }
   }
@@ -1199,25 +1451,21 @@ window.setSegType=function(t){
 function buildOpts(){
   const row=document.getElementById('optionsRow');
   let h='';
-
-  // Always show color picker for routes
   h+=`<span class="olbl">COLOR</span>`;
   RCOLORS.forEach(c=>h+=`<div class="cdot${rColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setRC('${c}',this)"></div>`);
   h+=`<div class="osep"></div>`;
-
   if(activeRoute){
     h+=`<button class="chip on" style="background:var(--green);color:#000;border-color:var(--green)" onclick="commitRoute()">✓ DONE</button>`;
     h+=`<div class="osep"></div>`;
   }
-
   if(selP){
     h+=`<span class="olbl">PLAYER</span>`;
     PCOLORS.forEach(c=>h+=`<div class="cdot${selP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setSPC('${c}',this)"></div>`);
+    h+=`<div class="osep"></div>`;
+    h+=`<input class="label-input" id="selLabelInput" value="${esc(selP.pos||'')}" maxlength="3" oninput="setSPLabel(this.value)" placeholder="LBL">`;
   }
-
   h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ UNDO</button>`;
   if(canEdit) h+=`<button class="chip red" onclick="clearCv()">✕ CLEAR</button>`;
-
   row.innerHTML=h;
 }
 
@@ -1225,7 +1473,6 @@ window.setRC=(c,el)=>{
   rColor=c;
   document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));
   el.classList.add('on');
-  // Update current active segment color
   if(activeRoute){
     const seg=activeRoute.segments[activeRoute.segments.length-1];
     seg.color=c;
@@ -1233,20 +1480,20 @@ window.setRC=(c,el)=>{
   }
 };
 window.setSPC=(c,el)=>{if(selP){selP.color=c;drawAll();}document.querySelectorAll('#optionsRow .cdot').forEach(d=>d.classList.remove('on'));el.classList.add('on');};
-window.setSPP=(p,el)=>{if(selP){selP.pos=p;drawAll();}document.querySelectorAll('#optionsRow .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');};
+window.setSPLabel=(v)=>{ if(selP){ selP.pos=(v||'').toUpperCase().slice(0,3); drawAll(); } };
 window.commitRoute=commitRoute;
-window.finishRoute=commitRoute; // alias
+window.finishRoute=commitRoute;
 
-// Undo: remove last committed route (one route = one player's full set of segments)
 function pushH(){ eHistory.push(JSON.parse(JSON.stringify(eRoutes))); if(eHistory.length>30)eHistory.shift(); }
 window.undoA=function(){
   if(activeRoute){
-    // If mid-drawing, undo last segment
     if(activeRoute.segments.length>1){
       activeRoute.segments.pop();
       drawAll();buildOpts();
+    } else if(activeRoute.segments[0].pts.length>1){
+      activeRoute.segments[0].pts.pop();
+      drawAll();
     } else {
-      // Only one segment with 1 point — cancel whole route
       activeRoute=null;selP=null;drawAll();buildOpts();
     }
     return;
@@ -1257,37 +1504,354 @@ window.undoA=function(){
 };
 window.clearCv=function(){if(!confirm('Clear all routes?'))return;pushH();eRoutes=[];activeRoute=null;selP=null;buildOpts();drawAll();};
 
+// ═══════════════════════════════════════════════
+// PRINT (single play + full playbook)
+// ═══════════════════════════════════════════════
+// Render a play into a freshly sized canvas (returns dataURL)
+function renderPlayToImage(play, w=900, h=540){
+  const off=document.createElement('canvas');
+  off.width=w; off.height=h;
+  const c=off.getContext('2d');
+  // Fit FW×FH into off with padding
+  const pad=20;
+  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
+  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
+  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+
+  c.fillStyle='#070809';c.fillRect(0,0,w,h);
+  drawFieldOn(c,off,sc,toScreen);
+  (play.data?.routes||[]).forEach(route=>{
+    (route.segments||[]).forEach((seg,si)=>{
+      const pts=(seg.pts||[]).map(p=>toScreen(p.x,p.y));
+      const isLast=si===route.segments.length-1;
+      drawSegment(c,pts,seg.type,seg.color,isLast,sc);
+    });
+  });
+  drawPlayersOn(c,off,sc,play.data?.players||[],null,toScreen);
+  return off.toDataURL('image/png');
+}
+
+function renderFormationToImage(form, w=900, h=540){
+  const off=document.createElement('canvas');
+  off.width=w; off.height=h;
+  const c=off.getContext('2d');
+  const pad=20;
+  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
+  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
+  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  c.fillStyle='#070809';c.fillRect(0,0,w,h);
+  drawFieldOn(c,off,sc,toScreen);
+  drawPlayersOn(c,off,sc,form.templatePlayers||[],null,toScreen);
+  return off.toDataURL('image/png');
+}
+
 window.printPlay=function(){
+  if(activeRoute) commitRoute();
   const name=document.getElementById('playNameInput').value||'Play';
   const url=cv.toDataURL('image/png');
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>${name}</title><style>body{margin:20px;font-family:sans-serif}img{max-width:100%;border-radius:8px}h2{margin-bottom:4px}p{color:#666;margin-bottom:16px;font-size:13px}</style></head><body><h2>${name}</h2><p>${currentFormation?.name||''} · ${currentTeam?.name||''}</p><img src="${url}"><script>window.print();<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>${esc(name)}</title><style>
+    body{margin:20px;font-family:sans-serif}
+    img{max-width:100%;border-radius:8px}
+    h2{margin-bottom:4px}
+    p{color:#666;margin-bottom:16px;font-size:13px}
+  </style></head><body>
+    <h2>${esc(name)}</h2>
+    <p>${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</p>
+    <img src="${url}">
+    <script>window.print();<\/script>
+  </body></html>`);
+  w.document.close();
+};
+
+window.printPlaybook=async function(){
+  if(!currentPlaybook){toast('No playbook open','err');return;}
+  closeSheet('pbMenuSheet');
+  toast('Building playbook…','');
+  // Load all formations and their plays
+  const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
+  // Build pages
+  const groups={off:[],def:[],st:[]};
+  for(const f of fs){
+    const ps=await loadPlays(currentPlaybook.id,f.id);
+    groups[f.type||'off'].push({form:f,plays:ps});
+  }
+  const groupLabels={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
+  let html=`<!DOCTYPE html><html><head><title>${esc(currentPlaybook.name)}</title><style>
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Helvetica Neue',Arial,sans-serif;color:#111;background:#fff}
+    .cover{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;page-break-after:always}
+    .cover h1{font-size:64px;letter-spacing:6px;margin:0 0 8px;font-weight:900}
+    .cover h2{font-size:24px;margin:0 0 40px;color:#444;font-weight:400}
+    .cover .code{font-size:14px;color:#888;letter-spacing:2px;margin-bottom:8px}
+    .cover .badge{display:inline-block;padding:8px 18px;background:#f0b429;color:#000;border-radius:30px;font-weight:700;letter-spacing:1px}
+    .section{padding:20px 30px;page-break-after:always}
+    .section h2{font-size:32px;margin:0 0 24px;padding-bottom:8px;border-bottom:3px solid #f0b429;letter-spacing:2px}
+    .form-block{margin-bottom:30px;page-break-inside:avoid}
+    .form-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;border-bottom:1px solid #ccc;padding-bottom:4px}
+    .form-head h3{font-size:22px;margin:0;letter-spacing:1px}
+    .form-head span{font-size:12px;color:#666}
+    .form-notes{font-size:12px;color:#666;margin-bottom:10px;font-style:italic}
+    .play-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .play-item{page-break-inside:avoid}
+    .play-item .name{font-size:14px;font-weight:700;margin-bottom:4px}
+    .play-item img{width:100%;border:1px solid #ddd;border-radius:6px;display:block}
+    .template img{width:100%;max-width:600px;border:1px solid #ddd;border-radius:6px;display:block;margin-bottom:12px}
+    .empty-note{color:#888;font-style:italic;font-size:13px;padding:8px 0}
+    @media print { .section{page-break-after:always} }
+  </style></head><body>`;
+
+  // Cover page
+  html+=`<div class="cover">
+    <h1>X&O</h1>
+    <h2>${esc(currentPlaybook.name)}</h2>
+    ${currentPlaybook.description?`<p style="font-size:14px;color:#555;max-width:400px;margin:0 0 30px">${esc(currentPlaybook.description)}</p>`:''}
+    <div class="code">VIEW CODE</div>
+    <div class="badge">${esc(currentPlaybook.viewCode)}</div>
+    <p style="margin-top:60px;font-size:11px;color:#aaa">Generated ${new Date().toLocaleDateString()}</p>
+  </div>`;
+
+  // Sections
+  for(const groupKey of ['off','def','st']){
+    const items=groups[groupKey];
+    if(!items.length)continue;
+    html+=`<div class="section"><h2>${groupLabels[groupKey]}</h2>`;
+    for(const {form,plays:formPlays} of items){
+      const formImg=renderFormationToImage(form,900,400);
+      html+=`<div class="form-block">
+        <div class="form-head"><h3>${esc(form.name)}</h3><span>${formPlays.length} play${formPlays.length===1?'':'s'}</span></div>
+        ${form.notes?`<div class="form-notes">${esc(form.notes)}</div>`:''}
+        <div class="template"><img src="${formImg}"></div>
+      </div>`;
+      if(formPlays.length){
+        html+=`<div class="play-grid">`;
+        for(const p of formPlays){
+          if(!p.data || !p.data.players){
+            html+=`<div class="play-item"><div class="name">${esc(p.name)}</div><div class="empty-note">No diagram</div></div>`;
+            continue;
+          }
+          const img=renderPlayToImage(p,700,420);
+          html+=`<div class="play-item"><div class="name">${esc(p.name)}</div><img src="${img}"></div>`;
+        }
+        html+=`</div>`;
+      } else {
+        html+=`<div class="empty-note">No plays yet for this formation.</div>`;
+      }
+    }
+    html+=`</div>`;
+  }
+
+  if(!groups.off.length && !groups.def.length && !groups.st.length){
+    html+=`<div class="section"><h2>Empty Playbook</h2><p>No formations or plays yet.</p></div>`;
+  }
+
+  html+=`<script>setTimeout(()=>window.print(),500);<\/script></body></html>`;
+
+  const w=window.open('','_blank');
+  if(!w){ toast('Allow popups to print','err'); return; }
+  w.document.write(html);
   w.document.close();
 };
 
 // ═══════════════════════════════════════════════
-// SHARE
+// QUIZ MODE
 // ═══════════════════════════════════════════════
-let shareLink='';
-window.buildShare=function(){
-  if(!currentTeam){shareLink='';document.getElementById('shareBox').textContent='Open a team first.';return;}
-  const payload={team:currentTeam,formations,plays};
-  const enc=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  shareLink=`${location.origin}${location.pathname}?share=${enc}`;
-  document.getElementById('shareBox').textContent=shareLink;
-};
-window.copyShare=function(){if(!shareLink)return;navigator.clipboard.writeText(shareLink).then(()=>toast('Link copied!','ok'));};
+const qcv=document.getElementById('quizCanvas');
+const qctx=qcv.getContext('2d');
 
-function checkShare(){
-  const p=new URLSearchParams(location.search);
-  if(!p.has('share'))return false;
-  try{
-    const d=JSON.parse(decodeURIComponent(escape(atob(p.get('share')))));
-    currentTeam=d.team;formations=d.formations||[];plays=d.plays||[];
-    canEdit=false;isViewOnly=true;
-    return true;
-  }catch(e){return false;}
+function resizeQuizCv(){
+  const w=document.getElementById('quizField');
+  qcv.width=w.offsetWidth;
+  qcv.height=w.offsetHeight;
 }
+
+function drawQuizPlay(play){
+  resizeQuizCv();
+  const w=qcv.width, h=qcv.height;
+  const pad=12;
+  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
+  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
+  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  qctx.clearRect(0,0,w,h);
+  qctx.fillStyle='#070809';qctx.fillRect(0,0,w,h);
+  drawFieldOn(qctx,qcv,sc,toScreen);
+  (play.data?.routes||[]).forEach(route=>{
+    (route.segments||[]).forEach((seg,si)=>{
+      const pts=(seg.pts||[]).map(p=>toScreen(p.x,p.y));
+      const isLast=si===route.segments.length-1;
+      drawSegment(qctx,pts,seg.type,seg.color,isLast,sc);
+    });
+  });
+  drawPlayersOn(qctx,qcv,sc,play.data?.players||[],null,toScreen);
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+window.startQuiz=async function(){
+  if(!currentPlaybook){toast('No playbook','err');return;}
+  // Gather all plays across all formations
+  closeSheet('pbMenuSheet');
+  toast('Loading plays…','');
+  const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
+  const all=[];
+  for(const f of fs){
+    const ps=await loadPlays(currentPlaybook.id,f.id);
+    ps.forEach(p=>{ if(p.data && p.data.players && p.data.players.length){ all.push({play:p,formName:f.name}); } });
+  }
+  if(all.length<4){
+    toast('Need at least 4 plays to quiz','err');
+    return;
+  }
+  quizAllPlays=all;
+  const picks=shuffle(all).slice(0,Math.min(10,all.length));
+  quizQuestions=picks.map(item=>{
+    // Build 4 options: correct + 3 random different ones
+    const distractorPool=all.filter(x=>x.play.id!==item.play.id);
+    const distractors=shuffle(distractorPool).slice(0,3);
+    const options=shuffle([item, ...distractors]).map(x=>x.play.name);
+    return {
+      play:item.play,
+      formName:item.formName,
+      correctName:item.play.name,
+      options
+    };
+  });
+  quizIdx=0;
+  quizScore=0;
+  quizAnswered=false;
+  quizStart=Date.now();
+  if(quizTimerId) clearInterval(quizTimerId);
+  quizTimerId=setInterval(()=>{
+    const sec=(Date.now()-quizStart)/1000;
+    document.getElementById('quizTimer').textContent=sec.toFixed(1)+'s';
+  },100);
+  navTo('quizScreen');
+  setTimeout(()=>{ resizeQuizCv(); renderQuizQ(); }, 120);
+};
+
+function renderQuizQ(){
+  const q=quizQuestions[quizIdx];
+  document.getElementById('quizProgress').textContent=(quizIdx+1)+' / '+quizQuestions.length;
+  document.getElementById('quizScore').textContent=quizScore;
+  document.getElementById('quizFormName').textContent=q.formName;
+  drawQuizPlay(q.play);
+  quizAnswered=false;
+  const optsEl=document.getElementById('quizOptions');
+  optsEl.innerHTML=q.options.map((o,i)=>
+    `<button class="quiz-opt" onclick="answerQuiz(${i})">${esc(o)}</button>`
+  ).join('');
+}
+
+window.answerQuiz=function(i){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  const q=quizQuestions[quizIdx];
+  const chosen=q.options[i];
+  const correct=chosen===q.correctName;
+  const buttons=document.querySelectorAll('.quiz-opt');
+  buttons.forEach((b,idx)=>{
+    b.classList.add('disabled');
+    if(q.options[idx]===q.correctName) b.classList.add('correct');
+    else if(idx===i) b.classList.add('wrong');
+  });
+  if(correct){
+    // Score scaled by speed: 100 base, lose up to 50 over 8 seconds
+    quizScore+=100;
+    document.getElementById('quizScore').textContent=quizScore;
+  }
+  setTimeout(()=>{
+    quizIdx++;
+    if(quizIdx>=quizQuestions.length){
+      finishQuiz();
+    } else {
+      renderQuizQ();
+    }
+  }, 1200);
+};
+
+function finishQuiz(){
+  clearInterval(quizTimerId);
+  const totalSec=(Date.now()-quizStart)/1000;
+  const correct=Math.round(quizScore/100);
+  // Time bonus: faster = more bonus, up to +200 if under 30s, scales down
+  const timeBonus=Math.max(0,Math.round(Math.max(0,(60-totalSec))*5));
+  const finalScore=quizScore+(correct===quizQuestions.length?timeBonus:0);
+  lastQuizResult={
+    correct,
+    total:quizQuestions.length,
+    time:totalSec,
+    score:finalScore,
+    playbookId:currentPlaybook.id
+  };
+  document.getElementById('quizDonePB').textContent=currentPlaybook.name;
+  document.getElementById('qdScore').textContent=correct+'/'+quizQuestions.length;
+  document.getElementById('qdTime').textContent=totalSec.toFixed(1)+'s';
+  document.getElementById('qdFinal').textContent=finalScore;
+  // Show name input only if score > 0
+  document.getElementById('qdNameRow').style.display=finalScore>0?'block':'none';
+  document.getElementById('qdActions').style.display='block';
+  document.getElementById('qdNameInput').value='';
+  navTo('quizDoneScreen');
+}
+
+window.quitQuiz=function(){
+  if(quizTimerId) clearInterval(quizTimerId);
+  goBack('formationsScreen','quizScreen');
+};
+
+window.submitScore=async function(){
+  const name=document.getElementById('qdNameInput').value.trim();
+  if(!name){toast('Enter a name','err');return;}
+  if(!lastQuizResult){return;}
+  try{
+    await addDoc(lbCol(lastQuizResult.playbookId),{
+      name:name.slice(0,20),
+      score:lastQuizResult.score,
+      correct:lastQuizResult.correct,
+      total:lastQuizResult.total,
+      time:lastQuizResult.time,
+      createdAt:Date.now()
+    });
+    document.getElementById('qdNameRow').style.display='none';
+    toast('Score submitted!','ok');
+  }catch(e){
+    toast('Could not save','err');
+  }
+};
+
+window.openLeaderboard=async function(){
+  closeSheet('pbMenuSheet');
+  if(!currentPlaybook){toast('No playbook','err');return;}
+  document.getElementById('lbPbName').textContent=currentPlaybook.name;
+  const el=document.getElementById('leaderboardList');
+  el.innerHTML=`<div class="empty"><div class="empty-ico">⏳</div><h3>Loading…</h3></div>`;
+  navTo('leaderboardScreen');
+  try{
+    const snap=await getDocs(query(lbCol(currentPlaybook.id),orderBy('score','desc'),limit(20)));
+    const entries=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!entries.length){
+      el.innerHTML=`<div class="empty"><div class="empty-ico">🏆</div><h3>No Scores Yet</h3><p>Be the first to play the quiz!</p></div>`;
+      return;
+    }
+    el.innerHTML=entries.map((e,i)=>{
+      const rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      return `<div class="lb-row">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div class="lb-name">${esc(e.name)}</div>
+        <div class="lb-stats"><b>${e.score}</b>${e.correct}/${e.total} · ${(e.time||0).toFixed(1)}s</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">⚠</div><h3>Could not load</h3><p>${esc(e.message||'')}</p></div>`;
+  }
+};
 
 // ═══════════════════════════════════════════════
 // SHEETS / TOAST / UTILS
@@ -1309,38 +1873,40 @@ function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36
 function esc(s){return String(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
 
 function cvPos(t,canv){const r=canv.getBoundingClientRect();return{x:t.clientX-r.left,y:t.clientY-r.top};}
-function pinchD(e,canv){const r=canv.getBoundingClientRect();const dx=(e.touches[0].clientX-e.touches[1].clientX),dy=(e.touches[0].clientY-e.touches[1].clientY);return Math.hypot(dx,dy);}
+function pinchD(e,canv){const dx=(e.touches[0].clientX-e.touches[1].clientX),dy=(e.touches[0].clientY-e.touches[1].clientY);return Math.hypot(dx,dy);}
 function pinchMid(e,canv){const r=canv.getBoundingClientRect();return{x:(e.touches[0].clientX+e.touches[1].clientX)/2-r.left,y:(e.touches[0].clientY+e.touches[1].clientY)/2-r.top};}
 
 window.addEventListener('resize',()=>{
   if(!document.getElementById('editorScreen').classList.contains('hidden'))resizeCv();
   if(!document.getElementById('formEditorScreen').classList.contains('hidden'))resizeFormCv();
+  if(!document.getElementById('quizScreen').classList.contains('hidden')){
+    resizeQuizCv();
+    if(quizQuestions.length && quizQuestions[quizIdx]) drawQuizPlay(quizQuestions[quizIdx].play);
+  }
 });
+
+// Enter key handlers
+document.getElementById('adminPwInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminPw();});
+document.getElementById('viewCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkViewCode();});
 
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 (async()=>{
-  // Push a guard entry immediately so the first back press fires popstate
-  // instead of closing the app
   pushGuard();
-  const shared=checkShare();
-  if(shared){
-    renderFormations();
-    setTimeout(()=>showScreen('formationsScreen'),900);
-    return;
-  }
-  // Test firebase connection
+  // First, test firebase connection
   try{
-    await getDocs(query(collection(db,'teams','team-12','formations'),orderBy('createdAt')));
-    document.getElementById('connStatus').textContent='● Firebase connected';
-    document.getElementById('connStatus').style.color='var(--green)';
+    await getDocs(query(pbCol(),limit(1)));
+    document.getElementById('connTag').textContent='● Connected';
+    document.getElementById('connTag').style.color='var(--green)';
   }catch(e){
-    document.getElementById('connStatus').textContent='● Firebase error: '+e.message.slice(0,40);
-    document.getElementById('connStatus').style.color='var(--red)';
+    document.getElementById('connTag').textContent='● Offline mode';
+    document.getElementById('connTag').style.color='var(--red)';
   }
-  renderTeams();
-  setTimeout(()=>showScreen('teamsScreen'),900);
+  // Check URL for shareable code link
+  const handled=await checkUrlCode();
+  if(handled) return;
+  setTimeout(()=>showScreen('landingScreen'),900);
 })();
 </script>
 </body>
