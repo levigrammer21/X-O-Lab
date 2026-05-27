@@ -422,6 +422,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
   <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="copyPlaybookId()" id="pbCopyIdBtn">🆔 Copy Playbook ID</button>
+  <div style="height:8px"></div>
   <button class="btn btn-g" onclick="printPlaybook()">🖨 Print Full Playbook</button>
   <div style="height:8px" id="pbAdminSpacer"></div>
   <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
@@ -461,14 +463,26 @@ const db = getFirestore(fbApp);
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
-// To add more admins, just add passwords to this array.
-const ADMIN_PASSWORDS = ['coach2026', 'admin2026'];
+// Each admin entry can optionally restrict access to a single playbook.
+// - password: what the coach types in
+// - playbookId: (optional) Firestore ID — if set, this admin can only see/edit
+//   that one playbook. Leave empty/null for full access to all playbooks.
+//
+// To find a playbook ID: log in as full admin → open the playbook →
+// tap ⋯ menu → "Copy Playbook ID", then paste it below.
+const ADMINS = [
+  { password: 'coach2026', playbookId: null },      // Head coach — sees all
+  { password: 'admin2026', playbookId: null },      // Head coach — sees all
+  { password: 'coach34',   playbookId: '' },        // 3/4 coach — paste ID here
+  // Add more like: { password: 'coach56', playbookId: 'xxxxx' },
+];
 
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
 let currentPlaybook = null, currentFormation = null, currentPlay = null;
 let canEdit = false, isViewOnly = false;
+let adminRestrictedTo = null;   // playbook ID if admin is restricted, else null
 let playbooks = [], formations = [], plays = [];
 
 // Formation editor state
@@ -627,11 +641,37 @@ window.goViewCode = ()=>{
 
 window.checkAdminPw = async ()=>{
   const pw=document.getElementById('adminPwInput').value.trim();
-  if(!ADMIN_PASSWORDS.includes(pw)){
+  const admin = ADMINS.find(a=>a.password===pw);
+  if(!admin){
     document.getElementById('adminPwErr').style.display='block';
     return;
   }
   canEdit=true; isViewOnly=false;
+  adminRestrictedTo = admin.playbookId || null;
+
+  // Restricted admin → jump straight into their playbook
+  if(adminRestrictedTo){
+    try{
+      const ref=doc(db,'playbooks',adminRestrictedTo);
+      const snap=await getDoc(ref);
+      if(!snap.exists()){
+        document.getElementById('adminPwErr').textContent='Assigned playbook not found — contact head coach';
+        document.getElementById('adminPwErr').style.display='block';
+        canEdit=false; adminRestrictedTo=null;
+        return;
+      }
+      const pb={id:snap.id, ...snap.data()};
+      playbooks=[pb];   // keeps menus/back-nav happy
+      await openPlaybook(pb);
+    }catch(e){
+      document.getElementById('adminPwErr').textContent='Could not load: '+(e.message||'').slice(0,40);
+      document.getElementById('adminPwErr').style.display='block';
+      canEdit=false; adminRestrictedTo=null;
+    }
+    return;
+  }
+
+  // Unrestricted admin → full playbook list
   playbooks = await loadPlaybooks();
   renderPlaybooks();
   navTo('playbooksScreen');
@@ -702,8 +742,9 @@ async function openPlaybook(pb){
 }
 
 function backFromFormations(){
-  // Admin → back to playbook list. View-only → back to landing.
-  if(canEdit){
+  // Restricted admin or view-only → back to landing (no playbook list to show)
+  // Full admin → back to playbook list
+  if(canEdit && !adminRestrictedTo){
     goBack('playbooksScreen','formationsScreen');
   } else {
     goBack('landingScreen','formationsScreen');
@@ -749,11 +790,24 @@ window.openPlaybookMenu = ()=>{
   if(!currentPlaybook)return;
   document.getElementById('pbMenuTitle').textContent=currentPlaybook.name;
   document.getElementById('pbMenuCode').textContent='View code: '+currentPlaybook.viewCode;
-  // Hide admin-only buttons in view mode
-  document.getElementById('pbDelBtn').style.display=canEdit?'':'none';
-  document.getElementById('pbAdminSpacer').style.display=canEdit?'':'none';
+  // Restricted admins can't delete the playbook (head coach manages that)
+  const canDelete = canEdit && !adminRestrictedTo;
+  document.getElementById('pbDelBtn').style.display=canDelete?'':'none';
+  document.getElementById('pbAdminSpacer').style.display=canDelete?'':'none';
+  // View-only users don't get to copy the code or ID
   document.getElementById('pbCopyBtn').style.display=canEdit?'':'none';
+  // Only full admins need the playbook ID (to wire up restricted coaches)
+  document.getElementById('pbCopyIdBtn').style.display=(canEdit && !adminRestrictedTo)?'':'none';
   openSheet('pbMenuSheet');
+};
+
+window.copyPlaybookId = ()=>{
+  if(!currentPlaybook)return;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(currentPlaybook.id).then(()=>toast('Playbook ID copied!','ok'));
+  } else {
+    toast('ID: '+currentPlaybook.id,'ok');
+  }
 };
 
 window.copyViewCode = ()=>{
