@@ -1005,7 +1005,6 @@ async function openPlaybook(pb){
   document.getElementById('formTeamName').textContent=pb.name;
   document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':'✏️ Edit · ')+'Formations';
   document.getElementById('addFormBtn').style.display=canEdit?'':'none';
-  document.getElementById('formUploadBtn').style.display=canEdit?'':'none';
   renderFormations();
   navTo('formationsScreen');
 }
