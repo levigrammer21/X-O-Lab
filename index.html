@@ -69,6 +69,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .play-card-sub{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
 .img-tag{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);border-radius:6px;padding:2px 6px;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;gap:3px;z-index:2}
 .img-tag.play{background:rgba(240,180,41,.85);color:#000}
+.reorder-row{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.reorder-row .rb{flex:1;height:30px;border-radius:7px;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;padding:0}
+.reorder-row .rb:active:not(:disabled){background:var(--adim);color:var(--accent);border-color:var(--accent)}
+.reorder-row .rb:disabled{opacity:.3;pointer-events:none}
+.reorder-row .rb.del:active{background:rgba(240,65,65,.15);color:var(--red);border-color:rgba(240,65,65,.3)}
 
 /* IMAGE CARD (formation page list-style) */
 .img-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px;display:flex;align-items:center;gap:12px;cursor:pointer}
@@ -341,8 +346,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <button class="hdr-back" onclick="goBack('formationsScreen','playsScreen')">←</button>
     <div class="hdr-title"><h1 id="playsFormName">Formation</h1><p id="playsFormSub">Plays</p></div>
     <button class="hdr-btn ghost icon" onclick="openFormationEditor()" id="editFormBtn">✏️</button>
-    <button class="hdr-btn ghost icon" onclick="pickFormationImage()" id="formUploadBtn" style="display:none" title="Upload formation note/diagram">📋</button>
-    <button class="hdr-btn ghost icon" onclick="pickPlayImage()" id="playUploadBtn" style="display:none" title="Upload play image">📷</button>
+    <button class="hdr-btn ghost icon" onclick="pickPlayImage()" id="playUploadBtn" style="display:none" title="Upload image">📷</button>
     <button class="hdr-btn" id="addPlayBtn" onclick="newPlay()">+ Play</button>
   </div>
   <div class="scroll" id="playsList"></div>
@@ -449,6 +453,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <p class="sub">A view code will be generated. Share it with players or parents.</p>
   <div class="field"><label>Playbook Name</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026"></div>
   <div class="field"><label>Description (optional)</label><input id="npbDesc" placeholder="Team, season, etc."></div>
+  <div class="field"><label>Custom View Code (optional)</label><input id="npbCode" placeholder="Leave blank to auto-generate" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace" autocomplete="off"></div>
   <button class="btn btn-p" onclick="addPlaybook()">Create Playbook</button>
 </div>
 
@@ -490,6 +495,20 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <button class="btn btn-p" id="uploadSaveBtn" onclick="saveUploadedImage()">Upload</button>
 </div>
 
+<div class="overlay" id="editCodeOverlay" onclick="closeSheet('editCodeSheet')"></div>
+<div class="sheet" id="editCodeSheet">
+  <div class="handle"></div>
+  <h2>Edit View Code</h2>
+  <p class="sub">3–12 characters. Letters and numbers only. Anyone with this code can view the playbook.</p>
+  <div class="field"><label>View Code</label>
+    <input id="editCodeInput" placeholder="e.g. EAGLES26" maxlength="12" autocomplete="off" style="text-transform:uppercase;letter-spacing:2px;font-size:17px;text-align:center;font-family:monospace">
+  </div>
+  <div id="editCodeErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
+  <button class="btn btn-p" id="editCodeSaveBtn" onclick="saveEditedCode()">Save Code</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="closeSheet('editCodeSheet')">Cancel</button>
+</div>
+
 <div class="overlay" id="pbMenuOverlay" onclick="closeSheet('pbMenuSheet')"></div>
 <div class="sheet" id="pbMenuSheet">
   <div class="handle"></div>
@@ -501,6 +520,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openLeaderboard()">🏆 Leaderboard</button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
+  <div style="height:8px" id="pbEditCodeSpacer"></div>
+  <button class="btn btn-g" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none">✏️ Edit View Code</button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="printPlaybook()">🖨 Print Full Playbook</button>
   <div style="height:8px" id="pbAssignSpacer"></div>
@@ -1008,13 +1029,27 @@ function genViewCode(){
 window.addPlaybook = async ()=>{
   const name=document.getElementById('npbName').value.trim();
   if(!name){toast('Enter a name','err');return;}
-  let code, tries=0;
-  do{
-    code=genViewCode();
-    const existing=await findPlaybookByCode(code);
-    if(!existing)break;
-    tries++;
-  } while(tries<5);
+  const customCodeRaw=document.getElementById('npbCode').value.trim().toUpperCase();
+  let code;
+  if(customCodeRaw){
+    if(customCodeRaw.length<3 || customCodeRaw.length>12){
+      toast('Code must be 3–12 chars','err');return;
+    }
+    if(!/^[A-Z0-9]+$/.test(customCodeRaw)){
+      toast('Letters and numbers only','err');return;
+    }
+    const existing=await findPlaybookByCode(customCodeRaw);
+    if(existing){ toast('That code is already taken','err'); return; }
+    code=customCodeRaw;
+  } else {
+    let tries=0;
+    do{
+      code=genViewCode();
+      const existing=await findPlaybookByCode(code);
+      if(!existing)break;
+      tries++;
+    } while(tries<5);
+  }
   const ownerId = isSuperAdmin ? 'head' : currentCoachId;
   const pb={
     name,
@@ -1028,6 +1063,7 @@ window.addPlaybook = async ()=>{
   playbooks.push(pb);
   document.getElementById('npbName').value='';
   document.getElementById('npbDesc').value='';
+  document.getElementById('npbCode').value='';
   closeSheet('newPlaybookSheet');
   renderPlaybooks();
   toast('Playbook created — code: '+code,'ok');
@@ -1051,6 +1087,9 @@ window.openPlaybookMenu = ()=>{
   document.getElementById('pbDelBtn').style.display=canDelete?'':'none';
   document.getElementById('pbAdminSpacer').style.display=canDelete?'':'none';
   document.getElementById('pbCopyBtn').style.display=canEdit?'':'none';
+  // Edit-code: same permissions as delete (owners + super admin only)
+  document.getElementById('pbEditCodeBtn').style.display=canDelete?'':'none';
+  document.getElementById('pbEditCodeSpacer').style.display=canDelete?'':'none';
   const assignBtn=document.getElementById('pbAssignBtn');
   if(assignBtn) assignBtn.style.display=isSuperAdmin?'':'none';
   openSheet('pbMenuSheet');
@@ -1070,6 +1109,56 @@ window.copyViewCode = ()=>{
 window.confirmDeletePlaybook = ()=>{
   closeSheet('pbMenuSheet');
   confirmDel('playbook',currentPlaybook.id);
+};
+
+window.openEditCode = ()=>{
+  if(!currentPlaybook) return;
+  closeSheet('pbMenuSheet');
+  document.getElementById('editCodeInput').value=currentPlaybook.viewCode||'';
+  document.getElementById('editCodeErr').style.display='none';
+  document.getElementById('editCodeSaveBtn').disabled=false;
+  document.getElementById('editCodeSaveBtn').textContent='Save Code';
+  openSheet('editCodeSheet');
+};
+
+window.saveEditedCode = async ()=>{
+  if(!currentPlaybook) return;
+  const raw=document.getElementById('editCodeInput').value.trim().toUpperCase();
+  const err=document.getElementById('editCodeErr');
+  // Validate
+  if(raw.length<3 || raw.length>12){
+    err.textContent='Code must be 3–12 characters.';
+    err.style.display='block'; return;
+  }
+  if(!/^[A-Z0-9]+$/.test(raw)){
+    err.textContent='Letters and numbers only — no spaces or symbols.';
+    err.style.display='block'; return;
+  }
+  if(raw===currentPlaybook.viewCode){
+    closeSheet('editCodeSheet'); return; // no change
+  }
+  const btn=document.getElementById('editCodeSaveBtn');
+  btn.disabled=true; btn.textContent='Checking…';
+  // Uniqueness check
+  try{
+    const existing=await findPlaybookByCode(raw);
+    if(existing && existing.id!==currentPlaybook.id){
+      err.textContent='That code is already in use. Try another.';
+      err.style.display='block';
+      btn.disabled=false; btn.textContent='Save Code'; return;
+    }
+    await updateDoc(doc(db,'playbooks',currentPlaybook.id),{viewCode:raw});
+    currentPlaybook.viewCode=raw;
+    const i=playbooks.findIndex(p=>p.id===currentPlaybook.id);
+    if(i!==-1) playbooks[i].viewCode=raw;
+    closeSheet('editCodeSheet');
+    toast('Code updated: '+raw,'ok');
+  }catch(e){
+    console.error(e);
+    err.textContent='Could not save. Try again.';
+    err.style.display='block';
+    btn.disabled=false; btn.textContent='Save Code';
+  }
 };
 
 // ═══════════════════════════════════════════════
@@ -1131,17 +1220,14 @@ window.addFormation=async function(){
 
 async function openFormation(id){
   currentFormation=formations.find(f=>f.id===id);
-  [plays, formationImages] = await Promise.all([
-    loadPlays(currentPlaybook.id,id),
-    loadFormationImages(currentPlaybook.id,id)
-  ]);
+  plays=await loadPlays(currentPlaybook.id,id);
+  formationImages=[];
   document.getElementById('playsFormName').textContent=currentFormation.name;
   const tl={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
   document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(isViewOnly?' · 👁 View only':' · Plays');
   document.getElementById('addPlayBtn').style.display=canEdit?'':'none';
   document.getElementById('editFormBtn').style.display=canEdit?'':'none';
   document.getElementById('playUploadBtn').style.display=canEdit?'':'none';
-  document.getElementById('formUploadBtn').style.display=canEdit?'':'none';
   renderPlays();
   navTo('playsScreen');
 }
@@ -1294,18 +1380,23 @@ function handleFormMove(sx,sy){
 // ═══════════════════════════════════════════════
 function renderPlays(){
   const el=document.getElementById('playsList');
-  const hasPlays=plays.length>0;
-  const hasFImgs=formationImages.length>0;
-  if(!hasPlays && !hasFImgs){el.innerHTML=`<div class="empty"><div class="empty-ico">🏃</div><h3>Nothing Here Yet</h3><p>${canEdit?'Tap + Play to draw, 📷 to upload a play image, or 📋 to attach a formation note.':'No plays yet.'}</p></div>`;return;}
-  let html='';
-  // Formation-level notes/diagrams first
-  if(hasFImgs){
-    html+=`<div class="sec-label">📋 Formation Notes</div>`;
-    html+=formationImages.map(imgCardFormation).join('');
-    if(hasPlays) html+=`<div class="sec-label" style="margin-top:8px">🏃 Plays</div>`;
-  }
-  if(hasPlays){
-    html+=`<div class="play-grid">${plays.map(p=>{
+  // Sort by order (fallback to createdAt for older plays without order)
+  plays.sort((a,b)=>{
+    const ao = (a.order!=null) ? a.order : (a.createdAt||0);
+    const bo = (b.order!=null) ? b.order : (b.createdAt||0);
+    return ao - bo;
+  });
+  if(!plays.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🏃</div><h3>No Plays Yet</h3><p>${canEdit?'Tap + Play to draw, or 📷 to upload an image.':'No plays yet.'}</p></div>`;return;}
+  el.innerHTML=`<div class="play-grid">${plays.map((p,idx)=>{
+    const upDisabled = idx===0;
+    const downDisabled = idx===plays.length-1;
+    const reorderRow = canEdit ? `
+      <div class="reorder-row">
+        <button class="rb" ${upDisabled?'disabled':''} onclick="event.stopPropagation();movePlay('${p.id}',-1)">↑</button>
+        <button class="rb" ${downDisabled?'disabled':''} onclick="event.stopPropagation();movePlay('${p.id}',1)">↓</button>
+        <button class="rb" onclick="event.stopPropagation();duplicatePlay('${p.id}')" title="Duplicate">📄</button>
+        <button class="rb del" onclick="event.stopPropagation();confirmDel('play','${p.id}')">🗑</button>
+      </div>` : '';
     if(p.kind==='image'){
       return `<div class="play-card" onclick="openImgViewer('play','${p.id}')">
         <div class="play-preview">
@@ -1313,23 +1404,17 @@ function renderPlays(){
           <img src="${p.url}" alt="" loading="lazy">
         </div>
         <div class="play-card-name">${esc(p.name)}</div>
-        <div class="play-card-sub">
-          <span>Image</span>
-          ${canEdit?`<button onclick="event.stopPropagation();confirmDel('play','${p.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">🗑</button>`:''}
-        </div>
+        <div class="play-card-sub"><span>Image</span></div>
+        ${reorderRow}
       </div>`;
     }
     return `<div class="play-card" onclick="openPlay('${p.id}')">
       <div class="play-preview" id="prev-${p.id}"></div>
       <div class="play-card-name">${esc(p.name)}</div>
-      <div class="play-card-sub">
-        <span>${(p.data?.players||[]).length}p · ${(p.data?.routes||[]).length}r</span>
-        ${canEdit?`<button onclick="event.stopPropagation();confirmDel('play','${p.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">🗑</button>`:''}
-      </div>
+      <div class="play-card-sub"><span>${(p.data?.players||[]).length}p · ${(p.data?.routes||[]).length}r</span></div>
+      ${reorderRow}
     </div>`;
   }).join('')}</div>`;
-  }
-  el.innerHTML=html;
   plays.forEach(p=>{if(p.kind!=='image' && p.data)setTimeout(()=>miniPrev(p),80);});
 }
 
@@ -1369,6 +1454,89 @@ window.newPlay=function(){
   tool='draw';setSegType('route');
   navTo('editorScreen');
   setTimeout(()=>{resizeCv();drawAll();},110);
+};
+
+// Next order value to use for a new play (always appended to the end)
+function nextOrder(){
+  if(!plays.length) return 1000;
+  const max=plays.reduce((m,p)=>{
+    const v = (p.order!=null) ? p.order : (p.createdAt||0);
+    return Math.max(m,v);
+  }, 0);
+  return max + 1000;
+}
+
+window.movePlay = async function(id, dir){
+  if(!canEdit) return;
+  // Make sure every play has an order value (legacy plays don't)
+  let needsBackfill=false;
+  plays.forEach((p,i)=>{ if(p.order==null){ p.order=(p.createdAt||(Date.now()+i)); needsBackfill=true; }});
+  // Sort by current order
+  plays.sort((a,b)=>a.order-b.order);
+  const idx=plays.findIndex(p=>p.id===id);
+  const ni=idx+dir;
+  if(idx<0 || ni<0 || ni>=plays.length) return;
+  // Swap order values
+  const a=plays[idx], b=plays[ni];
+  const ao=a.order, bo=b.order;
+  a.order=bo; b.order=ao;
+  renderPlays();
+  // Persist
+  try{
+    const pbId=currentPlaybook.id, fmId=currentFormation.id;
+    const updates=[
+      updateDoc(doc(db,'playbooks',pbId,'formations',fmId,'plays',a.id),{order:a.order}),
+      updateDoc(doc(db,'playbooks',pbId,'formations',fmId,'plays',b.id),{order:b.order})
+    ];
+    // Backfill the rest if needed
+    if(needsBackfill){
+      plays.forEach(p=>{
+        if(p.id!==a.id && p.id!==b.id){
+          updates.push(updateDoc(doc(db,'playbooks',pbId,'formations',fmId,'plays',p.id),{order:p.order}));
+        }
+      });
+    }
+    await Promise.all(updates);
+  }catch(e){ console.error(e); toast('Could not save order','err'); }
+};
+
+window.duplicatePlay = async function(id){
+  if(!canEdit) return;
+  const orig=plays.find(p=>p.id===id);
+  if(!orig) return;
+  toast('Duplicating…','');
+  try{
+    const baseName = orig.name + ' (copy)';
+    let rec;
+    if(orig.kind==='image'){
+      // Copy the image record but reuse the same URL (no need to re-upload the bytes)
+      rec={
+        name: baseName,
+        kind:'image',
+        isPlay: !!orig.isPlay,
+        url: orig.url,
+        storagePath: orig.storagePath, // shared — original still owns the file
+        sharedFrom: orig.id,            // so we know not to delete the storage object when this copy is deleted
+        order: nextOrder(),
+        createdAt: Date.now()
+      };
+    } else {
+      rec={
+        name: baseName,
+        kind:'drawn',
+        data: JSON.parse(JSON.stringify(orig.data||{players:[],routes:[]})),
+        order: nextOrder(),
+        createdAt: Date.now()
+      };
+    }
+    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id), rec);
+    rec.id=ref.id;
+    plays.push(rec);
+    renderPlays();
+    toast('Duplicated!','ok');
+  }catch(e){
+    console.error(e); toast('Could not duplicate','err');
+  }
 };
 
 window.openPlay=function(id){
@@ -1411,8 +1579,9 @@ window.savePlay=async function(){
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
     await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,data});
   } else {
-    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,data,kind:'drawn',createdAt:Date.now()});
-    currentPlay={id:ref.id,name,data,kind:'drawn'};
+    const ord=nextOrder();
+    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,data,kind:'drawn',order:ord,createdAt:Date.now()});
+    currentPlay={id:ref.id,name,data,kind:'drawn',order:ord,createdAt:Date.now()};
     plays.push(currentPlay);
   }
   toast('Saved!','ok');
@@ -1526,8 +1695,7 @@ window.saveUploadedImage=async function(){
     const url=await getDownloadURL(sRef);
 
     if(uploadContext==='play'){
-      // Store as a play doc with kind:'image' so it sits in the plays grid + quiz
-      const rec={name, kind:'image', isPlay:uploadIsPlay, url, storagePath:path, createdAt:Date.now()};
+      const rec={name, kind:'image', isPlay:uploadIsPlay, url, storagePath:path, order:nextOrder(), createdAt:Date.now()};
       const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id), rec);
       rec.id=ref.id;
       plays.push(rec);
@@ -1617,7 +1785,11 @@ async function execDel(){
     renderFormations();toast('Formation deleted','ok');
   } else if(type==='play'){
     const p=plays.find(x=>x.id===id);
-    if(p && p.kind==='image') await deleteStorageIfAny(p.storagePath);
+    if(p && p.kind==='image' && p.storagePath){
+      // Only delete the actual file if no other play references the same storagePath
+      const others=plays.filter(x=>x.id!==id && x.kind==='image' && x.storagePath===p.storagePath);
+      if(others.length===0) await deleteStorageIfAny(p.storagePath);
+    }
     await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',id));
     plays=plays.filter(p=>p.id!==id);
     renderPlays();toast('Deleted','ok');
