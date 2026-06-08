@@ -138,11 +138,30 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .name-wrap{flex:1;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:0 11px;height:38px;display:flex;align-items:center}
 .name-wrap input{background:none;border:none;color:var(--text);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;outline:none;width:100%}
 .name-wrap input::placeholder{color:var(--muted)}
-.play-desc-wrap{background:var(--card);border-bottom:1px solid var(--border);padding:0 11px 10px;flex-shrink:0;display:none}
+.play-desc-wrap{background:var(--card);border-top:1px solid var(--border);padding:10px 11px;flex-shrink:0;display:none;flex-direction:column;gap:6px}
+.play-desc-wrap label{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
 .play-desc-wrap textarea{width:100%;min-height:46px;max-height:92px;resize:vertical;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;line-height:1.35;font-family:'DM Sans',sans-serif;outline:none;padding:10px 11px}
 .play-desc-wrap textarea:focus{border-color:var(--accent)}
 .play-desc-wrap textarea::placeholder{color:var(--muted)}
 .play-desc-wrap textarea:read-only{color:var(--muted)}
+.play-counter{font-size:12px;color:var(--muted);font-weight:800;padding-left:8px;white-space:nowrap}
+.play-meta-row{background:var(--card);border-top:1px solid var(--border);padding:9px 11px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.play-meta-label{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap}
+.play-type-select{height:34px;min-width:120px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;padding:0 10px;outline:none}
+.play-type-select:focus{border-color:var(--accent)}
+.play-bottom-nav{background:var(--card);border-top:1px solid var(--border);padding:10px 11px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-shrink:0}
+.play-step-btn{height:42px;min-width:140px;padding:0 12px;border-radius:11px;background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-weight:800;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.play-step-btn:active:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--adim)}
+.play-step-btn:disabled{opacity:.35;pointer-events:none}
+.play-action-row{background:var(--card);border-top:1px solid var(--border);padding:8px 11px;display:flex;gap:8px;align-items:center;justify-content:center;overflow-x:auto;flex-shrink:0}
+.play-action-row::-webkit-scrollbar{display:none}
+.play-action-btn{height:34px;padding:0 11px;border-radius:10px;background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-weight:800;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.play-action-btn:active:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--adim)}
+.play-action-btn:disabled{opacity:.35;pointer-events:none}
+.play-type-badge{display:inline-block;border-radius:20px;padding:1px 7px;font-size:9px;font-weight:800;margin-left:5px;text-transform:uppercase}
+.play-type-badge.run{background:rgba(65,201,122,.13);color:var(--green)}
+.play-type-badge.pass{background:rgba(65,130,240,.13);color:var(--blue)}
+@media (max-height:620px){.play-desc-wrap textarea{min-height:38px;max-height:60px}.play-action-row{display:none}.play-step-btn{height:38px}}
 .play-nav:disabled{opacity:.3;pointer-events:none}
 .e-save{height:38px;padding:0 14px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif}
 
@@ -388,14 +407,29 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="screen hidden" id="editorScreen">
   <div class="editor-hdr">
     <button class="e-back" onclick="backFromPlayEditor()">←</button>
-    <button class="e-back play-nav" id="prevPlayBtn" onclick="openAdjacentPlay(-1)" title="Previous play" style="display:none">‹</button>
-    <div class="name-wrap"><input id="playNameInput" placeholder="Play name…" maxlength="40"></div>
-    <button class="e-back play-nav" id="nextPlayBtn" onclick="openAdjacentPlay(1)" title="Next play" style="display:none">›</button>
+    <div class="name-wrap"><input id="playNameInput" placeholder="Play name…" maxlength="40"><span class="play-counter" id="playCounter">—</span></div>
     <button class="e-save" onclick="savePlay()">SAVE</button>
     <button class="e-back" onclick="printPlay()" style="margin-left:2px">🖨</button>
   </div>
-  <div class="play-desc-wrap" id="playDescWrap"><textarea id="playDescInput" placeholder="Play description / coaching notes…" maxlength="500"></textarea></div>
   <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas></div>
+  <div class="play-desc-wrap" id="playDescWrap"><label>Play Description / Coaching Notes</label><textarea id="playDescInput" placeholder="Enter play description…" maxlength="500"></textarea></div>
+  <div class="play-meta-row" id="playMetaRow">
+    <span class="play-meta-label">Play Type</span>
+    <select class="play-type-select" id="playTypeSelect">
+      <option value="">Unlabeled</option>
+      <option value="run">Run</option>
+      <option value="pass">Pass</option>
+    </select>
+  </div>
+  <div class="play-bottom-nav" id="playBottomNav">
+    <button class="play-step-btn" id="prevPlayBtn" onclick="openAdjacentPlay(-1)">← Previous Play</button>
+    <button class="play-step-btn" id="nextPlayBtn" onclick="openAdjacentPlay(1)">Next Play →</button>
+  </div>
+  <div class="play-action-row" id="playActionRow">
+    <button class="play-action-btn" id="flipPlayBtn" onclick="flipPlay()">↔ Flip Play</button>
+    <button class="play-action-btn" id="animateBtn" onclick="toggleRouteAnimation()">▶ Animate</button>
+    <button class="play-action-btn" id="fullscreenBtn" onclick="togglePlayFullscreen()">⛶ Fullscreen</button>
+  </div>
   <div class="bot-bar">
     <div class="tool-row" id="segTypeRow">
       <button class="tool-btn on" id="seg-route" onclick="setSegType('route')"><span class="ti">↗</span>ROUTE</button>
@@ -640,6 +674,7 @@ let isPanning=false, panSX=0, panSY=0;
 let eHistory=[];
 let vx=0,vy=0,vs=1;
 let pinching=false,pd0=0,pvx0=0,pvy0=0;
+let animId=null, animating=false;
 let playSwipeSX=0, playSwipeSY=0, playSwipeT=0;
 
 // Quiz state
@@ -1398,6 +1433,12 @@ function handleFormMove(sx,sy){
 // ═══════════════════════════════════════════════
 // PLAYS
 // ═══════════════════════════════════════════════
+function playTypeBadge(type){
+  if(type==='run') return '<span class="play-type-badge run">Run</span>';
+  if(type==='pass') return '<span class="play-type-badge pass">Pass</span>';
+  return '';
+}
+
 function renderPlays(){
   const el=document.getElementById('playsList');
   // Sort by order (fallback to createdAt for older plays without order)
@@ -1423,15 +1464,15 @@ function renderPlays(){
           <span class="img-tag${p.isPlay?' play':''}">${p.isPlay?'🏈 Play':'📷 Note'}</span>
           <img src="${p.url}" alt="" loading="lazy">
         </div>
-        <div class="play-card-name">${esc(p.name)}</div>
-        <div class="play-card-sub"><span>${p.description?esc(p.description):'Image'}</span></div>
+        <div class="play-card-name">${esc(p.name)}${playTypeBadge(p.playType)}</div>
+        <div class="play-card-sub"><span>${p.description?'Notes':'Image'}</span></div>
         ${reorderRow}
       </div>`;
     }
     return `<div class="play-card" onclick="openPlay('${p.id}')">
       <div class="play-preview" id="prev-${p.id}"></div>
-      <div class="play-card-name">${esc(p.name)}</div>
-      <div class="play-card-sub"><span>${p.description?esc(p.description):((p.data?.players||[]).length+'p · '+(p.data?.routes||[]).length+'r')}</span></div>
+      <div class="play-card-name">${esc(p.name)}${playTypeBadge(p.playType)}</div>
+      <div class="play-card-sub"><span>${(p.data?.players||[]).length}p · ${(p.data?.routes||[]).length}r${p.description?' · Notes':''}</span></div>
       ${reorderRow}
     </div>`;
   }).join('')}</div>`;
@@ -1474,6 +1515,11 @@ window.newPlay=function(){
   document.getElementById('playDescInput').value='';
   document.getElementById('playDescInput').readOnly=false;
   document.getElementById('playDescWrap').style.display='flex';
+  document.getElementById('playTypeSelect').value='';
+  document.getElementById('playTypeSelect').disabled=false;
+  document.getElementById('playMetaRow').style.display='flex';
+  document.getElementById('flipPlayBtn').style.display='';
+  document.getElementById('playCounter').textContent='New';
   updatePlayNavButtons();
   tool='draw';setSegType('route');
   navTo('editorScreen');
@@ -1539,6 +1585,8 @@ window.duplicatePlay = async function(id){
         description: orig.description||'',
         kind:'image',
         isPlay: !!orig.isPlay,
+        description: orig.description||'',
+        playType: orig.playType||'',
         url: orig.url,
         storagePath: orig.storagePath, // shared — original still owns the file
         sharedFrom: orig.id,            // so we know not to delete the storage object when this copy is deleted
@@ -1579,14 +1627,14 @@ function orderedDrawablePlays(){
 function updatePlayNavButtons(){
   const prev=document.getElementById('prevPlayBtn');
   const next=document.getElementById('nextPlayBtn');
+  const counter=document.getElementById('playCounter');
   if(!prev || !next) return;
   const list=orderedDrawablePlays();
   const idx=currentPlay ? list.findIndex(p=>p.id===currentPlay.id) : -1;
   const show=list.length>1 && idx!==-1;
-  prev.style.display=show?'':'none';
-  next.style.display=show?'':'none';
   prev.disabled=!show || idx<=0;
   next.disabled=!show || idx>=list.length-1;
+  if(counter) counter.textContent = idx===-1 ? (currentPlay?'—':'New') : `${idx+1} / ${list.length}`;
 }
 
 async function saveCurrentPlay(silent=false){
@@ -1595,15 +1643,16 @@ async function saveCurrentPlay(silent=false){
   const name=document.getElementById('playNameInput').value.trim();
   if(!name){toast('Enter a play name','err');return false;}
   const description=document.getElementById('playDescInput').value.trim();
+  const playType=document.getElementById('playTypeSelect').value;
   const data={players:ePlayers,routes:eRoutes};
   if(currentPlay){
-    currentPlay.name=name;currentPlay.description=description;currentPlay.data=data;
+    currentPlay.name=name;currentPlay.description=description;currentPlay.playType=playType;currentPlay.data=data;
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
-    await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,description,data});
+    await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,description,playType,data});
   } else {
     const ord=nextOrder();
-    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,description,data,kind:'drawn',order:ord,createdAt:Date.now()});
-    currentPlay={id:ref.id,name,description,data,kind:'drawn',order:ord,createdAt:Date.now()};
+    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,description,playType,data,kind:'drawn',order:ord,createdAt:Date.now()});
+    currentPlay={id:ref.id,name,description,playType,data,kind:'drawn',order:ord,createdAt:Date.now()};
     plays.push(currentPlay);
   }
   updatePlayNavButtons();
@@ -1614,6 +1663,7 @@ async function saveCurrentPlay(silent=false){
 window.openPlay=function(id, stayOnEditor=false){
   currentPlay=plays.find(p=>p.id===id);
   if(!currentPlay) return;
+  stopRouteAnimation(false);
   ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
   selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
@@ -1623,6 +1673,11 @@ window.openPlay=function(id, stayOnEditor=false){
   descInput.value=desc;
   descInput.readOnly=!canEdit;
   document.getElementById('playDescWrap').style.display=(canEdit || desc)?'flex':'none';
+  const typeSel=document.getElementById('playTypeSelect');
+  typeSel.value=currentPlay.playType||'';
+  typeSel.disabled=!canEdit;
+  document.getElementById('playMetaRow').style.display=(canEdit || currentPlay.playType)?'flex':'none';
+  document.getElementById('flipPlayBtn').style.display=canEdit?'':'none';
   document.getElementById('editorScreen').querySelector('.e-save').style.display=canEdit?'':'none';
   document.getElementById('segTypeRow').style.display=canEdit?'':'none';
   document.getElementById('optionsRow').style.display=canEdit?'':'none';
@@ -1643,6 +1698,7 @@ window.openPlay=function(id, stayOnEditor=false){
 };
 
 window.openAdjacentPlay=async function(dir){
+  stopRouteAnimation(false);
   const list=orderedDrawablePlays();
   const idx=currentPlay ? list.findIndex(p=>p.id===currentPlay.id) : -1;
   const ni=idx+dir;
@@ -1657,6 +1713,7 @@ window.openAdjacentPlay=async function(dir){
 };
 
 window.backFromPlayEditor = ()=>{
+  stopRouteAnimation(false);
   if(activeRoute) commitRoute();
   goBack('playsScreen','editorScreen');
 };
@@ -2065,6 +2122,120 @@ function drawAll(){
   }
   drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
 }
+function stopRouteAnimation(redraw=true){
+  if(animId) cancelAnimationFrame(animId);
+  animId=null; animating=false;
+  const btn=document.getElementById('animateBtn');
+  if(btn) btn.textContent='▶ Animate';
+  if(redraw) drawAll();
+}
+
+function distPts(a,b){return Math.hypot((b.x-a.x),(b.y-a.y));}
+function pointAlongRoute(route, progress){
+  const pts=[];
+  (route.segments||[]).forEach(seg=>{
+    (seg.pts||[]).forEach((p,i)=>{
+      if(pts.length && i===0) return;
+      pts.push(p);
+    });
+  });
+  if(pts.length<2) return pts[0]||null;
+  let total=0;
+  for(let i=0;i<pts.length-1;i++) total+=distPts(pts[i],pts[i+1]);
+  let target=total*Math.max(0,Math.min(1,progress));
+  for(let i=0;i<pts.length-1;i++){
+    const d=distPts(pts[i],pts[i+1]);
+    if(target<=d){
+      const t=d?target/d:0;
+      return {x:pts[i].x+(pts[i+1].x-pts[i].x)*t,y:pts[i].y+(pts[i+1].y-pts[i].y)*t};
+    }
+    target-=d;
+  }
+  return pts[pts.length-1];
+}
+
+function drawPartialSegment(seg, progress){
+  const pts=seg.pts||[];
+  if(pts.length<2) return;
+  let total=0;
+  for(let i=0;i<pts.length-1;i++) total+=distPts(pts[i],pts[i+1]);
+  let target=total*Math.max(0,Math.min(1,progress));
+  const out=[pts[0]];
+  for(let i=0;i<pts.length-1;i++){
+    const d=distPts(pts[i],pts[i+1]);
+    if(target>=d){ out.push(pts[i+1]); target-=d; }
+    else {
+      const t=d?target/d:0;
+      out.push({x:pts[i].x+(pts[i+1].x-pts[i].x)*t,y:pts[i].y+(pts[i+1].y-pts[i].y)*t});
+      break;
+    }
+  }
+  if(out.length>=2) drawSegment(ctx,out.map(p=>toS(p.x,p.y)),seg.type,seg.color,progress>=1,vs);
+}
+
+function drawAnimated(progress){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
+  drawFieldOn(ctx,cv,vs,toS);
+  eRoutes.forEach(route=>{
+    (route.segments||[]).forEach(seg=>drawPartialSegment(seg,progress));
+  });
+  const moving=ePlayers.map(p=>({...p}));
+  eRoutes.forEach(route=>{
+    const i=moving.findIndex(p=>p.id===route.playerId);
+    const pt=pointAlongRoute(route,progress);
+    if(i!==-1 && pt){moving[i].x=pt.x;moving[i].y=pt.y;}
+  });
+  drawPlayersOn(ctx,cv,vs,moving,null,toS);
+}
+
+window.toggleRouteAnimation=function(){
+  if(animating){ stopRouteAnimation(true); return; }
+  if(activeRoute) commitRoute();
+  if(!eRoutes.length){ toast('No routes to animate',''); return; }
+  animating=true;
+  const btn=document.getElementById('animateBtn');
+  if(btn) btn.textContent='■ Stop';
+  const start=performance.now();
+  const dur=4200;
+  const step=(now)=>{
+    const p=Math.min(1,(now-start)/dur);
+    drawAnimated(p);
+    if(p<1 && animating) animId=requestAnimationFrame(step);
+    else { animating=false; animId=null; if(btn) btn.textContent='↻ Replay'; }
+  };
+  animId=requestAnimationFrame(step);
+};
+
+window.flipPlay=function(){
+  if(!canEdit){toast('View only','err');return;}
+  stopRouteAnimation(false);
+  if(activeRoute) commitRoute();
+  ePlayers.forEach(p=>{p.x=FW-p.x;});
+  eRoutes.forEach(r=>{(r.segments||[]).forEach(seg=>{(seg.pts||[]).forEach(pt=>{pt.x=FW-pt.x;});});});
+  drawAll();
+  toast('Play flipped — tap Save to keep it','ok');
+};
+
+window.togglePlayFullscreen=async function(){
+  const el=document.getElementById('editorScreen');
+  try{
+    if(!document.fullscreenElement){
+      if(el.requestFullscreen) await el.requestFullscreen();
+      if(screen.orientation && screen.orientation.lock){ try{ await screen.orientation.lock('landscape'); }catch(e){} }
+    } else {
+      if(document.exitFullscreen) await document.exitFullscreen();
+      if(screen.orientation && screen.orientation.unlock){ try{ screen.orientation.unlock(); }catch(e){} }
+    }
+  }catch(e){ toast('Fullscreen not available','err'); }
+  setTimeout(()=>{resizeCv();drawAll();},300);
+};
+
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('fullscreenBtn');
+  if(btn) btn.textContent=document.fullscreenElement?'⛶ Exit Fullscreen':'⛶ Fullscreen';
+  setTimeout(()=>{if(!document.getElementById('editorScreen').classList.contains('hidden')){resizeCv();drawAll();}},200);
+});
 
 function playerAt(sx,sy){
   return ePlayers.find(p=>{
@@ -2153,6 +2324,7 @@ cv.addEventListener('wheel',e=>{
 },{passive:false});
 
 function handleDown(sx,sy){
+  if(animating) stopRouteAnimation(true);
   const fp=toF(sx,sy);
   const hit=playerAt(sx,sy);
   if(!canEdit){
