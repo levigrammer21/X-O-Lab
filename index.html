@@ -235,6 +235,9 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .lb-name{flex:1;font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lb-stats{font-size:11px;color:var(--muted);text-align:right}
 .lb-stats b{color:var(--accent);font-size:14px;display:block}
+.lb-tabs{display:flex;gap:8px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
+.lb-tabs::-webkit-scrollbar{display:none}
+.lb-tabs .chip{height:32px;padding:0 13px}
 </style>
 </head>
 <body>
@@ -444,6 +447,11 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <div class="hdr-title"><h1>LEADERBOARD</h1><p id="lbPbName">Playbook</p></div>
     <button class="hdr-btn" onclick="startQuiz()">Play</button>
   </div>
+  <div class="lb-tabs">
+    <button class="chip on" id="lb-all" onclick="setLbRange('all')">All Time</button>
+    <button class="chip" id="lb-month" onclick="setLbRange('month')">Last 30 Days</button>
+    <button class="chip" id="lb-week" onclick="setLbRange('week')">Last 7 Days</button>
+  </div>
   <div class="scroll" id="leaderboardList"></div>
 </div>
 
@@ -627,6 +635,7 @@ let pinching=false,pd0=0,pvx0=0,pvy0=0;
 // Quiz state
 let quizQuestions=[], quizIdx=0, quizScore=0, quizStart=0, quizTimerId=null, quizAnswered=false, quizAllPlays=[];
 let lastQuizResult=null;
+let lbRange='all';
 
 // Image upload state
 let uploadContext=null;     // 'formation' | 'play'
@@ -2513,8 +2522,7 @@ function finishQuiz(){
   clearInterval(quizTimerId);
   const totalSec=(Date.now()-quizStart)/1000;
   const correct=Math.round(quizScore/100);
-  const timeBonus=Math.max(0,Math.round(Math.max(0,(60-totalSec))*5));
-  const finalScore=quizScore+(correct===quizQuestions.length?timeBonus:0);
+  const finalScore=calcQuizScore(correct, quizQuestions.length, totalSec);
   lastQuizResult={
     correct,
     total:quizQuestions.length,
@@ -2557,18 +2565,59 @@ window.submitScore=async function(){
   }
 };
 
-window.openLeaderboard=async function(){
+function calcQuizScore(correct,total,timeSec){
+  const misses=Math.max(0,(total||0)-(correct||0));
+  const secondsPenalty=Math.round(timeSec||0);
+  return Math.max(0,1000-(misses*100)-secondsPenalty);
+}
+
+function leaderboardScore(e){
+  // Recalculate from correct/total/time so older bonus-score records do NOT need to be reset.
+  if(e && e.correct!=null && e.total!=null && e.time!=null){
+    return calcQuizScore(Number(e.correct)||0, Number(e.total)||0, Number(e.time)||0);
+  }
+  return Number(e?.score)||0;
+}
+
+function syncLbTabs(){
+  ['all','month','week'].forEach(r=>{
+    const btn=document.getElementById('lb-'+r);
+    if(btn) btn.classList.toggle('on', lbRange===r);
+  });
+}
+
+window.setLbRange=function(range){
+  lbRange=range;
+  syncLbTabs();
+  openLeaderboard(true);
+};
+
+window.openLeaderboard=async function(refreshOnly=false){
   closeSheet('pbMenuSheet');
   if(!currentPlaybook){toast('No playbook','err');return;}
   document.getElementById('lbPbName').textContent=currentPlaybook.name;
+  syncLbTabs();
   const el=document.getElementById('leaderboardList');
   el.innerHTML=`<div class="empty"><div class="empty-ico">⏳</div><h3>Loading…</h3></div>`;
-  navTo('leaderboardScreen');
+  if(!refreshOnly && document.getElementById('leaderboardScreen').classList.contains('hidden')) navTo('leaderboardScreen');
   try{
-    const snap=await getDocs(query(lbCol(currentPlaybook.id),orderBy('score','desc'),limit(20)));
-    const entries=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const snap=await getDocs(query(lbCol(currentPlaybook.id),orderBy('createdAt','desc'),limit(250)));
+    const now=Date.now();
+    const weekAgo=now-(7*24*60*60*1000);
+    const monthAgo=now-(30*24*60*60*1000);
+    let entries=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(lbRange==='week') entries=entries.filter(e=>(e.createdAt||0)>=weekAgo);
+    if(lbRange==='month') entries=entries.filter(e=>(e.createdAt||0)>=monthAgo);
+    entries=entries
+      .map(e=>({...e, displayScore:leaderboardScore(e)}))
+      .sort((a,b)=>{
+        if((b.displayScore||0)!==(a.displayScore||0)) return (b.displayScore||0)-(a.displayScore||0);
+        return (a.time||999999)-(b.time||999999);
+      })
+      .slice(0,20);
     if(!entries.length){
-      el.innerHTML=`<div class="empty"><div class="empty-ico">🏆</div><h3>No Scores Yet</h3><p>Be the first to play the quiz!</p></div>`;
+      const label=lbRange==='week'?'this week':lbRange==='month'?'in the last 30 days':'yet';
+      el.innerHTML=`<div class="empty"><div class="empty-ico">🏆</div><h3>No Scores ${label}</h3><p>Play the quiz to get on the board!</p></div>`;
       return;
     }
     el.innerHTML=entries.map((e,i)=>{
@@ -2576,7 +2625,7 @@ window.openLeaderboard=async function(){
       return `<div class="lb-row">
         <div class="lb-rank ${rankClass}">${i+1}</div>
         <div class="lb-name">${esc(e.name)}</div>
-        <div class="lb-stats"><b>${e.score}</b>${e.correct}/${e.total} · ${(e.time||0).toFixed(1)}s</div>
+        <div class="lb-stats"><b>${e.displayScore}</b>${e.correct}/${e.total} · ${(e.time||0).toFixed(1)}s</div>
       </div>`;
     }).join('');
   }catch(e){
