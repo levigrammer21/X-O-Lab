@@ -263,6 +263,31 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .lb-tabs{display:flex;gap:8px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
 .lb-tabs::-webkit-scrollbar{display:none}
 .lb-tabs .chip{height:32px;padding:0 13px}
+
+
+/* PRESENTATION / TRUE FULLSCREEN MODE */
+#editorScreen.presentation-mode{background:#050609;}
+#editorScreen.presentation-mode .editor-hdr{height:56px;padding:8px 12px;background:rgba(8,10,14,.96);border-bottom:1px solid var(--border);}
+#editorScreen.presentation-mode .name-wrap{background:transparent;border:none;justify-content:center;height:40px;}
+#editorScreen.presentation-mode #playNameInput{font-size:18px;font-weight:800;text-align:left;color:#fff;}
+#editorScreen.presentation-mode .play-counter{font-size:18px;color:#fff;font-weight:900;margin-left:auto;padding-left:18px;}
+#editorScreen.presentation-mode .e-save{display:none!important;}
+#editorScreen.presentation-mode .editor-hdr .e-back[onclick="printPlay()"]{display:none!important;}
+#editorScreen.presentation-mode .canvas-wrap{flex:1 1 auto;min-height:0;background:#050609;}
+#editorScreen.presentation-mode .play-desc-wrap,
+#editorScreen.presentation-mode .play-meta-row,
+#editorScreen.presentation-mode .bot-bar{display:none!important;}
+#editorScreen.presentation-mode .play-bottom-nav{order:90;background:rgba(8,10,14,.96);border-top:1px solid var(--border);padding:10px 14px;}
+#editorScreen.presentation-mode .play-step-btn{max-width:230px;height:44px;font-size:14px;}
+#editorScreen.presentation-mode .play-action-row{order:91;background:rgba(8,10,14,.96);border-top:0;padding:0 14px 12px;}
+#editorScreen.presentation-mode .play-action-btn{height:40px;font-size:13px;padding:0 16px;}
+#editorScreen.presentation-mode #fullscreenBtn{border-color:var(--accent);color:var(--accent);}
+@media (orientation:landscape){
+  #editorScreen.presentation-mode .editor-hdr{height:50px;}
+  #editorScreen.presentation-mode .play-bottom-nav{padding:8px 14px;}
+  #editorScreen.presentation-mode .play-action-row{padding:0 14px 8px;}
+}
+
 </style>
 </head>
 <body>
@@ -1523,7 +1548,7 @@ window.newPlay=function(){
   updatePlayNavButtons();
   tool='draw';setSegType('route');
   navTo('editorScreen');
-  setTimeout(()=>{resizeCv();drawAll();},110);
+  setTimeout(()=>{refitAndDraw(24);},110);
 };
 
 // Next order value to use for a new play (always appended to the end)
@@ -1685,15 +1710,7 @@ window.openPlay=function(id, stayOnEditor=false){
   tool='draw';setSegType('route');
   if(!stayOnEditor) navTo('editorScreen');
   setTimeout(()=>{
-    resizeCv();
-    if(!canEdit){
-      const pad=40;
-      const scaleX=(cv.width-pad*2)/FW;
-      const scaleY=(cv.height-pad*2)/FH;
-      vs=Math.min(scaleX,scaleY,1);
-      vx=0;vy=0;
-    }
-    drawAll();
+    refitAndDraw(24);
   },110);
 };
 
@@ -1715,6 +1732,7 @@ window.openAdjacentPlay=async function(dir){
 window.backFromPlayEditor = ()=>{
   stopRouteAnimation(false);
   if(activeRoute) commitRoute();
+  setPresentationMode(false);
   goBack('playsScreen','editorScreen');
 };
 
@@ -1986,6 +2004,28 @@ function resizeCv(){
 function toS(fx,fy){return{x:fx*vs+vx+cv.width/2-FW/2*vs,y:fy*vs+vy+cv.height/2-FH/2*vs};}
 function toF(sx,sy){return{x:(sx-vx-cv.width/2+FW/2*vs)/vs,y:(sy-vy-cv.height/2+FH/2*vs)/vs};}
 
+function fitPlayToCanvas(extraPad=24){
+  if(!cv.width || !cv.height) return;
+  const pad=Math.max(12,extraPad);
+  const scaleX=(cv.width-pad*2)/FW;
+  const scaleY=(cv.height-pad*2)/FH;
+  vs=Math.max(.1,Math.min(scaleX,scaleY));
+  vx=0;
+  vy=0;
+}
+
+function refitAndDraw(extraPad=24){
+  resizeCv();
+  fitPlayToCanvas(extraPad);
+  drawAll();
+}
+
+function setPresentationMode(on){
+  const screen=document.getElementById('editorScreen');
+  if(!screen) return;
+  screen.classList.toggle('presentation-mode', !!on);
+}
+
 function drawFieldOn(c,canv,sc,toScreen){
   const tl=toScreen(0,0),br=toScreen(FW,FH);
   const fw=br.x-tl.x,fh=br.y-tl.y;
@@ -2154,6 +2194,37 @@ function pointAlongRoute(route, progress){
   return pts[pts.length-1];
 }
 
+function pointAlongSegments(segs, progress){
+  const pts=[];
+  (segs||[]).forEach(seg=>{
+    (seg.pts||[]).forEach((p,i)=>{
+      if(pts.length && i===0) return;
+      pts.push(p);
+    });
+  });
+  if(pts.length<2) return pts[0]||null;
+  let total=0;
+  for(let i=0;i<pts.length-1;i++) total+=distPts(pts[i],pts[i+1]);
+  let target=total*Math.max(0,Math.min(1,progress));
+  for(let i=0;i<pts.length-1;i++){
+    const d=distPts(pts[i],pts[i+1]);
+    if(target<=d){
+      const t=d?target/d:0;
+      return {x:pts[i].x+(pts[i+1].x-pts[i].x)*t,y:pts[i].y+(pts[i+1].y-pts[i].y)*t};
+    }
+    target-=d;
+  }
+  return pts[pts.length-1];
+}
+
+function lastPointOfSegments(segs){
+  for(let i=(segs||[]).length-1;i>=0;i--){
+    const pts=segs[i].pts||[];
+    if(pts.length) return pts[pts.length-1];
+  }
+  return null;
+}
+
 function drawPartialSegment(seg, progress){
   const pts=seg.pts||[];
   if(pts.length<2) return;
@@ -2174,20 +2245,44 @@ function drawPartialSegment(seg, progress){
 }
 
 function drawAnimated(progress){
+  const hasMotion=eRoutes.some(route=>(route.segments||[]).some(seg=>seg.type==='motion'));
+  const preSnapPortion=hasMotion ? 0.34 : 0;
+  const motionProg=hasMotion ? Math.min(1, progress/preSnapPortion) : 1;
+  const snapProg=hasMotion ? Math.max(0, Math.min(1, (progress-preSnapPortion)/(1-preSnapPortion))) : progress;
+
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
   drawFieldOn(ctx,cv,vs,toS);
+
   eRoutes.forEach(route=>{
-    (route.segments||[]).forEach(seg=>drawPartialSegment(seg,progress));
+    (route.segments||[]).forEach(seg=>{
+      if(seg.type==='motion'){
+        drawPartialSegment(seg,motionProg);
+      } else if(!hasMotion || snapProg>0){
+        drawPartialSegment(seg,snapProg);
+      }
+    });
   });
+
   const moving=ePlayers.map(p=>({...p}));
   eRoutes.forEach(route=>{
     const i=moving.findIndex(p=>p.id===route.playerId);
-    const pt=pointAlongRoute(route,progress);
-    if(i!==-1 && pt){moving[i].x=pt.x;moving[i].y=pt.y;}
+    if(i===-1) return;
+    const motionSegs=(route.segments||[]).filter(seg=>seg.type==='motion');
+    const snapSegs=(route.segments||[]).filter(seg=>seg.type!=='motion');
+    let pt=null;
+    if(hasMotion && progress<preSnapPortion && motionSegs.length){
+      pt=pointAlongSegments(motionSegs,motionProg);
+    } else if(snapSegs.length && (!hasMotion || snapProg>0)){
+      pt=pointAlongSegments(snapSegs,snapProg);
+    } else if(motionSegs.length){
+      pt=lastPointOfSegments(motionSegs);
+    }
+    if(pt){moving[i].x=pt.x;moving[i].y=pt.y;}
   });
   drawPlayersOn(ctx,cv,vs,moving,null,toS);
 }
+
 
 window.toggleRouteAnimation=function(){
   if(animating){ stopRouteAnimation(true); return; }
@@ -2219,23 +2314,53 @@ window.flipPlay=function(){
 
 window.togglePlayFullscreen=async function(){
   const el=document.getElementById('editorScreen');
+  const alreadyPresentation=el.classList.contains('presentation-mode');
   try{
-    if(!document.fullscreenElement){
-      if(el.requestFullscreen) await el.requestFullscreen();
-      if(screen.orientation && screen.orientation.lock){ try{ await screen.orientation.lock('landscape'); }catch(e){} }
-    } else {
+    if(document.fullscreenElement){
       if(document.exitFullscreen) await document.exitFullscreen();
       if(screen.orientation && screen.orientation.unlock){ try{ screen.orientation.unlock(); }catch(e){} }
+      return;
     }
-  }catch(e){ toast('Fullscreen not available','err'); }
-  setTimeout(()=>{resizeCv();drawAll();},300);
+    if(alreadyPresentation){
+      setPresentationMode(false);
+      const btn=document.getElementById('fullscreenBtn');
+      if(btn) btn.textContent='⛶ Fullscreen';
+      setTimeout(()=>{refitAndDraw(24);},200);
+      return;
+    }
+    setPresentationMode(true);
+    if(el.requestFullscreen) await el.requestFullscreen();
+    if(screen.orientation && screen.orientation.lock){ try{ await screen.orientation.lock('landscape'); }catch(e){} }
+    setTimeout(()=>{refitAndDraw(12);},250);
+  }catch(e){
+    // Browser may block fullscreen/orientation. Still use presentation layout inside the page.
+    setPresentationMode(true);
+    const btn=document.getElementById('fullscreenBtn');
+    if(btn) btn.textContent='⛶ Exit Fullscreen';
+    toast('Presentation mode on','ok');
+    setTimeout(()=>{refitAndDraw(12);},250);
+  }
 };
 
+
 document.addEventListener('fullscreenchange',()=>{
+  const active=!!document.fullscreenElement;
+  setPresentationMode(active);
   const btn=document.getElementById('fullscreenBtn');
-  if(btn) btn.textContent=document.fullscreenElement?'⛶ Exit Fullscreen':'⛶ Fullscreen';
-  setTimeout(()=>{if(!document.getElementById('editorScreen').classList.contains('hidden')){resizeCv();drawAll();}},200);
+  if(btn) btn.textContent=active?'⛶ Exit Fullscreen':'⛶ Fullscreen';
+  setTimeout(()=>{
+    if(!document.getElementById('editorScreen').classList.contains('hidden')){
+      refitAndDraw(active?12:24);
+    }
+  },250);
 });
+
+window.exitPresentationMode=function(){
+  if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+  setPresentationMode(false);
+  setTimeout(()=>refitAndDraw(24),200);
+};
+
 
 function playerAt(sx,sy){
   return ePlayers.find(p=>{
@@ -2523,7 +2648,11 @@ window.printPlay=function(){
     img{max-width:100%;border-radius:8px}
     h2{margin-bottom:4px}
     p{color:#666;margin-bottom:16px;font-size:13px}
-  </style></head><body>
+  
+
+
+
+</style></head><body>
     <h2>${esc(name)}</h2>
     <p>${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</p>
     ${description?`<p style="color:#333;font-size:14px;line-height:1.45;white-space:pre-wrap">${esc(description)}</p>`:''}
@@ -2567,7 +2696,11 @@ window.printPlaybook=async function(){
     .template img{width:100%;max-width:600px;border:1px solid #ddd;border-radius:6px;display:block;margin-bottom:12px}
     .empty-note{color:#888;font-style:italic;font-size:13px;padding:8px 0}
     @media print { .section{page-break-after:always} }
-  </style></head><body>`;
+  
+
+
+
+</style></head><body>`;
 
   html+=`<div class="cover">
     <h1>X&O</h1>
@@ -2910,7 +3043,7 @@ function pinchD(e,canv){const dx=(e.touches[0].clientX-e.touches[1].clientX),dy=
 function pinchMid(e,canv){const r=canv.getBoundingClientRect();return{x:(e.touches[0].clientX+e.touches[1].clientX)/2-r.left,y:(e.touches[0].clientY+e.touches[1].clientY)/2-r.top};}
 
 window.addEventListener('resize',()=>{
-  if(!document.getElementById('editorScreen').classList.contains('hidden'))resizeCv();
+  if(!document.getElementById('editorScreen').classList.contains('hidden')){resizeCv(); if(document.getElementById('editorScreen').classList.contains('presentation-mode')) fitPlayToCanvas(12); drawAll();}
   if(!document.getElementById('formEditorScreen').classList.contains('hidden'))resizeFormCv();
   if(!document.getElementById('quizScreen').classList.contains('hidden')){
     resizeQuizCv();
