@@ -138,6 +138,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .name-wrap{flex:1;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:0 11px;height:38px;display:flex;align-items:center}
 .name-wrap input{background:none;border:none;color:var(--text);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;outline:none;width:100%}
 .name-wrap input::placeholder{color:var(--muted)}
+.play-desc-wrap{background:var(--card);border-bottom:1px solid var(--border);padding:0 11px 10px;flex-shrink:0;display:none}
+.play-desc-wrap textarea{width:100%;min-height:46px;max-height:92px;resize:vertical;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;line-height:1.35;font-family:'DM Sans',sans-serif;outline:none;padding:10px 11px}
+.play-desc-wrap textarea:focus{border-color:var(--accent)}
+.play-desc-wrap textarea::placeholder{color:var(--muted)}
+.play-desc-wrap textarea:read-only{color:var(--muted)}
+.play-nav:disabled{opacity:.3;pointer-events:none}
 .e-save{height:38px;padding:0 14px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:700;font-size:13px;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif}
 
 .canvas-wrap{flex:1;position:relative;overflow:hidden;background:#070809;display:flex;flex-direction:column}
@@ -382,10 +388,13 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="screen hidden" id="editorScreen">
   <div class="editor-hdr">
     <button class="e-back" onclick="backFromPlayEditor()">←</button>
+    <button class="e-back play-nav" id="prevPlayBtn" onclick="openAdjacentPlay(-1)" title="Previous play" style="display:none">‹</button>
     <div class="name-wrap"><input id="playNameInput" placeholder="Play name…" maxlength="40"></div>
+    <button class="e-back play-nav" id="nextPlayBtn" onclick="openAdjacentPlay(1)" title="Next play" style="display:none">›</button>
     <button class="e-save" onclick="savePlay()">SAVE</button>
     <button class="e-back" onclick="printPlay()" style="margin-left:2px">🖨</button>
   </div>
+  <div class="play-desc-wrap" id="playDescWrap"><textarea id="playDescInput" placeholder="Play description / coaching notes…" maxlength="500"></textarea></div>
   <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas></div>
   <div class="bot-bar">
     <div class="tool-row" id="segTypeRow">
@@ -631,6 +640,7 @@ let isPanning=false, panSX=0, panSY=0;
 let eHistory=[];
 let vx=0,vy=0,vs=1;
 let pinching=false,pd0=0,pvx0=0,pvy0=0;
+let playSwipeSX=0, playSwipeSY=0, playSwipeT=0;
 
 // Quiz state
 let quizQuestions=[], quizIdx=0, quizScore=0, quizStart=0, quizTimerId=null, quizAnswered=false, quizAllPlays=[];
@@ -1414,14 +1424,14 @@ function renderPlays(){
           <img src="${p.url}" alt="" loading="lazy">
         </div>
         <div class="play-card-name">${esc(p.name)}</div>
-        <div class="play-card-sub"><span>Image</span></div>
+        <div class="play-card-sub"><span>${p.description?esc(p.description):'Image'}</span></div>
         ${reorderRow}
       </div>`;
     }
     return `<div class="play-card" onclick="openPlay('${p.id}')">
       <div class="play-preview" id="prev-${p.id}"></div>
       <div class="play-card-name">${esc(p.name)}</div>
-      <div class="play-card-sub"><span>${(p.data?.players||[]).length}p · ${(p.data?.routes||[]).length}r</span></div>
+      <div class="play-card-sub"><span>${p.description?esc(p.description):((p.data?.players||[]).length+'p · '+(p.data?.routes||[]).length+'r')}</span></div>
       ${reorderRow}
     </div>`;
   }).join('')}</div>`;
@@ -1461,6 +1471,10 @@ window.newPlay=function(){
   eRoutes=[];selP=null;eHistory=[];activeRoute=null;
   vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value='';
+  document.getElementById('playDescInput').value='';
+  document.getElementById('playDescInput').readOnly=false;
+  document.getElementById('playDescWrap').style.display='flex';
+  updatePlayNavButtons();
   tool='draw';setSegType('route');
   navTo('editorScreen');
   setTimeout(()=>{resizeCv();drawAll();},110);
@@ -1522,6 +1536,7 @@ window.duplicatePlay = async function(id){
       // Copy the image record but reuse the same URL (no need to re-upload the bytes)
       rec={
         name: baseName,
+        description: orig.description||'',
         kind:'image',
         isPlay: !!orig.isPlay,
         url: orig.url,
@@ -1533,6 +1548,7 @@ window.duplicatePlay = async function(id){
     } else {
       rec={
         name: baseName,
+        description: orig.description||'',
         kind:'drawn',
         data: JSON.parse(JSON.stringify(orig.data||{players:[],routes:[]})),
         order: nextOrder(),
@@ -1549,17 +1565,70 @@ window.duplicatePlay = async function(id){
   }
 };
 
-window.openPlay=function(id){
+function orderedDrawablePlays(){
+  return plays
+    .filter(p=>p.kind!=='image')
+    .slice()
+    .sort((a,b)=>{
+      const ao=(a.order!=null)?a.order:(a.createdAt||0);
+      const bo=(b.order!=null)?b.order:(b.createdAt||0);
+      return ao-bo;
+    });
+}
+
+function updatePlayNavButtons(){
+  const prev=document.getElementById('prevPlayBtn');
+  const next=document.getElementById('nextPlayBtn');
+  if(!prev || !next) return;
+  const list=orderedDrawablePlays();
+  const idx=currentPlay ? list.findIndex(p=>p.id===currentPlay.id) : -1;
+  const show=list.length>1 && idx!==-1;
+  prev.style.display=show?'':'none';
+  next.style.display=show?'':'none';
+  prev.disabled=!show || idx<=0;
+  next.disabled=!show || idx>=list.length-1;
+}
+
+async function saveCurrentPlay(silent=false){
+  if(!canEdit)return true;
+  if(activeRoute) commitRoute();
+  const name=document.getElementById('playNameInput').value.trim();
+  if(!name){toast('Enter a play name','err');return false;}
+  const description=document.getElementById('playDescInput').value.trim();
+  const data={players:ePlayers,routes:eRoutes};
+  if(currentPlay){
+    currentPlay.name=name;currentPlay.description=description;currentPlay.data=data;
+    const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
+    await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,description,data});
+  } else {
+    const ord=nextOrder();
+    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,description,data,kind:'drawn',order:ord,createdAt:Date.now()});
+    currentPlay={id:ref.id,name,description,data,kind:'drawn',order:ord,createdAt:Date.now()};
+    plays.push(currentPlay);
+  }
+  updatePlayNavButtons();
+  if(!silent) toast('Saved!','ok');
+  return true;
+}
+
+window.openPlay=function(id, stayOnEditor=false){
   currentPlay=plays.find(p=>p.id===id);
+  if(!currentPlay) return;
   ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
   selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value=currentPlay.name;
+  const desc=currentPlay.description||'';
+  const descInput=document.getElementById('playDescInput');
+  descInput.value=desc;
+  descInput.readOnly=!canEdit;
+  document.getElementById('playDescWrap').style.display=(canEdit || desc)?'flex':'none';
   document.getElementById('editorScreen').querySelector('.e-save').style.display=canEdit?'':'none';
   document.getElementById('segTypeRow').style.display=canEdit?'':'none';
   document.getElementById('optionsRow').style.display=canEdit?'':'none';
+  updatePlayNavButtons();
   tool='draw';setSegType('route');
-  navTo('editorScreen');
+  if(!stayOnEditor) navTo('editorScreen');
   setTimeout(()=>{
     resizeCv();
     if(!canEdit){
@@ -1573,28 +1642,27 @@ window.openPlay=function(id){
   },110);
 };
 
+window.openAdjacentPlay=async function(dir){
+  const list=orderedDrawablePlays();
+  const idx=currentPlay ? list.findIndex(p=>p.id===currentPlay.id) : -1;
+  const ni=idx+dir;
+  if(idx===-1 || ni<0 || ni>=list.length) return;
+  if(canEdit){
+    const ok=await saveCurrentPlay(true);
+    if(!ok) return;
+  } else if(activeRoute) {
+    commitRoute();
+  }
+  openPlay(list[ni].id, true);
+};
+
 window.backFromPlayEditor = ()=>{
   if(activeRoute) commitRoute();
   goBack('playsScreen','editorScreen');
 };
 
 window.savePlay=async function(){
-  if(!canEdit)return;
-  if(activeRoute) commitRoute();
-  const name=document.getElementById('playNameInput').value.trim();
-  if(!name){toast('Enter a play name','err');return;}
-  const data={players:ePlayers,routes:eRoutes};
-  if(currentPlay){
-    currentPlay.name=name;currentPlay.data=data;
-    const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
-    await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,data});
-  } else {
-    const ord=nextOrder();
-    const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,data,kind:'drawn',order:ord,createdAt:Date.now()});
-    currentPlay={id:ref.id,name,data,kind:'drawn',order:ord,createdAt:Date.now()};
-    plays.push(currentPlay);
-  }
-  toast('Saved!','ok');
+  await saveCurrentPlay(false);
 };
 
 // ═══════════════════════════════════════════════
@@ -2024,6 +2092,7 @@ cv.addEventListener('touchstart',e=>{
   e.preventDefault();
   if(e.touches.length===2){pinching=true;pd0=pinchD(e,cv);pvx0=vx;pvy0=vy;return;}
   const p=cvPos(e.touches[0],cv);
+  playSwipeSX=p.x; playSwipeSY=p.y; playSwipeT=Date.now();
   handleDown(p.x,p.y);
 },{passive:false});
 
@@ -2059,7 +2128,17 @@ cv.addEventListener('touchmove',e=>{
 },{passive:false});
 
 cv.addEventListener('touchend',e=>{
-  e.preventDefault();pinching=false;isPanning=false;
+  e.preventDefault();
+  if(!canEdit && !pinching && e.changedTouches && e.changedTouches.length){
+    const p=cvPos(e.changedTouches[0],cv);
+    const dx=p.x-playSwipeSX, dy=p.y-playSwipeSY;
+    if(Math.abs(dx)>90 && Math.abs(dx)>Math.abs(dy)*1.8 && (Date.now()-playSwipeT)<800){
+      openAdjacentPlay(dx<0?1:-1);
+      pinching=false;isPanning=false;
+      return;
+    }
+  }
+  pinching=false;isPanning=false;
 },{passive:false});
 
 cv.addEventListener('mousedown',e=>handleDown(e.offsetX,e.offsetY));
@@ -2264,6 +2343,7 @@ function renderFormationToImage(form, w=900, h=540){
 window.printPlay=function(){
   if(activeRoute) commitRoute();
   const name=document.getElementById('playNameInput').value||'Play';
+  const description=document.getElementById('playDescInput').value||'';
   const url=cv.toDataURL('image/png');
   const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>${esc(name)}</title><style>
@@ -2274,6 +2354,7 @@ window.printPlay=function(){
   </style></head><body>
     <h2>${esc(name)}</h2>
     <p>${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</p>
+    ${description?`<p style="color:#333;font-size:14px;line-height:1.45;white-space:pre-wrap">${esc(description)}</p>`:''}
     <img src="${url}">
     <script>window.print();<\/script>
   </body></html>`);
@@ -2348,7 +2429,7 @@ window.printPlaybook=async function(){
         html+=`<div class="play-grid">`;
         for(const p of formPlays){
           if(p.kind==='image'){
-            html+=`<div class="play-item"><div class="name">${esc(p.name)}${p.isPlay?' · 🏈':''}</div><img src="${p.url}" crossorigin="anonymous"></div>`;
+            html+=`<div class="play-item"><div class="name">${esc(p.name)}${p.isPlay?' · 🏈':''}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${p.url}" crossorigin="anonymous"></div>`;
             continue;
           }
           if(!p.data || !p.data.players){
@@ -2356,7 +2437,7 @@ window.printPlaybook=async function(){
             continue;
           }
           const img=renderPlayToImage(p,700,420);
-          html+=`<div class="play-item"><div class="name">${esc(p.name)}</div><img src="${img}"></div>`;
+          html+=`<div class="play-item"><div class="name">${esc(p.name)}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${img}"></div>`;
         }
         html+=`</div>`;
       } else if(!(formImages && formImages.length)){
