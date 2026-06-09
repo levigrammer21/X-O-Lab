@@ -300,6 +300,17 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   #editorScreen.presentation-mode .play-action-row{padding:0 14px 8px;}
 }
 
+
+
+/* BALL PROGRESSION */
+.ball-step-chip{height:36px;padding:0 12px;border-radius:12px;background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-size:12px;font-weight:800;font-family:'DM Sans',sans-serif;white-space:nowrap;display:flex;align-items:center;justify-content:center;min-width:86px}
+.ball-step-btn{height:36px;padding:0 12px;border-radius:12px;background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-size:12px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.ball-step-btn:disabled{opacity:.35;pointer-events:none}
+.ball-hint{font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap;flex-shrink:0}
+.ball-chip{height:28px;padding:0 10px;border-radius:14px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.ball-chip.on{border-color:var(--accent);color:var(--accent);background:var(--adim)}
+.ball-chip.danger{border-color:rgba(240,65,65,.3);color:var(--red)}
+
 </style>
 </head>
 <body>
@@ -465,6 +476,9 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="play-action-row" id="playActionRow">
     <button class="play-action-btn" id="flipPlayBtn" onclick="flipPlay()">↔ Flip Play</button>
     <button class="play-action-btn" id="animateBtn" onclick="toggleRouteAnimation()">▶ Animate</button>
+    <button class="ball-step-btn" id="prevStepBtn" onclick="stepPlayProgression(-1)">◀ Step</button>
+    <div class="ball-step-chip" id="ballStepLabel">Step 0</div>
+    <button class="ball-step-btn" id="nextStepBtn" onclick="stepPlayProgression(1)">Step ▶</button>
     <button class="play-action-btn" id="fullscreenBtn" onclick="togglePlayFullscreen()">⛶ Fullscreen</button>
   </div>
   <div class="bot-bar">
@@ -472,6 +486,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <button class="tool-btn on" id="seg-route" onclick="setSegType('route')"><span class="ti">↗</span>ROUTE</button>
       <button class="tool-btn" id="seg-motion" onclick="setSegType('motion')"><span class="ti">〰</span>MOTION</button>
       <button class="tool-btn" id="seg-block" onclick="setSegType('block')"><span class="ti">▬</span>BLOCK</button>
+      <button class="tool-btn" id="tool-ball" onclick="toggleBallTool()"><span class="ti">🏈</span>BALL</button>
       <button class="tool-btn" id="tool-erase" onclick="toggleErase()"><span class="ti">✕</span>ERASE</button>
     </div>
     <div class="opts" id="optionsRow"></div>
@@ -712,6 +727,8 @@ let fPColor='#f0b429', fPPos='QB';
 
 // Play editor state
 let ePlayers=[], eRoutes=[];
+let eBall={carrierId:null,events:[]};
+let ballTool=false, ballEventMode='handoff', ballStep=0;
 let selP=null;
 let tool='draw';
 let segType='route';
@@ -1556,7 +1573,7 @@ window.newPlay=function(){
   if(!canEdit){toast('View only','err');return;}
   currentPlay=null;
   ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
-  eRoutes=[];selP=null;eHistory=[];activeRoute=null;
+  eRoutes=[];eBall={carrierId:null,events:[]};ballTool=false;ballStep=0;selP=null;eHistory=[];activeRoute=null;
   vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value='';
   document.getElementById('playDescInput').value='';
@@ -1568,6 +1585,7 @@ window.newPlay=function(){
   document.getElementById('flipPlayBtn').style.display='';
   document.getElementById('playCounter').textContent='New';
   updatePlayNavButtons();
+  ensureBallCarrier(); syncBallStepControls();
   tool='draw';setSegType('route');
   navTo('editorScreen');
   setTimeout(()=>{refitAndDraw(24);},110);
@@ -1645,7 +1663,7 @@ window.duplicatePlay = async function(id){
         name: baseName,
         description: orig.description||'',
         kind:'drawn',
-        data: JSON.parse(JSON.stringify(orig.data||{players:[],routes:[]})),
+        data: JSON.parse(JSON.stringify(orig.data||{players:[],routes:[],ball:null})),
         order: nextOrder(),
         createdAt: Date.now()
       };
@@ -1691,7 +1709,8 @@ async function saveCurrentPlay(silent=false){
   if(!name){toast('Enter a play name','err');return false;}
   const description=document.getElementById('playDescInput').value.trim();
   const playType=document.getElementById('playTypeSelect').value;
-  const data={players:ePlayers,routes:eRoutes};
+  ensureBallCarrier();
+  const data={players:ePlayers,routes:eRoutes,ball:eBall};
   if(currentPlay){
     currentPlay.name=name;currentPlay.description=description;currentPlay.playType=playType;currentPlay.data=data;
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
@@ -1713,6 +1732,11 @@ window.openPlay=function(id, stayOnEditor=false){
   stopRouteAnimation(false);
   ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
+  eBall=JSON.parse(JSON.stringify(currentPlay.data?.ball||{carrierId:null,events:[]}));
+  if(!Array.isArray(eBall.events)) eBall.events=[];
+  ballTool=false; ballStep=0;
+  ensureBallCarrier();
+  syncBallStepControls();
   selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value=currentPlay.name;
   const desc=currentPlay.description||'';
@@ -2164,6 +2188,144 @@ function drawSegment(c, pts, type, color, isLast, sc){
   c.restore();
 }
 
+
+function ensureBallCarrier(){
+  if(eBall && eBall.carrierId && ePlayers.some(p=>p.id===eBall.carrierId)) return eBall.carrierId;
+  const qb=ePlayers.find(p=>(p.pos||'').toUpperCase()==='QB') || ePlayers[0];
+  if(!eBall) eBall={carrierId:null,events:[]};
+  if(!Array.isArray(eBall.events)) eBall.events=[];
+  eBall.carrierId=qb?qb.id:null;
+  return eBall.carrierId;
+}
+function playerById(list,id){return (list||[]).find(p=>p.id===id)||null;}
+function currentBallCarrierAtStep(step){
+  ensureBallCarrier();
+  let carrier=eBall.carrierId;
+  const evs=(eBall.events||[]).slice(0,Math.max(0,step));
+  evs.forEach(ev=>{ if(ev && ev.to) carrier=ev.to; });
+  return carrier;
+}
+function drawFootballOn(c,screenPt,sc,label=''){
+  if(!screenPt) return;
+  const r=Math.max(8,12*Math.min(sc||1,1.4));
+  c.save();
+  c.translate(screenPt.x,screenPt.y);
+  c.rotate(-0.35);
+  c.beginPath();
+  c.ellipse(0,0,r*1.35,r*.78,0,0,Math.PI*2);
+  c.fillStyle='#8b4a20';
+  c.fill();
+  c.strokeStyle='rgba(255,255,255,.9)';
+  c.lineWidth=Math.max(1,1.5*Math.min(sc||1,1.2));
+  c.stroke();
+  c.beginPath();
+  c.moveTo(-r*.45,0);c.lineTo(r*.45,0);c.stroke();
+  for(let i=-2;i<=2;i++){
+    c.beginPath();c.moveTo(i*r*.18,-r*.18);c.lineTo(i*r*.18,r*.18);c.stroke();
+  }
+  c.restore();
+  if(label){
+    c.save();
+    c.fillStyle='rgba(0,0,0,.65)';
+    c.font=`bold ${Math.max(9,11*Math.min(sc||1,1.2))}px DM Sans`;
+    c.textAlign='center';c.textBaseline='top';
+    c.fillText(label,screenPt.x,screenPt.y+r+4);
+    c.restore();
+  }
+}
+function drawStaticFootball(){
+  ensureBallCarrier();
+  const carrierId=currentBallCarrierAtStep(ballStep);
+  const p=playerById(ePlayers,carrierId);
+  if(!p) return;
+  const s=toS(p.x,p.y);
+  const offset=Math.max(18,22*Math.min(vs,1.2));
+  drawFootballOn(ctx,{x:s.x+offset,y:s.y-offset},vs,ballStep?`Step ${ballStep}`:'');
+}
+function maxBallStep(){ return (eBall?.events?.length||0)+1; }
+function syncBallStepControls(){
+  const max=maxBallStep();
+  ballStep=Math.max(0,Math.min(ballStep,max));
+  const label=document.getElementById('ballStepLabel');
+  const prev=document.getElementById('prevStepBtn');
+  const next=document.getElementById('nextStepBtn');
+  if(label) label.textContent=`Step ${ballStep} / ${max}`;
+  if(prev) prev.disabled=ballStep<=0;
+  if(next) next.disabled=ballStep>=max;
+}
+function ballStepToProgress(step){
+  const evCount=eBall?.events?.length||0;
+  if(step<=0) return 0;
+  if(step>=evCount+1) return 1;
+  return Math.max(.05, Math.min(.92, step/(evCount+1)));
+}
+window.stepPlayProgression=function(dir){
+  stopRouteAnimation(false);
+  ensureBallCarrier();
+  ballStep=Math.max(0,Math.min(maxBallStep(),ballStep+dir));
+  syncBallStepControls();
+  if(ballStep===0) drawAll();
+  else drawAnimated(ballStepToProgress(ballStep), true);
+};
+function addBallEvent(toPlayerId){
+  ensureBallCarrier();
+  const from=currentBallCarrierAtStep((eBall.events||[]).length);
+  if(!from || !toPlayerId || from===toPlayerId){ toast('Tap a different player for the exchange',''); return; }
+  eBall.events.push({type:ballEventMode,from,to:toPlayerId,at:eBall.events.length+1});
+  ballStep=eBall.events.length;
+  const toP=playerById(ePlayers,toPlayerId);
+  toast((ballEventMode==='pass'?'Pass':'Handoff')+' to '+(toP?.pos||'player')+' added','ok');
+  buildOpts();
+  syncBallStepControls();
+  drawAll();
+}
+window.toggleBallTool=function(){
+  if(!canEdit){toast('View only','err');return;}
+  ballTool=!ballTool;
+  if(ballTool){ if(activeRoute) commitRoute(); tool='draw'; document.getElementById('tool-erase')?.classList.remove('on'); }
+  document.getElementById('tool-ball')?.classList.toggle('on',ballTool);
+  buildOpts(); drawAll();
+};
+window.setBallMode=function(mode){ ballEventMode=mode; buildOpts(); };
+window.clearBallEvents=function(){ eBall={carrierId:null,events:[]}; ballStep=0; ensureBallCarrier(); buildOpts(); syncBallStepControls(); drawAll(); toast('Ball progression reset','ok'); };
+window.setBallStart=function(id){ eBall={carrierId:id,events:[]}; ballStep=0; buildOpts(); syncBallStepControls(); drawAll(); toast('Ball starts here','ok'); };
+function ballPositionFromMoving(moving, progress){
+  ensureBallCarrier();
+  const events=eBall.events||[];
+  let carrier=eBall.carrierId;
+  let fromPos=null,toPos=null,label='';
+  const evCount=events.length;
+  for(let i=0;i<events.length;i++){
+    const ev=events[i];
+    const evProgress=(i+1)/(evCount+1);
+    const travel=ev.type==='pass'?.16:.10;
+    const start=evProgress-travel/2;
+    const end=evProgress+travel/2;
+    if(progress<start) break;
+    if(progress>=start && progress<=end){
+      const a=playerById(moving,ev.from||carrier);
+      const b=playerById(moving,ev.to);
+      if(!a || !b) break;
+      const t=(progress-start)/(end-start);
+      fromPos={x:a.x,y:a.y}; toPos={x:b.x,y:b.y};
+      const ease=t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      const arc=ev.type==='pass' ? -70*Math.sin(Math.PI*ease) : -18*Math.sin(Math.PI*ease);
+      return {x:fromPos.x+(toPos.x-fromPos.x)*ease,y:fromPos.y+(toPos.y-fromPos.y)*ease+arc,label:ev.type==='pass'?'PASS':'HANDOFF'};
+    }
+    if(progress>end) carrier=ev.to||carrier;
+  }
+  const p=playerById(moving,carrier);
+  if(!p) return null;
+  return {x:p.x,y:p.y,label};
+}
+function drawFootballForMoving(moving, progress, toScreenFn, sc){
+  const bp=ballPositionFromMoving(moving,progress);
+  if(!bp) return;
+  const s=toScreenFn(bp.x,bp.y);
+  const offset=Math.max(18,22*Math.min(sc||1,1.2));
+  drawFootballOn(ctx,{x:s.x+offset,y:s.y-offset},sc,bp.label);
+}
+
 function drawAll(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
@@ -2183,6 +2345,8 @@ function drawAll(){
     });
   }
   drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
+  drawStaticFootball();
+  syncBallStepControls();
 }
 function stopRouteAnimation(redraw=true){
   if(animId) cancelAnimationFrame(animId);
@@ -2266,7 +2430,7 @@ function drawPartialSegment(seg, progress){
   if(out.length>=2) drawSegment(ctx,out.map(p=>toS(p.x,p.y)),seg.type,seg.color,progress>=1,vs);
 }
 
-function drawAnimated(progress){
+function drawAnimated(progress, holdFrame=false){
   const hasMotion=eRoutes.some(route=>(route.segments||[]).some(seg=>seg.type==='motion'));
   const preSnapPortion=hasMotion ? 0.34 : 0;
   const motionProg=hasMotion ? Math.min(1, progress/preSnapPortion) : 1;
@@ -2303,13 +2467,15 @@ function drawAnimated(progress){
     if(pt){moving[i].x=pt.x;moving[i].y=pt.y;}
   });
   drawPlayersOn(ctx,cv,vs,moving,null,toS);
+  drawFootballForMoving(moving, progress, toS, vs);
+  if(holdFrame) syncBallStepControls();
 }
 
 
 window.toggleRouteAnimation=function(){
   if(animating){ stopRouteAnimation(true); return; }
   if(activeRoute) commitRoute();
-  if(!eRoutes.length){ toast('No routes to animate',''); return; }
+  if(!eRoutes.length && !(eBall.events||[]).length){ toast('No routes or ball progression to animate',''); return; }
   animating=true;
   const btn=document.getElementById('animateBtn');
   if(btn) btn.textContent='■ Stop';
@@ -2317,6 +2483,7 @@ window.toggleRouteAnimation=function(){
   const dur=4200;
   const step=(now)=>{
     const p=Math.min(1,(now-start)/dur);
+    ballStep=Math.round(p*maxBallStep()); syncBallStepControls();
     drawAnimated(p);
     if(p<1 && animating) animId=requestAnimationFrame(step);
     else { animating=false; animId=null; if(btn) btn.textContent='↻ Replay'; }
@@ -2474,6 +2641,15 @@ function handleDown(sx,sy){
   if(animating) stopRouteAnimation(true);
   const fp=toF(sx,sy);
   const hit=playerAt(sx,sy);
+  if(ballTool && canEdit){
+    if(hit){
+      if(!eBall.carrierId || !(eBall.events||[]).length && eBall.carrierId===hit.id){ setBallStart(hit.id); }
+      else addBallEvent(hit.id);
+    } else {
+      toast('Tap a player for ball start, handoff, or pass','');
+    }
+    return;
+  }
   if(!canEdit){
     isPanning=true;panSX=sx-vx;panSY=sy-vy;
     return;
@@ -2535,6 +2711,7 @@ window.setTool=function(t){
 };
 
 window.toggleErase=function(){
+  ballTool=false; document.getElementById('tool-ball')?.classList.remove('on');
   if(tool==='erase'){
     tool='draw';
     document.getElementById('tool-erase').classList.remove('on');
@@ -2547,6 +2724,7 @@ window.toggleErase=function(){
 };
 
 window.setSegType=function(t){
+  ballTool=false; document.getElementById('tool-ball')?.classList.remove('on');
   segType=t;
   ['route','motion','block'].forEach(s=>{
     const el=document.getElementById('seg-'+s);
@@ -2567,6 +2745,18 @@ window.setSegType=function(t){
 function buildOpts(){
   const row=document.getElementById('optionsRow');
   let h='';
+  if(ballTool){
+    ensureBallCarrier();
+    const carrier=playerById(ePlayers,currentBallCarrierAtStep((eBall.events||[]).length));
+    h+=`<span class="olbl">🏈 BALL</span>`;
+    h+=`<button class="ball-chip ${ballEventMode==='handoff'?'on':''}" onclick="setBallMode('handoff')">Handoff</button>`;
+    h+=`<button class="ball-chip ${ballEventMode==='pass'?'on':''}" onclick="setBallMode('pass')">Pass</button>`;
+    h+=`<span class="ball-hint">Carrier: ${esc(carrier?.pos||'tap starter')} · Tap another player to add exchange</span>`;
+    h+=`<div class="osep"></div>`;
+    ePlayers.forEach(p=>h+=`<button class="ball-chip ${eBall.carrierId===p.id?'on':''}" onclick="setBallStart('${p.id}')">Start ${esc(p.pos||'?')}</button>`);
+    h+=`<div class="osep"></div><button class="ball-chip danger" onclick="clearBallEvents()">Reset Ball</button>`;
+    row.innerHTML=h; return;
+  }
   h+=`<span class="olbl">COLOR</span>`;
   RCOLORS.forEach(c=>h+=`<div class="cdot${rColor===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setRC('${c}',this)"></div>`);
   h+=`<div class="osep"></div>`;
