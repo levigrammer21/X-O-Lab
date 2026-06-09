@@ -300,6 +300,53 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   #editorScreen.presentation-mode .play-action-row{padding:0 14px 8px;}
 }
 
+/* COMPACT PLAY EDITOR LAYOUT - larger field, same features */
+#editorScreen:not(.presentation-mode) .editor-hdr{padding:8px 10px;gap:8px}
+#editorScreen:not(.presentation-mode) .e-back{width:38px;height:38px}
+#editorScreen:not(.presentation-mode) .name-wrap{height:38px}
+#editorScreen:not(.presentation-mode) .canvas-wrap{flex:1 1 auto;min-height:300px}
+#editorScreen:not(.presentation-mode) .play-info-row{background:var(--card);border-top:1px solid var(--border);padding:8px 10px;display:flex;align-items:stretch;gap:10px;flex-shrink:0}
+#editorScreen:not(.presentation-mode) .play-info-row .play-desc-wrap{flex:1 1 auto;min-width:0;display:flex;padding:0;border:0;background:transparent}
+#editorScreen:not(.presentation-mode) .play-info-row .play-desc-wrap label,#editorScreen:not(.presentation-mode) .play-info-row .play-meta-row .play-meta-label{font-size:10px;line-height:1;margin-bottom:5px;color:var(--muted);font-weight:900;letter-spacing:.85px;text-transform:uppercase}
+#editorScreen:not(.presentation-mode) .play-info-row .play-desc-wrap textarea{min-height:54px;max-height:74px;padding:9px 11px;font-size:13px;line-height:1.32}
+#editorScreen:not(.presentation-mode) .play-info-row .play-meta-row{width:210px;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0}
+#editorScreen:not(.presentation-mode) .play-info-row .play-type-select{width:100%;height:54px;font-size:15px;font-weight:800}
+#editorScreen:not(.presentation-mode) .play-control-strip{background:var(--card);border-top:1px solid var(--border);padding:8px 10px;display:grid;grid-template-columns:minmax(145px,1fr) auto minmax(145px,1fr);gap:10px;align-items:center;flex-shrink:0}
+#editorScreen:not(.presentation-mode) .play-control-strip .play-step-btn{height:38px;min-width:0;width:100%;font-size:13px}
+#editorScreen:not(.presentation-mode) .play-control-strip .play-action-row{display:flex;padding:0;border:0;background:transparent;gap:8px;justify-content:center;overflow:visible}
+#editorScreen:not(.presentation-mode) .play-control-strip .play-action-btn{height:38px;padding:0 12px;font-size:12px}
+#editorScreen:not(.presentation-mode) .bot-bar{padding:7px 10px calc(7px + var(--safe))}
+#editorScreen:not(.presentation-mode) .tool-row{gap:8px;margin-bottom:7px}
+#editorScreen:not(.presentation-mode) .tool-btn{height:38px;font-size:10px;border-radius:10px}
+#editorScreen:not(.presentation-mode) .opts{min-height:28px;gap:9px}
+#editorScreen:not(.presentation-mode) .cdot{width:26px;height:26px}
+#editorScreen:not(.presentation-mode) .chip{height:26px;font-size:10px}
+@media (max-width:700px){
+#editorScreen:not(.presentation-mode) .play-info-row{display:grid;grid-template-columns:1fr;gap:7px;padding:7px 9px}
+#editorScreen:not(.presentation-mode) .play-info-row .play-meta-row{width:100%;flex-direction:row;align-items:center;gap:9px}
+#editorScreen:not(.presentation-mode) .play-info-row .play-meta-row .play-meta-label{margin:0}
+#editorScreen:not(.presentation-mode) .play-info-row .play-type-select{max-width:170px;height:36px;font-size:14px}
+#editorScreen:not(.presentation-mode) .play-info-row .play-desc-wrap textarea{min-height:42px;max-height:58px}
+#editorScreen:not(.presentation-mode) .play-control-strip{grid-template-columns:1fr 1fr;gap:8px}
+#editorScreen:not(.presentation-mode) .play-control-strip .play-action-row{grid-column:1 / -1;grid-row:2;order:2}
+#editorScreen:not(.presentation-mode) .play-control-strip #prevPlayBtn{grid-column:1;grid-row:1}
+#editorScreen:not(.presentation-mode) .play-control-strip #nextPlayBtn{grid-column:2;grid-row:1}
+}
+@media (max-height:650px){
+#editorScreen:not(.presentation-mode) .play-info-row{padding:6px 9px}
+#editorScreen:not(.presentation-mode) .play-info-row .play-desc-wrap textarea{min-height:38px;max-height:48px}
+#editorScreen:not(.presentation-mode) .play-control-strip{padding:6px 9px}
+#editorScreen:not(.presentation-mode) .play-control-strip .play-step-btn,#editorScreen:not(.presentation-mode) .play-control-strip .play-action-btn{height:34px}
+#editorScreen:not(.presentation-mode) .tool-btn{height:34px}
+#editorScreen:not(.presentation-mode) .bot-bar{padding-top:5px}
+}
+@media (orientation:landscape) and (max-height:560px){
+#editorScreen:not(.presentation-mode) .play-info-row{display:grid;grid-template-columns:1fr 190px}
+#editorScreen:not(.presentation-mode) .play-info-row .play-desc-wrap textarea{min-height:36px;max-height:42px}
+#editorScreen:not(.presentation-mode) .play-control-strip .play-action-btn{padding:0 10px}
+}
+#editorScreen.presentation-mode .play-info-row,#editorScreen.presentation-mode .play-control-strip,#editorScreen.presentation-mode .bot-bar{display:none!important}
+
 </style>
 </head>
 <body>
@@ -451,24 +498,32 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <button class="e-back" onclick="printPlay()" style="margin-left:2px">🖨</button>
   </div>
   <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas></div>
-  <div class="play-desc-wrap" id="playDescWrap"><label>Play Description / Coaching Notes</label><textarea id="playDescInput" placeholder="Enter play description…" maxlength="500"></textarea></div>
-  <div class="play-meta-row" id="playMetaRow">
-    <span class="play-meta-label">Play Type</span>
-    <select class="play-type-select" id="playTypeSelect">
-      <option value="">Unlabeled</option>
-      <option value="run">Run</option>
-      <option value="pass">Pass</option>
-    </select>
+
+  <div class="play-info-row" id="playInfoRow">
+    <div class="play-desc-wrap" id="playDescWrap">
+      <label>Play Description / Coaching Notes</label>
+      <textarea id="playDescInput" placeholder="Enter play description…" maxlength="500"></textarea>
+    </div>
+    <div class="play-meta-row" id="playMetaRow">
+      <span class="play-meta-label">Play Type</span>
+      <select class="play-type-select" id="playTypeSelect">
+        <option value="">Unlabeled</option>
+        <option value="run">Run</option>
+        <option value="pass">Pass</option>
+      </select>
+    </div>
   </div>
-  <div class="play-bottom-nav" id="playBottomNav">
+
+  <div class="play-control-strip" id="playControlStrip">
     <button class="play-step-btn" id="prevPlayBtn" onclick="openAdjacentPlay(-1)">← Previous Play</button>
+    <div class="play-action-row" id="playActionRow">
+      <button class="play-action-btn" id="flipPlayBtn" onclick="flipPlay()">↔ Flip Play</button>
+      <button class="play-action-btn" id="animateBtn" onclick="toggleRouteAnimation()">▶ Animate</button>
+      <button class="play-action-btn" id="fullscreenBtn" onclick="togglePlayFullscreen()">⛶ Fullscreen</button>
+    </div>
     <button class="play-step-btn" id="nextPlayBtn" onclick="openAdjacentPlay(1)">Next Play →</button>
   </div>
-  <div class="play-action-row" id="playActionRow">
-    <button class="play-action-btn" id="flipPlayBtn" onclick="flipPlay()">↔ Flip Play</button>
-    <button class="play-action-btn" id="animateBtn" onclick="toggleRouteAnimation()">▶ Animate</button>
-    <button class="play-action-btn" id="fullscreenBtn" onclick="togglePlayFullscreen()">⛶ Fullscreen</button>
-  </div>
+
   <div class="bot-bar">
     <div class="tool-row" id="segTypeRow">
       <button class="tool-btn on" id="seg-route" onclick="setSegType('route')"><span class="ti">↗</span>ROUTE</button>
