@@ -347,6 +347,20 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 }
 #editorScreen.presentation-mode .play-info-row,#editorScreen.presentation-mode .play-control-strip,#editorScreen.presentation-mode .bot-bar{display:none!important}
 
+
+/* ACCOUNT SYSTEM ADDITIONS */
+.auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
+.auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
+.auth-utility .mini-btn:active{border-color:var(--accent);color:var(--accent)}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:12px 0}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:var(--border);flex:1}
+.account-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);border-radius:999px;padding:3px 9px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-left:6px}
+.account-pill.basic{color:var(--accent);border-color:rgba(240,180,41,.35);background:rgba(240,180,41,.1)}
+.account-pill.pro{color:var(--green);border-color:rgba(65,201,122,.35);background:rgba(65,201,122,.1)}
+.account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
+.patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
+.patch-list li{margin-bottom:7px}
+
 </style>
 </head>
 <body>
@@ -358,32 +372,99 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="spin"></div>
 </div>
 
-<!-- LANDING (admin or view code) -->
+<!-- LANDING (account, guest, utilities) -->
 <div class="screen hidden landing" id="landingScreen">
+  <div class="auth-utility">
+    <button class="mini-btn" onclick="openPatchNotes()">Patch Notes</button>
+    <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
+  </div>
   <div class="landing-box">
     <img src="icon-512.png" alt="X&O Lab" class="landing-img">
     <div class="landing-tag">LAB</div>
-    <div class="landing-card" onclick="goAdmin()">
+    <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
-        <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🏈</div>
+        <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
         <div class="landing-card-body">
-          <div class="landing-card-title">Coach Login</div>
-          <div class="landing-card-sub">Manage playbooks, draw plays, share codes.</div>
+          <div class="landing-card-title">Login</div>
+          <div class="landing-card-sub">Coaches can manage their playbooks and account.</div>
         </div>
         <span class="chevron">›</span>
       </div>
     </div>
-    <div class="landing-card" onclick="goViewCode()">
+    <div class="landing-card" onclick="goRegister()">
+      <div class="landing-card-row">
+        <div class="landing-card-ico" style="background:rgba(65,201,122,.15);color:var(--green)">➕</div>
+        <div class="landing-card-body">
+          <div class="landing-card-title">Register</div>
+          <div class="landing-card-sub">Create a Basic Coach account.</div>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+    </div>
+    <div class="landing-card" onclick="goGuest()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">🔑</div>
         <div class="landing-card-body">
-          <div class="landing-card-title">Got a Code?</div>
-          <div class="landing-card-sub">Open a playbook with a view code.</div>
+          <div class="landing-card-title">Continue as Guest</div>
+          <div class="landing-card-sub">Enter a view code to open a shared playbook.</div>
         </div>
         <span class="chevron">›</span>
       </div>
     </div>
     <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:20px;letter-spacing:.5px" id="connTag">Loading…</div>
+  </div>
+</div>
+
+<!-- ACCOUNT LOGIN -->
+<div class="screen hidden pw-screen" id="loginScreen">
+  <div class="pw-box">
+    <h2>Login</h2>
+    <p>Sign in with your coach account, Google, or the existing legacy coach password.</p>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
+    <div id="loginErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
+    <button class="btn btn-p" onclick="loginWithEmail()">Login</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-g" onclick="loginWithGoogle()">Continue with Google</button>
+    <div class="auth-divider">Legacy</div>
+    <button class="btn btn-g" onclick="goAdmin()">Legacy Coach/Admin Password</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-g" onclick="goBack('landingScreen','loginScreen')">Back</button>
+  </div>
+</div>
+
+<!-- ACCOUNT REGISTER -->
+<div class="screen hidden pw-screen" id="registerScreen">
+  <div class="pw-box">
+    <h2>Register</h2>
+    <p>New accounts start as Basic Coach. Admin can upgrade you to Pro.</p>
+    <div class="field"><label>Name</label><input type="text" id="regName" placeholder="Coach name" autocomplete="name"></div>
+    <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="regPassword" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
+    <div id="regErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
+    <button class="btn btn-p" onclick="registerWithEmail()">Create Basic Account</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-g" onclick="registerWithGoogle()">Register with Google</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-g" onclick="goBack('landingScreen','registerScreen')">Back</button>
+  </div>
+</div>
+
+<!-- PATCH NOTES -->
+<div class="screen hidden pw-screen" id="patchNotesScreen">
+  <div class="pw-box">
+    <h2>Patch Notes</h2>
+    <p>Account system upgrade.</p>
+    <ul class="patch-list">
+      <li>Email/password login and registration.</li>
+      <li>Google Sign-In with account linking support.</li>
+      <li>Guest mode keeps code-only viewing and play test access.</li>
+      <li>Basic, Pro, and Admin roles with creation limits.</li>
+      <li>Admin can view users and playbooks, then upgrade or downgrade roles.</li>
+      <li>Existing legacy admin and coach password login still works.</li>
+      <li>Existing Firestore playbooks and browser localStorage are not wiped.</li>
+    </ul>
+    <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
   </div>
 </div>
 
@@ -430,8 +511,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="screen hidden" id="coachesScreen">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack('playbooksScreen','coachesScreen')">←</button>
-    <div class="hdr-title"><h1>COACHES</h1><p>Manage coach accounts</p></div>
-    <button class="hdr-btn" onclick="openSheet('newCoachSheet')">+ Coach</button>
+    <div class="hdr-title"><h1>ADMIN</h1><p>Manage users, roles, and legacy coaches</p></div>
+    <button class="hdr-btn" onclick="openSheet('newCoachSheet')">+ Legacy Coach</button>
   </div>
   <div class="scroll" id="coachesList"></div>
 </div>
@@ -607,10 +688,10 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="sheet" id="newPlaybookSheet">
   <div class="handle"></div>
   <h2>New Playbook</h2>
-  <p class="sub">A view code will be generated. Share it with players or parents.</p>
+  <p class="sub" id="newPlaybookSub">A view code will be generated. Share it with players or parents.</p>
   <div class="field"><label>Playbook Name</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026"></div>
   <div class="field"><label>Description (optional)</label><input id="npbDesc" placeholder="Team, season, etc."></div>
-  <div class="field"><label>Custom View Code (optional)</label><input id="npbCode" placeholder="Leave blank to auto-generate" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace" autocomplete="off"></div>
+  <div class="field" id="npbCodeField"><label>Custom View Code (Pro/Admin only)</label><input id="npbCode" placeholder="Leave blank to auto-generate" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace" autocomplete="off"></div>
   <button class="btn btn-p" onclick="addPlaybook()">Create Playbook</button>
 </div>
 
@@ -731,6 +812,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const fbConfig = {
   apiKey: "AIzaSyAn23czySBNVndL0myYOctnjq5hZaPSaDg",
@@ -743,6 +825,8 @@ const fbConfig = {
 const fbApp = initializeApp(fbConfig);
 const db = getFirestore(fbApp);
 const storage = getStorage(fbApp);
+const auth = getAuth(fbApp);
+const googleProvider = new GoogleAuthProvider();
 
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
@@ -757,7 +841,11 @@ let canEdit = false, isViewOnly = false;
 let isSuperAdmin = false;
 let currentCoachId = null;
 let currentCoachName = '';
-let playbooks = [], formations = [], plays = [], coaches = [];
+let authReady = false;
+let currentAccount = null;
+let currentRole = 'guest';
+let currentUserId = null;
+let playbooks = [], formations = [], plays = [], coaches = [], accountUsers = [];
 let formationImages = [];   // images attached to current formation (formation-level)
 
 // Formation editor state
@@ -893,6 +981,8 @@ function fmCol(pbId){ return collection(db,'playbooks',pbId,'formations'); }
 function plCol(pbId,formId){ return collection(db,'playbooks',pbId,'formations',formId,'plays'); }
 function lbCol(pbId){ return collection(db,'playbooks',pbId,'leaderboard'); }
 function coachCol(){ return collection(db,'coaches'); }
+function userCol(){ return collection(db,'users'); }
+function userDoc(uid){ return doc(db,'users',uid); }
 // Image collections: formation-level lives under the formation; play-level lives alongside plays
 function fmImgCol(pbId,formId){ return collection(db,'playbooks',pbId,'formations',formId,'images'); }
 
@@ -941,9 +1031,149 @@ async function findCoachByPassword(pw){
   }catch(e){ return null; }
 }
 
+
+// ═══════════════════════════════════════════════
+// ACCOUNT AUTH / ROLES
+// ═══════════════════════════════════════════════
+function isFirebaseAccount(){ return !!currentAccount; }
+function roleLabel(){ return currentRole==='admin'?'Admin':currentRole==='pro'?'Pro Coach':currentRole==='basic'?'Basic Coach':'Guest'; }
+function isAdminRole(){ return isSuperAdmin || currentRole==='admin'; }
+function isProRole(){ return currentRole==='pro' || currentRole==='admin' || isSuperAdmin; }
+function isBasicRole(){ return currentRole==='basic'; }
+function accountOwnerId(){ return currentUserId ? 'user:'+currentUserId : (isSuperAdmin ? 'head' : currentCoachId); }
+function ownsPlaybook(pb){
+  if(!pb) return false;
+  const oid=pb.ownerId || 'head';
+  if(isAdminRole()) return true;
+  if(currentUserId && oid==='user:'+currentUserId) return true;
+  if(currentCoachId && oid===currentCoachId) return true;
+  return false;
+}
+function canCustomizeCodes(){ return isProRole(); }
+function canCreateUnlimited(){ return isProRole(); }
+async function ensureUserRecord(user, defaults={}){
+  const ref=userDoc(user.uid);
+  const snap=await getDoc(ref);
+  if(!snap.exists()){
+    const isAdminEmail = (user.email||'').toLowerCase()==='levigrammer@gmail.com';
+    const rec={
+      uid:user.uid,
+      email:user.email||'',
+      name:user.displayName || defaults.name || (user.email||'Coach'),
+      role:isAdminEmail?'admin':(defaults.role||'basic'),
+      provider:(user.providerData||[]).map(p=>p.providerId).join(',') || 'password',
+      createdAt:Date.now(),
+      updatedAt:Date.now()
+    };
+    await setDoc(ref, rec);
+    return rec;
+  }
+  const rec={uid:user.uid,...snap.data()};
+  const patch={email:user.email||rec.email||'', name:rec.name || user.displayName || defaults.name || '', updatedAt:Date.now()};
+  await updateDoc(ref, patch).catch(()=>{});
+  return {...rec,...patch};
+}
+async function loadUsers(){
+  try{
+    const snap=await getDocs(query(userCol(),orderBy('createdAt')));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ console.error(e); return []; }
+}
+function setLoginError(id,msg){ const el=document.getElementById(id); if(el){el.textContent=msg; el.style.display='block';} }
+function clearLoginError(id){ const el=document.getElementById(id); if(el){el.textContent=''; el.style.display='none';} }
+async function enterAccountApp(userRec){
+  currentAccount=userRec;
+  currentUserId=userRec.uid || userRec.id;
+  currentRole=userRec.role || 'basic';
+  canEdit=true; isViewOnly=false; isSuperAdmin=currentRole==='admin';
+  currentCoachId=accountOwnerId();
+  currentCoachName=userRec.name || userRec.email || roleLabel();
+  await migrateLocalStoragePlaybooks();
+  await claimLegacyPlaybooksForAccount();
+  [playbooks, coaches] = await Promise.all([loadPlaybooks(isAdminRole()?null:accountOwnerId()), loadCoaches()]);
+  renderPlaybooks();
+  navTo('playbooksScreen');
+}
+async function claimLegacyPlaybooksForAccount(){
+  if(!currentUserId || isAdminRole()) return;
+  try{
+    const owned=await loadPlaybooks(accountOwnerId());
+    if(owned.length) return;
+    const all=await loadPlaybooks();
+    const legacy=all.filter(p=>!p.ownerId).slice(0,1);
+    for(const pb of legacy){ await updateDoc(doc(db,'playbooks',pb.id),{ownerId:accountOwnerId(),claimedAt:Date.now()}); }
+    if(legacy.length) toast('Claimed existing playbook for this account','ok');
+  }catch(e){ console.warn('Legacy claim skipped', e); }
+}
+async function migrateLocalStoragePlaybooks(){
+  // Safe migration hook: never deletes or clears localStorage. If a prior local-only build used a recognizable key,
+  // it copies those records into Firestore once and marks the browser as migrated.
+  if(!currentUserId || localStorage.getItem('xolab_local_migrated_'+currentUserId)==='1') return;
+  try{
+    const candidates=['xolab_playbooks','playbooks','xoLabPlaybooks','XOLAB_PLAYBOOKS'];
+    let imported=0;
+    for(const key of candidates){
+      const raw=localStorage.getItem(key);
+      if(!raw) continue;
+      let arr; try{ arr=JSON.parse(raw); }catch(e){ continue; }
+      if(!Array.isArray(arr)) continue;
+      for(const item of arr){
+        if(!item || !item.name) continue;
+        const code=(item.viewCode||item.code||genViewCode()).toString().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12) || genViewCode();
+        let finalCode=code, tries=0;
+        while(await findPlaybookByCode(finalCode)){ finalCode=genViewCode(); if(++tries>5) break; }
+        await addDoc(pbCol(),{...item, name:item.name, description:item.description||'', viewCode:finalCode, ownerId:accountOwnerId(), migratedFromLocalStorage:true, migratedAt:Date.now(), createdAt:item.createdAt||Date.now()});
+        imported++;
+      }
+    }
+    localStorage.setItem('xolab_local_migrated_'+currentUserId,'1');
+    if(imported) toast('Imported '+imported+' local playbook'+(imported===1?'':'s'),'ok');
+  }catch(e){ console.warn('LocalStorage migration skipped', e); }
+}
+function enforceLimit(kind){
+  if(!canEdit){ toast('View only','err'); return false; }
+  if(canCreateUnlimited()) return true;
+  if(kind==='playbook'){
+    const count=playbooks.filter(p=>ownsPlaybook(p)).length;
+    if(count>=1){ toast('Basic accounts can create 1 playbook','err'); return false; }
+  }
+  if(kind==='formation'){
+    if(formations.length>=2){ toast('Basic accounts can create up to 2 formations','err'); return false; }
+  }
+  if(kind==='play'){
+    const total=plays.length;
+    if(total>=15){ toast('Basic accounts can create up to 15 plays total','err'); return false; }
+  }
+  return true;
+}
+async function refreshCurrentUserRole(){
+  if(!currentUserId) return;
+  const snap=await getDoc(userDoc(currentUserId));
+  if(snap.exists()){
+    currentAccount={uid:currentUserId,...snap.data()};
+    currentRole=currentAccount.role||'basic';
+    isSuperAdmin=currentRole==='admin';
+  }
+}
+
 // ═══════════════════════════════════════════════
 // LANDING / AUTH
 // ═══════════════════════════════════════════════
+window.goLogin = ()=>{
+  clearLoginError('loginErr');
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPassword').value='';
+  navTo('loginScreen');
+};
+window.goRegister = ()=>{
+  clearLoginError('regErr');
+  document.getElementById('regName').value='';
+  document.getElementById('regEmail').value='';
+  document.getElementById('regPassword').value='';
+  navTo('registerScreen');
+};
+window.goGuest = ()=>goViewCode();
+window.openPatchNotes = ()=>navTo('patchNotesScreen');
 window.goAdmin = ()=>{
   document.getElementById('adminPwInput').value='';
   document.getElementById('adminPwErr').style.display='none';
@@ -953,6 +1183,46 @@ window.goViewCode = ()=>{
   document.getElementById('viewCodeInput').value='';
   document.getElementById('viewCodeErr').style.display='none';
   navTo('viewCodeScreen');
+};
+
+
+window.loginWithEmail = async ()=>{
+  clearLoginError('loginErr');
+  const email=document.getElementById('loginEmail').value.trim();
+  const pw=document.getElementById('loginPassword').value;
+  if(!email || !pw){ setLoginError('loginErr','Email and password required'); return; }
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email,pw);
+    const rec=await ensureUserRecord(cred.user);
+    await enterAccountApp(rec);
+  }catch(e){ setLoginError('loginErr', e.message || 'Login failed'); }
+};
+window.registerWithEmail = async ()=>{
+  clearLoginError('regErr');
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pw=document.getElementById('regPassword').value;
+  if(!name || !email || !pw){ setLoginError('regErr','Name, email, and password required'); return; }
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pw);
+    await updateProfile(cred.user,{displayName:name}).catch(()=>{});
+    const rec=await ensureUserRecord(cred.user,{name,role:'basic'});
+    await enterAccountApp(rec);
+  }catch(e){ setLoginError('regErr', e.message || 'Registration failed'); }
+};
+window.loginWithGoogle = async ()=>{
+  clearLoginError('loginErr');
+  try{
+    const cred=await signInWithPopup(auth,googleProvider);
+    const rec=await ensureUserRecord(cred.user,{role:'basic'});
+    await enterAccountApp(rec);
+  }catch(e){ setLoginError('loginErr', e.message || 'Google sign-in failed'); }
+};
+window.registerWithGoogle = async ()=>window.loginWithGoogle();
+window.linkGoogleAccount = async ()=>{
+  if(!auth.currentUser){ toast('Login first','err'); return; }
+  try{ await linkWithPopup(auth.currentUser, googleProvider); toast('Google linked','ok'); }
+  catch(e){ toast(e.message || 'Could not link Google','err'); }
 };
 
 window.clearCacheAndReload = async ()=>{
@@ -984,6 +1254,7 @@ window.checkAdminPw = async ()=>{
     return;
   }
   if(SUPER_ADMIN_PASSWORDS.includes(pw)){
+    currentAccount=null; currentUserId=null; currentRole='admin';
     canEdit=true; isViewOnly=false; isSuperAdmin=true;
     currentCoachId=null; currentCoachName='Head Coach';
     [playbooks, coaches] = await Promise.all([loadPlaybooks(), loadCoaches()]);
@@ -997,6 +1268,7 @@ window.checkAdminPw = async ()=>{
     document.getElementById('adminPwErr').style.display='block';
     return;
   }
+  currentAccount=null; currentUserId=null; currentRole=coach.role||'basic';
   canEdit=true; isViewOnly=false; isSuperAdmin=false;
   currentCoachId=coach.id; currentCoachName=coach.name||'Coach';
   playbooks = await loadPlaybooks(currentCoachId);
@@ -1017,6 +1289,8 @@ window.checkViewCode = async ()=>{
     document.getElementById('viewCodeErr').style.display='block';
     return;
   }
+  currentAccount=null; currentUserId=null; currentRole='guest';
+  currentAccount=null; currentUserId=null; currentRole='guest';
   canEdit=false; isViewOnly=true;
   await openPlaybook(pb);
 };
@@ -1037,9 +1311,10 @@ async function checkUrlCode(){
 // ═══════════════════════════════════════════════
 function renderPlaybooks(){
   const mcBtn=document.getElementById('manageCoachesBtn');
-  if(mcBtn) mcBtn.style.display = isSuperAdmin ? '' : 'none';
+  if(mcBtn) mcBtn.style.display = isAdminRole() ? '' : 'none';
   const conn=document.getElementById('pbConn');
-  if(conn) conn.textContent = isSuperAdmin ? 'Head Coach · All playbooks' : (currentCoachName+' · Your playbooks');
+  if(conn) conn.innerHTML = (isAdminRole() ? 'Admin · All playbooks' : esc(currentCoachName)+' · Your playbooks') + ' <span class="account-pill '+esc(currentRole)+'">'+esc(roleLabel())+'</span>';
+  const newBtn=document.querySelector('#playbooksScreen .hdr-btn:not(.ghost)'); if(newBtn) newBtn.style.display = canEdit ? '' : 'none';
 
   const el=document.getElementById('playbooksList');
   if(!playbooks.length){
@@ -1048,12 +1323,12 @@ function renderPlaybooks(){
   }
   el.innerHTML=playbooks.map(pb=>{
     let ownerLabel='';
-    if(isSuperAdmin){
+    if(isAdminRole()){
       if(pb.ownerId==='head' || !pb.ownerId){
         ownerLabel=' · <span style="color:var(--accent)">Head Coach</span>';
       } else {
         const c=coaches.find(x=>x.id===pb.ownerId);
-        ownerLabel=' · <span style="color:var(--blue)">'+(c?esc(c.name):'Unknown coach')+'</span>';
+        ownerLabel=' · <span style="color:var(--blue)">'+(pb.ownerId&&pb.ownerId.startsWith('user:')?'Account':(c?esc(c.name):'Unknown coach'))+'</span>';
       }
     }
     return `<div class="card" onclick="openPlaybookById('${pb.id}')">
@@ -1068,7 +1343,8 @@ function renderPlaybooks(){
 }
 
 window.logoutToLanding = ()=>{
-  canEdit=false; isViewOnly=false; isSuperAdmin=false;
+  try{ if(auth.currentUser) signOut(auth); }catch(e){}
+  canEdit=false; isViewOnly=false; isSuperAdmin=false; currentRole='guest'; currentAccount=null; currentUserId=null;
   currentCoachId=null; currentCoachName='';
   currentPlaybook=null; currentFormation=null; currentPlay=null;
   playbooks=[]; formations=[]; plays=[];
@@ -1077,30 +1353,56 @@ window.logoutToLanding = ()=>{
 
 // ── COACH MANAGEMENT (super admin only) ──
 window.openManageCoaches = async ()=>{
-  if(!isSuperAdmin)return;
-  coaches = await loadCoaches();
+  if(!isAdminRole())return;
+  [coaches, accountUsers, playbooks] = await Promise.all([loadCoaches(), loadUsers(), loadPlaybooks()]);
   renderCoaches();
   navTo('coachesScreen');
 };
 
 function renderCoaches(){
   const el=document.getElementById('coachesList');
-  if(!coaches.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><h3>No Coaches Yet</h3><p>Tap + Coach to add one.</p></div>`;
-    return;
-  }
-  el.innerHTML=coaches.map(c=>{
+  const userCards=(accountUsers||[]).map(u=>{
+    const owner='user:'+(u.uid||u.id);
+    const playbookCount=playbooks.filter(p=>p.ownerId===owner).length;
+    const role=(u.role||'basic');
+    const canUp=role==='basic';
+    const canDown=role==='pro';
+    return `<div class="card">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(65,201,122,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
+      <div class="card-body">
+        <div class="card-name">${esc(u.name||u.email||'User')} <span class="account-pill ${esc(role)}">${esc(role)}</span></div>
+        <div class="card-sub">${esc(u.email||'No email')} · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
+      </div>
+      ${canUp?`<button class="hdr-btn ghost" onclick="setUserRole('${u.uid||u.id}','pro')">Pro</button>`:''}
+      ${canDown?`<button class="hdr-btn ghost" onclick="setUserRole('${u.uid||u.id}','basic')">Basic</button>`:''}
+    </div>`;
+  }).join('');
+  const legacyCards=(coaches||[]).map(c=>{
     const playbookCount = playbooks.filter(p=>p.ownerId===c.id).length;
     return `<div class="card">
-      <div style="width:46px;height:46px;border-radius:12px;background:rgba(65,130,240,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(65,130,240,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🔑</div>
       <div class="card-body">
-        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-name">${esc(c.name)} <span class="account-pill basic">legacy</span></div>
         <div class="card-sub">Password: <b style="color:var(--accent);font-family:monospace">${esc(c.password)}</b> · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
       </div>
       <button class="icon-del" onclick="confirmDelCoach('${c.id}')">🗑</button>
     </div>`;
   }).join('');
+  if(!userCards && !legacyCards){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><h3>No Users Yet</h3><p>Registered accounts will appear here. Legacy coaches can still be added.</p></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="sec-label">Registered Users</div>${userCards || '<div class="card"><div class="card-body"><div class="card-sub">No registered users yet.</div></div></div>'}<div class="sec-label">All Playbooks</div>${playbooks.map(pb=>`<div class="card"><div class="card-body"><div class="card-name">${esc(pb.name)}</div><div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace">${esc(pb.viewCode)}</b> · Owner: ${esc(pb.ownerId||'unclaimed')}</div></div></div>`).join('') || '<div class="card"><div class="card-body"><div class="card-sub">No playbooks.</div></div></div>'}<div class="sec-label">Legacy Password Coaches</div>${legacyCards || '<div class="card"><div class="card-body"><div class="card-sub">No legacy coaches.</div></div></div>'}`;
 }
+
+window.setUserRole = async (uid, role)=>{
+  if(!isAdminRole()) return;
+  if(!['basic','pro','admin'].includes(role)) return;
+  await updateDoc(userDoc(uid),{role,updatedAt:Date.now()});
+  const u=accountUsers.find(x=>(x.uid||x.id)===uid); if(u) u.role=role;
+  renderCoaches();
+  toast('Role updated to '+role,'ok');
+};
 
 window.addCoach = async ()=>{
   const name=document.getElementById('ncName').value.trim();
@@ -1112,7 +1414,7 @@ window.addCoach = async ()=>{
   if(coaches.some(c=>c.password===pw)){
     toast('That password is already in use','err');return;
   }
-  const coach={name, password:pw, createdAt:Date.now()};
+  const coach={name, password:pw, role:'basic', createdAt:Date.now()};
   const ref=await addDoc(coachCol(),coach);
   coach.id=ref.id;
   coaches.push(coach);
@@ -1137,7 +1439,7 @@ window.confirmDelCoach = (id)=>{
 
 // ── ASSIGN PLAYBOOK TO COACH (super admin only) ──
 window.openAssignScreen = async ()=>{
-  if(!isSuperAdmin || !currentPlaybook) return;
+  if(!isAdminRole() || !currentPlaybook) return;
   closeSheet('pbMenuSheet');
   coaches = await loadCoaches();
   document.getElementById('assignPbName').textContent=currentPlaybook.name;
@@ -1184,14 +1486,15 @@ async function openPlaybook(pb){
   currentPlaybook=pb;
   formations=await loadFormations(pb.id);
   document.getElementById('formTeamName').textContent=pb.name;
-  document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':'✏️ Edit · ')+'Formations';
+  canEdit = !isViewOnly && ownsPlaybook(pb);
+  document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':('✏️ '+roleLabel()+' · '))+'Formations';
   document.getElementById('addFormBtn').style.display=canEdit?'':'none';
   renderFormations();
   navTo('formationsScreen');
 }
 
 function backFromFormations(){
-  if(canEdit){
+  if(canEdit || currentAccount){
     goBack('playbooksScreen','formationsScreen');
   } else {
     goBack('landingScreen','formationsScreen');
@@ -1209,9 +1512,11 @@ function genViewCode(){
 window.addPlaybook = async ()=>{
   const name=document.getElementById('npbName').value.trim();
   if(!name){toast('Enter a name','err');return;}
+  if(!enforceLimit('playbook')) return;
   const customCodeRaw=document.getElementById('npbCode').value.trim().toUpperCase();
   let code;
   if(customCodeRaw){
+    if(!canCustomizeCodes()){ toast('Basic accounts use auto-generated view codes','err'); return; }
     if(customCodeRaw.length<3 || customCodeRaw.length>12){
       toast('Code must be 3–12 chars','err');return;
     }
@@ -1230,7 +1535,7 @@ window.addPlaybook = async ()=>{
       tries++;
     } while(tries<5);
   }
-  const ownerId = isSuperAdmin ? 'head' : currentCoachId;
+  const ownerId = accountOwnerId();
   const pb={
     name,
     description:document.getElementById('npbDesc').value.trim(),
@@ -1263,15 +1568,15 @@ window.openPlaybookMenu = ()=>{
       ownerLine.style.display='none';
     }
   }
-  const canDelete = canEdit && (isSuperAdmin || currentPlaybook.ownerId===currentCoachId);
+  const canDelete = canEdit && ownsPlaybook(currentPlaybook);
   document.getElementById('pbDelBtn').style.display=canDelete?'':'none';
   document.getElementById('pbAdminSpacer').style.display=canDelete?'':'none';
   document.getElementById('pbCopyBtn').style.display=canEdit?'':'none';
   // Edit-code: same permissions as delete (owners + super admin only)
-  document.getElementById('pbEditCodeBtn').style.display=canDelete?'':'none';
+  document.getElementById('pbEditCodeBtn').style.display=(canDelete && canCustomizeCodes())?'':'none';
   document.getElementById('pbEditCodeSpacer').style.display=canDelete?'':'none';
   const assignBtn=document.getElementById('pbAssignBtn');
-  if(assignBtn) assignBtn.style.display=isSuperAdmin?'':'none';
+  if(assignBtn) assignBtn.style.display=isAdminRole()?'':'none';
   openSheet('pbMenuSheet');
 };
 
@@ -1303,6 +1608,7 @@ window.openEditCode = ()=>{
 
 window.saveEditedCode = async ()=>{
   if(!currentPlaybook) return;
+  if(!canCustomizeCodes()){ toast('Upgrade to Pro to customize view codes','err'); return; }
   const raw=document.getElementById('editCodeInput').value.trim().toUpperCase();
   const err=document.getElementById('editCodeErr');
   // Validate
@@ -1388,6 +1694,7 @@ function fCard(f){
 window.addFormation=async function(){
   const name=document.getElementById('nfName').value.trim();
   if(!name){toast('Enter a name','err');return;}
+  if(!enforceLimit('formation')) return;
   const f={name,type:document.getElementById('nfType').value,notes:document.getElementById('nfNotes').value.trim(),templatePlayers:[],createdAt:Date.now()};
   const ref=await addDoc(fmCol(currentPlaybook.id),f);
   f.id=ref.id;
@@ -1404,7 +1711,7 @@ async function openFormation(id){
   formationImages=[];
   document.getElementById('playsFormName').textContent=currentFormation.name;
   const tl={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
-  document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(isViewOnly?' · 👁 View only':' · Plays');
+  document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(canEdit?' · Plays':' · 👁 View only');
   document.getElementById('addPlayBtn').style.display=canEdit?'':'none';
   document.getElementById('editFormBtn').style.display=canEdit?'':'none';
   document.getElementById('playUploadBtn').style.display=canEdit?'':'none';
@@ -1631,7 +1938,7 @@ function miniPrev(play){
 }
 
 window.newPlay=function(){
-  if(!canEdit){toast('View only','err');return;}
+  if(!enforceLimit('play')) return;
   currentPlay=null;
   ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
   eRoutes=[];selP=null;eHistory=[];activeRoute=null;
@@ -1696,7 +2003,7 @@ window.movePlay = async function(id, dir){
 };
 
 window.duplicatePlay = async function(id){
-  if(!canEdit) return;
+  if(!enforceLimit('play')) return;
   const orig=plays.find(p=>p.id===id);
   if(!orig) return;
   toast('Duplicating…','');
@@ -1775,6 +2082,7 @@ async function saveCurrentPlay(silent=false){
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
     await updateDoc(doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id,'plays',currentPlay.id),{name,description,playType,data});
   } else {
+    if(!enforceLimit('play')) return false;
     const ord=nextOrder();
     const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id),{name,description,playType,data,kind:'drawn',order:ord,createdAt:Date.now()});
     currentPlay={id:ref.id,name,description,playType,data,kind:'drawn',order:ord,createdAt:Date.now()};
@@ -1934,6 +2242,7 @@ function syncIsPlayCheck(){
 }
 
 window.saveUploadedImage=async function(){
+  if(!canEdit){toast('View only','err');return;}
   if(!uploadDataUrl){toast('Choose a photo first','err');return;}
   const name=document.getElementById('uploadName').value.trim();
   if(!name){toast('Enter a name','err');return;}
@@ -1948,6 +2257,7 @@ window.saveUploadedImage=async function(){
     const url=await getDownloadURL(sRef);
 
     if(uploadContext==='play'){
+      if(!enforceLimit('play')) { btn.disabled=false; btn.textContent='Upload'; return; }
       const rec={name, kind:'image', isPlay:uploadIsPlay, url, storagePath:path, order:nextOrder(), createdAt:Date.now()};
       const ref=await addDoc(plCol(currentPlaybook.id,currentFormation.id), rec);
       rec.id=ref.id;
@@ -2752,6 +3062,20 @@ window.printPlay=function(){
 
 
 
+
+/* ACCOUNT SYSTEM ADDITIONS */
+.auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
+.auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
+.auth-utility .mini-btn:active{border-color:var(--accent);color:var(--accent)}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:12px 0}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:var(--border);flex:1}
+.account-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);border-radius:999px;padding:3px 9px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-left:6px}
+.account-pill.basic{color:var(--accent);border-color:rgba(240,180,41,.35);background:rgba(240,180,41,.1)}
+.account-pill.pro{color:var(--green);border-color:rgba(65,201,122,.35);background:rgba(65,201,122,.1)}
+.account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
+.patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
+.patch-list li{margin-bottom:7px}
+
 </style></head><body>
     <h2>${esc(name)}</h2>
     <p>${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</p>
@@ -2799,6 +3123,20 @@ window.printPlaybook=async function(){
   
 
 
+
+
+/* ACCOUNT SYSTEM ADDITIONS */
+.auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
+.auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
+.auth-utility .mini-btn:active{border-color:var(--accent);color:var(--accent)}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:12px 0}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:var(--border);flex:1}
+.account-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);border-radius:999px;padding:3px 9px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-left:6px}
+.account-pill.basic{color:var(--accent);border-color:rgba(240,180,41,.35);background:rgba(240,180,41,.1)}
+.account-pill.pro{color:var(--green);border-color:rgba(65,201,122,.35);background:rgba(65,201,122,.1)}
+.account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
+.patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
+.patch-list li{margin-bottom:7px}
 
 </style></head><body>`;
 
@@ -3229,6 +3567,13 @@ window.openLeaderboard=async function(refreshOnly=false){
 // SHEETS / TOAST / UTILS
 // ═══════════════════════════════════════════════
 window.openSheet=function(id){
+  if(id==='newPlaybookSheet'){
+    const codeField=document.getElementById('npbCodeField');
+    const codeInput=document.getElementById('npbCode');
+    const sub=document.getElementById('newPlaybookSub');
+    if(codeField && codeInput){ codeField.style.display=canCustomizeCodes()?'':'none'; if(!canCustomizeCodes()) codeInput.value=''; }
+    if(sub) sub.textContent=canCustomizeCodes()?'Choose a custom code or leave blank to auto-generate.':'A view code will be auto-generated. Basic accounts cannot customize codes.';
+  }
   const ov=id.replace('Sheet','Overlay');
   document.getElementById(ov).classList.add('open');
   setTimeout(()=>document.getElementById(id).classList.add('open'),10);
@@ -3260,10 +3605,16 @@ window.addEventListener('resize',()=>{
 // Enter key handlers
 document.getElementById('adminPwInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminPw();});
 document.getElementById('viewCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkViewCode();});
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')loginWithEmail();});
+document.getElementById('regPassword').addEventListener('keydown',e=>{if(e.key==='Enter')registerWithEmail();});
 
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+onAuthStateChanged(auth, async user=>{
+  authReady=true;
+  // Do not auto-navigate over a view-code session; explicit login/register handles account entry.
+});
 (async()=>{
   pushGuard();
   try{
