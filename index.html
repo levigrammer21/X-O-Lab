@@ -348,6 +348,124 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 #editorScreen.presentation-mode .play-info-row,#editorScreen.presentation-mode .play-control-strip,#editorScreen.presentation-mode .bot-bar{display:none!important}
 
 
+
+/* LOGIN LANDING POLISH */
+#landingScreen{
+  justify-content:flex-start;
+  padding:clamp(78px, 10vh, 118px) 18px 28px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(240,180,41,.16), transparent 28%),
+    radial-gradient(circle at 80% 65%, rgba(65,130,240,.09), transparent 30%),
+    linear-gradient(180deg, #090a0d 0%, #0b0c0f 58%, #08090b 100%);
+}
+#landingScreen .landing-box{
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+}
+#landingScreen .landing-img{
+  width:150px;
+  height:150px;
+  border-radius:34px;
+  margin-bottom:12px;
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 18px 60px rgba(0,0,0,.62), 0 0 0 8px rgba(255,255,255,.018);
+}
+#landingScreen .landing-tag{
+  margin-bottom:32px;
+  font-size:13px;
+  letter-spacing:6px;
+  color:rgba(236,238,242,.42);
+}
+#landingScreen .landing-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+  background:linear-gradient(135deg, rgba(28,31,39,.96), rgba(15,17,22,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+#landingScreen .landing-card:before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, rgba(255,255,255,.07), transparent 34%);
+  opacity:.55;
+  pointer-events:none;
+}
+#landingScreen .landing-card:active{
+  border-color:var(--accent);
+  transform:translateY(1px);
+}
+#landingScreen .landing-card-ico{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+#landingScreen .landing-card-title{
+  font-size:22px;
+  letter-spacing:2px;
+}
+#landingScreen .landing-card-sub{
+  font-size:13px;
+  color:#737887;
+}
+#landingScreen #connTag{
+  margin-top:22px!important;
+  color:var(--green)!important;
+  font-size:12px!important;
+  font-weight:700;
+  letter-spacing:.4px!important;
+}
+.auth-utility{
+  left:12px;
+  right:12px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+.auth-utility .mini-btn.pro{
+  color:#000;
+  background:linear-gradient(135deg, #f0b429, #ffe08a);
+  border-color:rgba(240,180,41,.45);
+}
+.auth-utility .mini-btn.pro:active{
+  color:#000;
+  filter:brightness(.94);
+}
+@media (max-width:560px){
+  #landingScreen{ padding-top:92px; }
+  .auth-utility .mini-btn{ height:32px; padding:0 11px; }
+  #landingScreen .landing-img{ width:142px; height:142px; }
+  #landingScreen .landing-card{ padding:17px; }
+}
+@media (max-height:720px){
+  #landingScreen{ padding-top:70px; }
+  #landingScreen .landing-img{ width:120px; height:120px; border-radius:28px; }
+  #landingScreen .landing-tag{ margin-bottom:22px; }
+  #landingScreen .landing-card{ margin-bottom:10px; padding:15px; }
+}
+.pro-box{
+  background:linear-gradient(180deg, rgba(240,180,41,.12), rgba(19,21,26,.98) 34%);
+}
+.pro-list{
+  margin:14px 0 18px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.pro-item{
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px 12px;
+  font-size:13px;
+  line-height:1.35;
+}
+.pro-item b{ color:var(--accent); }
+
 /* ACCOUNT SYSTEM ADDITIONS */
 .auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
 .auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
@@ -375,6 +493,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- LANDING (account, guest, utilities) -->
 <div class="screen hidden landing" id="landingScreen">
   <div class="auth-utility">
+    <button class="mini-btn pro" onclick="openProInfo()">Become Pro</button>
     <button class="mini-btn" onclick="openPatchNotes()">Patch Notes</button>
     <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
   </div>
@@ -440,6 +559,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <p>New accounts start as Basic Coach. Admin can upgrade you to Pro.</p>
     <div class="field"><label>Name</label><input type="text" id="regName" placeholder="Coach name" autocomplete="name"></div>
     <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label>Confirm Email</label><input type="email" id="regEmail2" placeholder="Retype email" autocomplete="email"></div>
     <div class="field"><label>Password</label><input type="password" id="regPassword" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
     <div id="regErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="registerWithEmail()">Create Basic Account</button>
@@ -447,6 +567,23 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <button class="btn btn-g" onclick="registerWithGoogle()">Register with Google</button>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','registerScreen')">Back</button>
+  </div>
+</div>
+
+
+<!-- PRO INFO -->
+<div class="screen hidden pw-screen" id="proInfoScreen">
+  <div class="pw-box pro-box">
+    <h2>Become Pro</h2>
+    <p>Pro details and payment instructions will be added here.</p>
+    <div class="pro-list">
+      <div class="pro-item"><b>Unlimited formations and plays</b><br>Build out your full system.</div>
+      <div class="pro-item"><b>Custom view codes</b><br>Create cleaner share codes for teams and parents.</div>
+      <div class="pro-item"><b>Future premium tools</b><br>Pro accounts are ready for upcoming features.</div>
+    </div>
+    <button class="btn btn-p" onclick="toast('Pro payment instructions coming soon','ok')">Coming Soon</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-g" onclick="goBack('landingScreen','proInfoScreen')">Back</button>
   </div>
 </div>
 
@@ -1169,11 +1306,13 @@ window.goRegister = ()=>{
   clearLoginError('regErr');
   document.getElementById('regName').value='';
   document.getElementById('regEmail').value='';
+  const regEmail2=document.getElementById('regEmail2'); if(regEmail2) regEmail2.value='';
   document.getElementById('regPassword').value='';
   navTo('registerScreen');
 };
 window.goGuest = ()=>goViewCode();
 window.openPatchNotes = ()=>navTo('patchNotesScreen');
+window.openProInfo = ()=>navTo('proInfoScreen');
 window.goAdmin = ()=>{
   document.getElementById('adminPwInput').value='';
   document.getElementById('adminPwErr').style.display='none';
@@ -3063,6 +3202,124 @@ window.printPlay=function(){
 
 
 
+
+/* LOGIN LANDING POLISH */
+#landingScreen{
+  justify-content:flex-start;
+  padding:clamp(78px, 10vh, 118px) 18px 28px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(240,180,41,.16), transparent 28%),
+    radial-gradient(circle at 80% 65%, rgba(65,130,240,.09), transparent 30%),
+    linear-gradient(180deg, #090a0d 0%, #0b0c0f 58%, #08090b 100%);
+}
+#landingScreen .landing-box{
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+}
+#landingScreen .landing-img{
+  width:150px;
+  height:150px;
+  border-radius:34px;
+  margin-bottom:12px;
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 18px 60px rgba(0,0,0,.62), 0 0 0 8px rgba(255,255,255,.018);
+}
+#landingScreen .landing-tag{
+  margin-bottom:32px;
+  font-size:13px;
+  letter-spacing:6px;
+  color:rgba(236,238,242,.42);
+}
+#landingScreen .landing-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+  background:linear-gradient(135deg, rgba(28,31,39,.96), rgba(15,17,22,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+#landingScreen .landing-card:before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, rgba(255,255,255,.07), transparent 34%);
+  opacity:.55;
+  pointer-events:none;
+}
+#landingScreen .landing-card:active{
+  border-color:var(--accent);
+  transform:translateY(1px);
+}
+#landingScreen .landing-card-ico{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+#landingScreen .landing-card-title{
+  font-size:22px;
+  letter-spacing:2px;
+}
+#landingScreen .landing-card-sub{
+  font-size:13px;
+  color:#737887;
+}
+#landingScreen #connTag{
+  margin-top:22px!important;
+  color:var(--green)!important;
+  font-size:12px!important;
+  font-weight:700;
+  letter-spacing:.4px!important;
+}
+.auth-utility{
+  left:12px;
+  right:12px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+.auth-utility .mini-btn.pro{
+  color:#000;
+  background:linear-gradient(135deg, #f0b429, #ffe08a);
+  border-color:rgba(240,180,41,.45);
+}
+.auth-utility .mini-btn.pro:active{
+  color:#000;
+  filter:brightness(.94);
+}
+@media (max-width:560px){
+  #landingScreen{ padding-top:92px; }
+  .auth-utility .mini-btn{ height:32px; padding:0 11px; }
+  #landingScreen .landing-img{ width:142px; height:142px; }
+  #landingScreen .landing-card{ padding:17px; }
+}
+@media (max-height:720px){
+  #landingScreen{ padding-top:70px; }
+  #landingScreen .landing-img{ width:120px; height:120px; border-radius:28px; }
+  #landingScreen .landing-tag{ margin-bottom:22px; }
+  #landingScreen .landing-card{ margin-bottom:10px; padding:15px; }
+}
+.pro-box{
+  background:linear-gradient(180deg, rgba(240,180,41,.12), rgba(19,21,26,.98) 34%);
+}
+.pro-list{
+  margin:14px 0 18px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.pro-item{
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px 12px;
+  font-size:13px;
+  line-height:1.35;
+}
+.pro-item b{ color:var(--accent); }
+
 /* ACCOUNT SYSTEM ADDITIONS */
 .auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
 .auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
@@ -3124,6 +3381,124 @@ window.printPlaybook=async function(){
 
 
 
+
+
+/* LOGIN LANDING POLISH */
+#landingScreen{
+  justify-content:flex-start;
+  padding:clamp(78px, 10vh, 118px) 18px 28px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(240,180,41,.16), transparent 28%),
+    radial-gradient(circle at 80% 65%, rgba(65,130,240,.09), transparent 30%),
+    linear-gradient(180deg, #090a0d 0%, #0b0c0f 58%, #08090b 100%);
+}
+#landingScreen .landing-box{
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+}
+#landingScreen .landing-img{
+  width:150px;
+  height:150px;
+  border-radius:34px;
+  margin-bottom:12px;
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 18px 60px rgba(0,0,0,.62), 0 0 0 8px rgba(255,255,255,.018);
+}
+#landingScreen .landing-tag{
+  margin-bottom:32px;
+  font-size:13px;
+  letter-spacing:6px;
+  color:rgba(236,238,242,.42);
+}
+#landingScreen .landing-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+  background:linear-gradient(135deg, rgba(28,31,39,.96), rgba(15,17,22,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+#landingScreen .landing-card:before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, rgba(255,255,255,.07), transparent 34%);
+  opacity:.55;
+  pointer-events:none;
+}
+#landingScreen .landing-card:active{
+  border-color:var(--accent);
+  transform:translateY(1px);
+}
+#landingScreen .landing-card-ico{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+#landingScreen .landing-card-title{
+  font-size:22px;
+  letter-spacing:2px;
+}
+#landingScreen .landing-card-sub{
+  font-size:13px;
+  color:#737887;
+}
+#landingScreen #connTag{
+  margin-top:22px!important;
+  color:var(--green)!important;
+  font-size:12px!important;
+  font-weight:700;
+  letter-spacing:.4px!important;
+}
+.auth-utility{
+  left:12px;
+  right:12px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+.auth-utility .mini-btn.pro{
+  color:#000;
+  background:linear-gradient(135deg, #f0b429, #ffe08a);
+  border-color:rgba(240,180,41,.45);
+}
+.auth-utility .mini-btn.pro:active{
+  color:#000;
+  filter:brightness(.94);
+}
+@media (max-width:560px){
+  #landingScreen{ padding-top:92px; }
+  .auth-utility .mini-btn{ height:32px; padding:0 11px; }
+  #landingScreen .landing-img{ width:142px; height:142px; }
+  #landingScreen .landing-card{ padding:17px; }
+}
+@media (max-height:720px){
+  #landingScreen{ padding-top:70px; }
+  #landingScreen .landing-img{ width:120px; height:120px; border-radius:28px; }
+  #landingScreen .landing-tag{ margin-bottom:22px; }
+  #landingScreen .landing-card{ margin-bottom:10px; padding:15px; }
+}
+.pro-box{
+  background:linear-gradient(180deg, rgba(240,180,41,.12), rgba(19,21,26,.98) 34%);
+}
+.pro-list{
+  margin:14px 0 18px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.pro-item{
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px 12px;
+  font-size:13px;
+  line-height:1.35;
+}
+.pro-item b{ color:var(--accent); }
 
 /* ACCOUNT SYSTEM ADDITIONS */
 .auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
