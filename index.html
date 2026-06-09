@@ -479,6 +479,12 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
 .patch-list li{margin-bottom:7px}
 
+
+#playNameInput[readonly], #playDescInput[readonly], #playTypeSelect:disabled{
+  opacity:.72;
+  cursor:not-allowed;
+}
+
 </style>
 </head>
 <body>
@@ -493,7 +499,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- LANDING (account, guest, utilities) -->
 <div class="screen hidden landing" id="landingScreen">
   <div class="auth-utility">
-    <button class="mini-btn pro" onclick="openProInfo()">Become Pro</button>
+    <button class="mini-btn pro" onclick="openProInfo()">⭐ Upgrade to Pro</button>
     <button class="mini-btn" onclick="openPatchNotes()">Patch Notes</button>
     <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
   </div>
@@ -574,14 +580,24 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- PRO INFO -->
 <div class="screen hidden pw-screen" id="proInfoScreen">
   <div class="pw-box pro-box">
-    <h2>Become Pro</h2>
-    <p>Pro details and payment instructions will be added here.</p>
+    <h2>Pro Coach — $5</h2>
+    <p>Upgrade your account to unlock more tools for building and sharing your team playbook.</p>
+
     <div class="pro-list">
-      <div class="pro-item"><b>Unlimited formations and plays</b><br>Build out your full system.</div>
-      <div class="pro-item"><b>Custom view codes</b><br>Create cleaner share codes for teams and parents.</div>
-      <div class="pro-item"><b>Future premium tools</b><br>Pro accounts are ready for upcoming features.</div>
+      <div class="pro-item"><b>Unlimited playbooks</b><br>Create and manage more than one team or season.</div>
+      <div class="pro-item"><b>Unlimited formations and plays</b><br>Build out your full system without Basic limits.</div>
+      <div class="pro-item"><b>Custom view codes</b><br>Create cleaner share codes for players, parents, and coaches.</div>
+      <div class="pro-item"><b>Future premium features</b><br>Pro accounts are ready for upcoming X&amp;O Lab tools.</div>
     </div>
-    <button class="btn btn-p" onclick="toast('Pro payment instructions coming soon','ok')">Coming Soon</button>
+
+    <div class="pro-item" style="margin-bottom:14px">
+      <b>Payment Info</b><br>
+      Send <b>$5</b> to <b>$levigrammer</b>.<br><br>
+      Your support helps cover cloud hosting, storage, database usage, maintenance, and ongoing development of X&amp;O Lab.<br><br>
+      After payment is received, please allow <b>3–5 minutes</b> for your Pro status to be activated.
+    </div>
+
+    <button class="btn btn-p" onclick="copyProPaymentInfo()">Copy Payment Info</button>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','proInfoScreen')">Back</button>
   </div>
@@ -1022,6 +1038,40 @@ const POSITIONS=['QB','RB','FB','WR','TE','OL','C','DE','DT','LB','CB','S','K','
 const PCOLORS=['#f0b429','#f04141','#4182f0','#a855f7','#41c97a','#ffffff'];
 const RCOLORS=['#41c97a','#f0b429','#4182f0','#f04141','#ffffff','#f97316'];
 
+
+function isReadOnlyMode(){
+  return (!canEdit || isViewOnly);
+}
+function blockViewOnlyEdit(message){
+  if(isReadOnlyMode()){
+    toast(message || 'View-only access: editing is disabled','err');
+    return true;
+  }
+  return false;
+}
+function lockViewOnlyEditorInputs(){
+  const ro = isReadOnlyMode();
+  const playName=document.getElementById('playNameInput');
+  const playDesc=document.getElementById('playDescInput');
+  const playType=document.getElementById('playTypeSelect');
+  if(playName) playName.readOnly = ro;
+  if(playDesc) playDesc.readOnly = ro;
+  if(playType) playType.disabled = ro;
+}
+function applyViewOnlyUiLocks(){
+  lockViewOnlyEditorInputs();
+  const ro = isReadOnlyMode();
+  ['addFormBtn','addPlayBtn','editFormBtn','playUploadBtn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = ro ? 'none' : '';
+  });
+  document.querySelectorAll('#editorScreen .e-save').forEach(btn=>{
+    btn.style.display = ro ? 'none' : '';
+  });
+}
+window.lockViewOnlyEditorInputs = lockViewOnlyEditorInputs;
+window.applyViewOnlyUiLocks = applyViewOnlyUiLocks;
+
 // ═══════════════════════════════════════════════
 // SCREEN NAV
 // ═══════════════════════════════════════════════
@@ -1313,6 +1363,17 @@ window.goRegister = ()=>{
 window.goGuest = ()=>goViewCode();
 window.openPatchNotes = ()=>navTo('patchNotesScreen');
 window.openProInfo = ()=>navTo('proInfoScreen');
+
+window.copyProPaymentInfo = async function(){
+  const text = 'Upgrade to Pro Coach: send $5 to $levigrammer. Please allow 3-5 minutes for Pro status to be activated.';
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Payment info copied','ok');
+  }catch(e){
+    toast('Send $5 to $levigrammer','ok');
+  }
+};
+
 window.goAdmin = ()=>{
   document.getElementById('adminPwInput').value='';
   document.getElementById('adminPwErr').style.display='none';
@@ -1629,7 +1690,7 @@ async function openPlaybook(pb){
   document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':('✏️ '+roleLabel()+' · '))+'Formations';
   document.getElementById('addFormBtn').style.display=canEdit?'':'none';
   renderFormations();
-  navTo('formationsScreen');
+  navTo('formationsScreen'); applyViewOnlyUiLocks();
 }
 
 function backFromFormations(){
@@ -1855,7 +1916,7 @@ async function openFormation(id){
   document.getElementById('editFormBtn').style.display=canEdit?'':'none';
   document.getElementById('playUploadBtn').style.display=canEdit?'':'none';
   renderPlays();
-  navTo('playsScreen');
+  navTo('playsScreen'); applyViewOnlyUiLocks();
 }
 window.openFormation=openFormation;
 
@@ -2093,7 +2154,7 @@ window.newPlay=function(){
   document.getElementById('playCounter').textContent='New';
   updatePlayNavButtons();
   tool='draw';setSegType('route');
-  navTo('editorScreen');
+  navTo('editorScreen'); applyViewOnlyUiLocks();
   setTimeout(()=>{refitAndDraw(24);},110);
 };
 
@@ -2255,7 +2316,7 @@ window.openPlay=function(id, stayOnEditor=false){
   document.getElementById('optionsRow').style.display=canEdit?'':'none';
   updatePlayNavButtons();
   tool='draw';setSegType('route');
-  if(!stayOnEditor) navTo('editorScreen');
+  if(!stayOnEditor) navTo('editorScreen'); applyViewOnlyUiLocks();
   setTimeout(()=>{
     refitAndDraw(24);
   },110);
