@@ -243,6 +243,18 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .quiz-opt.correct{background:rgba(65,201,122,.18);border-color:var(--green);color:var(--green)}
 .quiz-opt.wrong{background:rgba(240,65,65,.18);border-color:var(--red);color:var(--red)}
 .quiz-opt.disabled{pointer-events:none;opacity:.65}
+.quiz-info{padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:stretch;flex-shrink:0}
+.quiz-note-card{flex:1;min-width:0;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px}
+.quiz-note-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.quiz-label{font-size:10px;font-weight:900;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.quiz-type-badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:3px 10px;font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;border:1px solid var(--border);color:var(--muted);background:rgba(255,255,255,.04)}
+.quiz-type-badge.run{background:rgba(65,201,122,.16);border-color:rgba(65,201,122,.3);color:var(--green)}
+.quiz-type-badge.pass{background:rgba(65,130,240,.16);border-color:rgba(65,130,240,.35);color:var(--blue)}
+.quiz-note-text{font-size:12px;line-height:1.45;color:var(--text);white-space:pre-wrap;max-height:76px;overflow-y:auto}
+.quiz-note-text.empty{color:var(--muted);font-style:italic}
+.quiz-animate-btn{width:130px;border-radius:12px;background:var(--accent);border:none;color:#000;font-weight:900;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;flex-shrink:0}
+.quiz-animate-btn:active{opacity:.85;transform:scale(.98)}
+@media (max-width:560px){.quiz-info{flex-direction:column}.quiz-animate-btn{width:100%;height:44px}.quiz-note-text{max-height:54px}}
 
 /* QUIZ DONE */
 .quiz-done{padding:24px;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center}
@@ -473,6 +485,16 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <div class="quiz-timer" id="quizTimer">0.0s</div>
     <div class="quiz-progress" id="quizProgress">1 / 10</div>
     <div class="quiz-score" id="quizScore">0</div>
+  </div>
+  <div class="quiz-info" id="quizInfo">
+    <div class="quiz-note-card">
+      <div class="quiz-note-top">
+        <span class="quiz-label">Play Notes</span>
+        <span class="quiz-type-badge" id="quizTypeBadge">Unlabeled</span>
+      </div>
+      <div class="quiz-note-text empty" id="quizNotesText">No notes added for this play.</div>
+    </div>
+    <button class="quiz-animate-btn" id="quizAnimateBtn" onclick="toggleQuizAnimation()">▶ Animate Play</button>
   </div>
   <div class="quiz-field" id="quizField"><canvas id="quizCanvas"></canvas><img class="quiz-img" id="quizImg" alt=""></div>
   <div class="quiz-question">
@@ -2770,6 +2792,7 @@ window.printPlaybook=async function(){
 const qcv=document.getElementById('quizCanvas');
 const qctx=qcv.getContext('2d');
 const quizImgEl=document.getElementById('quizImg');
+let quizAnimating=false, quizAnimId=null;
 
 function resizeQuizCv(){
   const w=document.getElementById('quizField');
@@ -2808,6 +2831,94 @@ function drawQuizPlay(item){
   });
   drawPlayersOn(qctx,qcv,sc,play.data?.players||[],null,toScreen);
 }
+
+
+function stopQuizAnimation(redraw=true){
+  if(quizAnimId) cancelAnimationFrame(quizAnimId);
+  quizAnimId=null; quizAnimating=false;
+  const btn=document.getElementById('quizAnimateBtn');
+  if(btn) btn.textContent='▶ Animate Play';
+  if(redraw && quizQuestions.length && quizQuestions[quizIdx]) drawQuizPlay(quizQuestions[quizIdx]);
+}
+
+function drawQuizAnimated(item, progress){
+  const play=item.play;
+  if(play.kind==='image' || !play.data){ return; }
+  qcv.style.display='block';
+  quizImgEl.style.display='none';
+  quizImgEl.src='';
+  resizeQuizCv();
+  const routes=play.data.routes||[];
+  const players=play.data.players||[];
+  const hasMotion=routes.some(route=>(route.segments||[]).some(seg=>seg.type==='motion'));
+  const preSnapPortion=hasMotion ? 0.34 : 0;
+  const motionProg=hasMotion ? Math.min(1, progress/preSnapPortion) : 1;
+  const snapProg=hasMotion ? Math.max(0, Math.min(1, (progress-preSnapPortion)/(1-preSnapPortion))) : progress;
+  const w=qcv.width, h=qcv.height;
+  const pad=12;
+  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
+  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
+  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  qctx.clearRect(0,0,w,h);
+  qctx.fillStyle='#070809';qctx.fillRect(0,0,w,h);
+  drawFieldOn(qctx,qcv,sc,toScreen);
+  function drawPartialQuiz(seg, prog){
+    const pts=seg.pts||[];
+    if(pts.length<2) return;
+    let total=0;
+    for(let i=0;i<pts.length-1;i++) total+=distPts(pts[i],pts[i+1]);
+    let target=total*Math.max(0,Math.min(1,prog));
+    const out=[pts[0]];
+    for(let i=0;i<pts.length-1;i++){
+      const d=distPts(pts[i],pts[i+1]);
+      if(target>=d){ out.push(pts[i+1]); target-=d; }
+      else {
+        const t=d?target/d:0;
+        out.push({x:pts[i].x+(pts[i+1].x-pts[i].x)*t,y:pts[i].y+(pts[i+1].y-pts[i].y)*t});
+        break;
+      }
+    }
+    if(out.length>=2) drawSegment(qctx,out.map(p=>toScreen(p.x,p.y)),seg.type,seg.color,prog>=1,sc);
+  }
+  routes.forEach(route=>{
+    (route.segments||[]).forEach(seg=>{
+      if(seg.type==='motion') drawPartialQuiz(seg,motionProg);
+      else if(!hasMotion || snapProg>0) drawPartialQuiz(seg,snapProg);
+    });
+  });
+  const moving=players.map(p=>({...p}));
+  routes.forEach(route=>{
+    const i=moving.findIndex(p=>p.id===route.playerId);
+    if(i===-1) return;
+    const motionSegs=(route.segments||[]).filter(seg=>seg.type==='motion');
+    const snapSegs=(route.segments||[]).filter(seg=>seg.type!=='motion');
+    let pt=null;
+    if(hasMotion && progress<preSnapPortion && motionSegs.length) pt=pointAlongSegments(motionSegs,motionProg);
+    else if(snapSegs.length && (!hasMotion || snapProg>0)) pt=pointAlongSegments(snapSegs,snapProg);
+    else if(motionSegs.length) pt=lastPointOfSegments(motionSegs);
+    if(pt){ moving[i].x=pt.x; moving[i].y=pt.y; }
+  });
+  drawPlayersOn(qctx,qcv,sc,moving,null,toScreen);
+}
+
+window.toggleQuizAnimation=function(){
+  const q=quizQuestions[quizIdx];
+  if(!q) return;
+  if(quizAnimating){ stopQuizAnimation(true); return; }
+  if(q.play.kind==='image' || !(q.play.data?.routes||[]).length){ toast('No routes to animate',''); return; }
+  quizAnimating=true;
+  const btn=document.getElementById('quizAnimateBtn');
+  if(btn) btn.textContent='■ Stop';
+  const start=performance.now();
+  const dur=4200;
+  const step=(now)=>{
+    const p=Math.min(1,(now-start)/dur);
+    drawQuizAnimated(q,p);
+    if(p<1 && quizAnimating) quizAnimId=requestAnimationFrame(step);
+    else { quizAnimating=false; quizAnimId=null; if(btn) btn.textContent='↻ Replay Play'; }
+  };
+  quizAnimId=requestAnimationFrame(step);
+};
 
 function shuffle(arr){
   const a=arr.slice();
@@ -2866,10 +2977,25 @@ window.startQuiz=async function(){
 };
 
 function renderQuizQ(){
+  stopQuizAnimation(false);
   const q=quizQuestions[quizIdx];
   document.getElementById('quizProgress').textContent=(quizIdx+1)+' / '+quizQuestions.length;
   document.getElementById('quizScore').textContent=quizScore;
   document.getElementById('quizFormName').textContent=q.formName;
+  const type=(q.play.playType||'').toLowerCase();
+  const badge=document.getElementById('quizTypeBadge');
+  if(badge){
+    badge.className='quiz-type-badge'+(type==='run'?' run':type==='pass'?' pass':'');
+    badge.textContent=type ? type.toUpperCase() : 'Unlabeled';
+  }
+  const notes=document.getElementById('quizNotesText');
+  if(notes){
+    const text=(q.play.description||'').trim();
+    notes.textContent=text || 'No notes added for this play.';
+    notes.classList.toggle('empty', !text);
+  }
+  const animBtn=document.getElementById('quizAnimateBtn');
+  if(animBtn) animBtn.textContent='▶ Animate Play';
   drawQuizPlay(q);
   quizAnswered=false;
   const optsEl=document.getElementById('quizOptions');
@@ -2879,6 +3005,7 @@ function renderQuizQ(){
 }
 
 window.answerQuiz=function(i){
+  stopQuizAnimation(false);
   if(quizAnswered)return;
   quizAnswered=true;
   const q=quizQuestions[quizIdx];
@@ -2927,6 +3054,7 @@ function finishQuiz(){
 }
 
 window.quitQuiz=function(){
+  stopQuizAnimation(false);
   if(quizTimerId) clearInterval(quizTimerId);
   goBack('formationsScreen','quizScreen');
 };
