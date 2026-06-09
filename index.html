@@ -310,6 +310,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .ball-chip{height:28px;padding:0 10px;border-radius:14px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0}
 .ball-chip.on{border-color:var(--accent);color:var(--accent);background:var(--adim)}
 .ball-chip.danger{border-color:rgba(240,65,65,.3);color:var(--red)}
+.ball-range{width:150px;accent-color:var(--accent);flex-shrink:0}
+.ball-timing-value{font-size:11px;color:var(--accent);font-weight:900;min-width:38px;text-align:center;white-space:nowrap}
 
 </style>
 </head>
@@ -476,9 +478,9 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="play-action-row" id="playActionRow">
     <button class="play-action-btn" id="flipPlayBtn" onclick="flipPlay()">↔ Flip Play</button>
     <button class="play-action-btn" id="animateBtn" onclick="toggleRouteAnimation()">▶ Animate</button>
-    <button class="ball-step-btn" id="prevStepBtn" onclick="stepPlayProgression(-1)">◀ Step</button>
+    <button class="ball-step-btn" id="prevStepBtn" onclick="stepPlayProgression(-1)">◀ -5%</button>
     <div class="ball-step-chip" id="ballStepLabel">Step 0</div>
-    <button class="ball-step-btn" id="nextStepBtn" onclick="stepPlayProgression(1)">Step ▶</button>
+    <button class="ball-step-btn" id="nextStepBtn" onclick="stepPlayProgression(1)">+5% ▶</button>
     <button class="play-action-btn" id="fullscreenBtn" onclick="togglePlayFullscreen()">⛶ Fullscreen</button>
   </div>
   <div class="bot-bar">
@@ -728,7 +730,7 @@ let fPColor='#f0b429', fPPos='QB';
 // Play editor state
 let ePlayers=[], eRoutes=[];
 let eBall={carrierId:null,events:[]};
-let ballTool=false, ballEventMode='handoff', ballStep=0;
+let ballTool=false, ballEventMode='handoff', ballStep=0, ballEventTiming=45;
 let selP=null;
 let tool='draw';
 let segType='route';
@@ -1734,6 +1736,7 @@ window.openPlay=function(id, stayOnEditor=false){
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
   eBall=JSON.parse(JSON.stringify(currentPlay.data?.ball||{carrierId:null,events:[]}));
   if(!Array.isArray(eBall.events)) eBall.events=[];
+  normalizeBallEvents();
   ballTool=false; ballStep=0;
   ensureBallCarrier();
   syncBallStepControls();
@@ -2190,20 +2193,55 @@ function drawSegment(c, pts, type, color, isLast, sc){
 
 
 function ensureBallCarrier(){
-  if(eBall && eBall.carrierId && ePlayers.some(p=>p.id===eBall.carrierId)) return eBall.carrierId;
-  const qb=ePlayers.find(p=>(p.pos||'').toUpperCase()==='QB') || ePlayers[0];
   if(!eBall) eBall={carrierId:null,events:[]};
   if(!Array.isArray(eBall.events)) eBall.events=[];
+  normalizeBallEvents();
+  if(eBall.carrierId && ePlayers.some(p=>p.id===eBall.carrierId)) return eBall.carrierId;
+  const qb=ePlayers.find(p=>(p.pos||'').toUpperCase()==='QB') || ePlayers[0];
   eBall.carrierId=qb?qb.id:null;
   return eBall.carrierId;
 }
 function playerById(list,id){return (list||[]).find(p=>p.id===id)||null;}
-function currentBallCarrierAtStep(step){
+function clamp01(v){return Math.max(0,Math.min(1,Number(v)||0));}
+function normalizeBallEvents(){
+  if(!eBall) eBall={carrierId:null,events:[]};
+  if(!Array.isArray(eBall.events)) eBall.events=[];
+  const total=Math.max(1,eBall.events.length+1);
+  eBall.events=eBall.events.map((ev,i)=>{
+    const out={...ev};
+    if(out.releaseAt==null && out.catchAt==null){
+      let at=Number(out.at);
+      if(!Number.isFinite(at)) at=(i+1)/total;
+      if(at>1) at=Math.max(.05,Math.min(.95,(at+.42)/total));
+      at=clamp01(at);
+      if(out.type==='pass'){
+        out.releaseAt=at;
+        out.catchAt=Math.min(.98,at+.18);
+      } else {
+        out.releaseAt=Math.max(.02,at-.04);
+        out.catchAt=Math.min(.98,at+.04);
+      }
+    } else {
+      out.releaseAt=clamp01(out.releaseAt);
+      out.catchAt=clamp01(out.catchAt==null?out.releaseAt:out.catchAt);
+      if(out.catchAt<out.releaseAt) out.catchAt=out.releaseAt;
+    }
+    out.at=out.catchAt;
+    return out;
+  }).sort((a,b)=>(a.releaseAt||0)-(b.releaseAt||0));
+}
+function currentBallCarrierAtProgress(progress){
   ensureBallCarrier();
   let carrier=eBall.carrierId;
-  const evs=(eBall.events||[]).slice(0,Math.max(0,step));
-  evs.forEach(ev=>{ if(ev && ev.to) carrier=ev.to; });
+  const p=clamp01(progress);
+  (eBall.events||[]).forEach(ev=>{
+    if(p>=(ev.catchAt??ev.at??0) && ev.to) carrier=ev.to;
+  });
   return carrier;
+}
+function currentBallCarrierAtStep(step){
+  // Backwards-compatible helper; step is now a 0-100 timeline percentage.
+  return currentBallCarrierAtProgress((Number(step)||0)/100);
 }
 function drawFootballOn(c,screenPt,sc,label=''){
   if(!screenPt) return;
@@ -2235,49 +2273,54 @@ function drawFootballOn(c,screenPt,sc,label=''){
 }
 function drawStaticFootball(){
   ensureBallCarrier();
-  const carrierId=currentBallCarrierAtStep(ballStep);
+  const carrierId=currentBallCarrierAtProgress(ballStep/100);
   const p=playerById(ePlayers,carrierId);
   if(!p) return;
   const s=toS(p.x,p.y);
   const offset=Math.max(18,22*Math.min(vs,1.2));
-  drawFootballOn(ctx,{x:s.x+offset,y:s.y-offset},vs,ballStep?`Step ${ballStep}`:'');
+  drawFootballOn(ctx,{x:s.x+offset,y:s.y-offset},vs,ballStep?`${ballStep}%`:'');
 }
-function maxBallStep(){ return (eBall?.events?.length||0)+1; }
+function maxBallStep(){ return 100; }
 function syncBallStepControls(){
-  const max=maxBallStep();
-  ballStep=Math.max(0,Math.min(ballStep,max));
+  ballStep=Math.max(0,Math.min(100,Math.round(ballStep)));
   const label=document.getElementById('ballStepLabel');
   const prev=document.getElementById('prevStepBtn');
   const next=document.getElementById('nextStepBtn');
-  if(label) label.textContent=`Step ${ballStep} / ${max}`;
+  if(label) label.textContent=`${ballStep}%`;
   if(prev) prev.disabled=ballStep<=0;
-  if(next) next.disabled=ballStep>=max;
+  if(next) next.disabled=ballStep>=100;
 }
-function ballStepToProgress(step){
-  const evCount=eBall?.events?.length||0;
-  if(step<=0) return 0;
-  if(step>=evCount+1) return 1;
-  return Math.max(.05, Math.min(.92, step/(evCount+1)));
-}
+function ballStepToProgress(step){ return Math.max(0,Math.min(1,(Number(step)||0)/100)); }
 window.stepPlayProgression=function(dir){
   stopRouteAnimation(false);
   ensureBallCarrier();
-  ballStep=Math.max(0,Math.min(maxBallStep(),ballStep+dir));
+  ballStep=Math.max(0,Math.min(100,ballStep+(dir*5)));
   syncBallStepControls();
   if(ballStep===0) drawAll();
   else drawAnimated(ballStepToProgress(ballStep), true);
 };
 function addBallEvent(toPlayerId){
   ensureBallCarrier();
-  const from=currentBallCarrierAtStep((eBall.events||[]).length);
+  const timing=clamp01(ballEventTiming/100);
+  const from=currentBallCarrierAtProgress(Math.max(0,timing-.01));
   if(!from || !toPlayerId || from===toPlayerId){ toast('Tap a different player for the exchange',''); return; }
-  eBall.events.push({type:ballEventMode,from,to:toPlayerId,at:eBall.events.length+1});
-  ballStep=eBall.events.length;
+  let ev;
+  if(ballEventMode==='pass'){
+    const catchAt=Math.min(.98,timing+.18);
+    ev={type:'pass',from,to:toPlayerId,releaseAt:timing,catchAt,at:catchAt};
+  } else {
+    const releaseAt=Math.max(.02,timing-.04);
+    const catchAt=Math.min(.98,timing+.04);
+    ev={type:'handoff',from,to:toPlayerId,releaseAt,catchAt,at:catchAt};
+  }
+  eBall.events.push(ev);
+  normalizeBallEvents();
+  ballStep=Math.round((ev.catchAt||timing)*100);
   const toP=playerById(ePlayers,toPlayerId);
-  toast((ballEventMode==='pass'?'Pass':'Handoff')+' to '+(toP?.pos||'player')+' added','ok');
+  toast((ballEventMode==='pass'?'Pass':'Handoff')+' to '+(toP?.pos||'player')+' at '+Math.round(timing*100)+'%','ok');
   buildOpts();
   syncBallStepControls();
-  drawAll();
+  drawAnimated(ballStep/100,true);
 }
 window.toggleBallTool=function(){
   if(!canEdit){toast('View only','err');return;}
@@ -2287,36 +2330,38 @@ window.toggleBallTool=function(){
   buildOpts(); drawAll();
 };
 window.setBallMode=function(mode){ ballEventMode=mode; buildOpts(); };
+window.setBallTiming=function(v){
+  ballEventTiming=Math.max(0,Math.min(100,Math.round(Number(v)||0)));
+  const val=document.getElementById('ballTimingValue');
+  if(val) val.textContent=ballEventTiming+'%';
+};
 window.clearBallEvents=function(){ eBall={carrierId:null,events:[]}; ballStep=0; ensureBallCarrier(); buildOpts(); syncBallStepControls(); drawAll(); toast('Ball progression reset','ok'); };
-window.setBallStart=function(id){ eBall={carrierId:id,events:[]}; ballStep=0; buildOpts(); syncBallStepControls(); drawAll(); toast('Ball starts here','ok'); };
+window.setBallStart=function(id){ eBall={carrierId:id,events:[]}; ballStep=0; ensureBallCarrier(); buildOpts(); syncBallStepControls(); drawAll(); toast('Ball starts here','ok'); };
 function ballPositionFromMoving(moving, progress){
   ensureBallCarrier();
+  normalizeBallEvents();
   const events=eBall.events||[];
   let carrier=eBall.carrierId;
-  let fromPos=null,toPos=null,label='';
-  const evCount=events.length;
+  const p=clamp01(progress);
   for(let i=0;i<events.length;i++){
     const ev=events[i];
-    const evProgress=(i+1)/(evCount+1);
-    const travel=ev.type==='pass'?.16:.10;
-    const start=evProgress-travel/2;
-    const end=evProgress+travel/2;
-    if(progress<start) break;
-    if(progress>=start && progress<=end){
+    const start=clamp01(ev.releaseAt ?? ev.at ?? 0);
+    const end=clamp01(ev.catchAt ?? ev.at ?? start);
+    if(p<start) break;
+    if(p>=start && p<=end && end>start){
       const a=playerById(moving,ev.from||carrier);
       const b=playerById(moving,ev.to);
       if(!a || !b) break;
-      const t=(progress-start)/(end-start);
-      fromPos={x:a.x,y:a.y}; toPos={x:b.x,y:b.y};
+      const t=(p-start)/(end-start);
       const ease=t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
       const arc=ev.type==='pass' ? -70*Math.sin(Math.PI*ease) : -18*Math.sin(Math.PI*ease);
-      return {x:fromPos.x+(toPos.x-fromPos.x)*ease,y:fromPos.y+(toPos.y-fromPos.y)*ease+arc,label:ev.type==='pass'?'PASS':'HANDOFF'};
+      return {x:a.x+(b.x-a.x)*ease,y:a.y+(b.y-a.y)*ease+arc,label:ev.type==='pass'?'PASS':'HANDOFF'};
     }
-    if(progress>end) carrier=ev.to||carrier;
+    if(p>end) carrier=ev.to||carrier;
   }
-  const p=playerById(moving,carrier);
-  if(!p) return null;
-  return {x:p.x,y:p.y,label};
+  const pl=playerById(moving,carrier);
+  if(!pl) return null;
+  return {x:pl.x,y:pl.y,label:''};
 }
 function drawFootballForMoving(moving, progress, toScreenFn, sc){
   const bp=ballPositionFromMoving(moving,progress);
@@ -2325,6 +2370,7 @@ function drawFootballForMoving(moving, progress, toScreenFn, sc){
   const offset=Math.max(18,22*Math.min(sc||1,1.2));
   drawFootballOn(ctx,{x:s.x+offset,y:s.y-offset},sc,bp.label);
 }
+
 
 function drawAll(){
   ctx.clearRect(0,0,cv.width,cv.height);
@@ -2431,6 +2477,8 @@ function drawPartialSegment(seg, progress){
 }
 
 function drawAnimated(progress, holdFrame=false){
+  ensureBallCarrier();
+  normalizeBallEvents();
   const hasMotion=eRoutes.some(route=>(route.segments||[]).some(seg=>seg.type==='motion'));
   const preSnapPortion=hasMotion ? 0.34 : 0;
   const motionProg=hasMotion ? Math.min(1, progress/preSnapPortion) : 1;
@@ -2483,7 +2531,7 @@ window.toggleRouteAnimation=function(){
   const dur=4200;
   const step=(now)=>{
     const p=Math.min(1,(now-start)/dur);
-    ballStep=Math.round(p*maxBallStep()); syncBallStepControls();
+    ballStep=Math.round(p*100); syncBallStepControls();
     drawAnimated(p);
     if(p<1 && animating) animId=requestAnimationFrame(step);
     else { animating=false; animId=null; if(btn) btn.textContent='↻ Replay'; }
@@ -2747,11 +2795,14 @@ function buildOpts(){
   let h='';
   if(ballTool){
     ensureBallCarrier();
-    const carrier=playerById(ePlayers,currentBallCarrierAtStep((eBall.events||[]).length));
+    const carrier=playerById(ePlayers,currentBallCarrierAtProgress(ballEventTiming/100));
     h+=`<span class="olbl">🏈 BALL</span>`;
     h+=`<button class="ball-chip ${ballEventMode==='handoff'?'on':''}" onclick="setBallMode('handoff')">Handoff</button>`;
     h+=`<button class="ball-chip ${ballEventMode==='pass'?'on':''}" onclick="setBallMode('pass')">Pass</button>`;
-    h+=`<span class="ball-hint">Carrier: ${esc(carrier?.pos||'tap starter')} · Tap another player to add exchange</span>`;
+    h+=`<span class="ball-hint">Timing</span>`;
+    h+=`<input class="ball-range" type="range" min="0" max="100" step="1" value="${ballEventTiming}" oninput="setBallTiming(this.value)">`;
+    h+=`<span class="ball-timing-value" id="ballTimingValue">${ballEventTiming}%</span>`;
+    h+=`<span class="ball-hint">Carrier then: ${esc(carrier?.pos||'tap starter')} · Tap target player</span>`;
     h+=`<div class="osep"></div>`;
     ePlayers.forEach(p=>h+=`<button class="ball-chip ${eBall.carrierId===p.id?'on':''}" onclick="setBallStart('${p.id}')">Start ${esc(p.pos||'?')}</button>`);
     h+=`<div class="osep"></div><button class="ball-chip danger" onclick="clearBallEvents()">Reset Ball</button>`;
