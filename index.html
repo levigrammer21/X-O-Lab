@@ -486,12 +486,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 }
 
 
-/* SECURITY UI LOCKS */
-#playNameInput[readonly], #playDescInput[readonly], #playTypeSelect:disabled{
-  opacity:.72;
-  cursor:not-allowed;
-}
-
+@media (max-width:560px){#findPlaybookBtn{padding:0 10px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -632,7 +627,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="screen hidden pw-screen" id="adminPwScreen">
   <div class="pw-box">
     <h2>Legacy Coach Login</h2>
-    <p>Temporary legacy access for existing password coaches only. Admin access now requires Google login.</p>
+    <p>Temporary access for existing legacy coach passwords. Admin access now uses Google login.</p>
     <div class="field"><label>Password</label><input type="password" id="adminPwInput" placeholder="••••••••" autocomplete="off"></div>
     <div id="adminPwErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Legacy coach password not found</div>
     <button class="btn btn-p" onclick="checkAdminPw()">Enter</button>
@@ -662,6 +657,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <button class="hdr-back" onclick="logoutToLanding()">←</button>
     <div class="hdr-title"><h1>PLAYBOOKS</h1><p id="pbConn">Coach view</p></div>
     <button class="hdr-btn ghost icon" onclick="openManageCoaches()" id="manageCoachesBtn" style="display:none">👥</button>
+    <button class="hdr-btn ghost" onclick="openSheet('findPlaybookSheet')" id="findPlaybookBtn">Find Playbook</button>
     <button class="hdr-btn" onclick="openSheet('newPlaybookSheet')">+ New</button>
   </div>
   <div class="scroll" id="playbooksList"></div>
@@ -872,6 +868,19 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <button class="btn btn-p" onclick="addFormation()">Create Formation</button>
 </div>
 
+
+<div class="overlay" id="findPlaybookOverlay" onclick="closeSheet('findPlaybookSheet')"></div>
+<div class="sheet" id="findPlaybookSheet">
+  <div class="handle"></div>
+  <h2>Find Playbook</h2>
+  <p class="sub">Enter a view code to add that playbook to your account in view-only mode.</p>
+  <div class="field"><label>View Code</label><input id="findPbCode" placeholder="ABC123" autocomplete="off" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;text-align:center;font-family:monospace"></div>
+  <div id="findPbErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Code not found</div>
+  <button class="btn btn-p" onclick="savePlaybookByCode()">Add View-Only Playbook</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="closeSheet('findPlaybookSheet')">Cancel</button>
+</div>
+
 <!-- UPLOAD IMAGE SHEET (shared by formation + play uploads) -->
 <div class="overlay" id="uploadImageOverlay" onclick="closeSheet('uploadImageSheet')"></div>
 <div class="sheet" id="uploadImageSheet">
@@ -965,6 +974,23 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 
 <div class="toast" id="toast"></div>
 
+
+<script>
+window.addEventListener('error', function(e){
+  console.error('X&O Lab startup error:', e.error || e.message);
+  setTimeout(function(){
+    var splash=document.getElementById('splashScreen');
+    var landing=document.getElementById('landingScreen');
+    if(splash && landing && !splash.classList.contains('hidden')){
+      splash.classList.add('hidden');
+      landing.classList.remove('hidden');
+      var tag=document.getElementById('connTag');
+      if(tag) tag.textContent='Startup issue — refresh cache or contact admin';
+    }
+  }, 1200);
+});
+</script>
+
 <script type="module">
 // ═══════════════════════════════════════════════
 // FIREBASE
@@ -991,7 +1017,7 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
-const SUPER_ADMIN_PASSWORDS = []; // Legacy public admin passwords disabled. Use Google admin login instead.
+const SUPER_ADMIN_PASSWORDS = []; // Disabled: admin access now uses Google/admin account.
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -1066,7 +1092,6 @@ function lockViewOnlyEditorInputs(){
   if(playType) playType.disabled = ro;
 }
 function applyViewOnlyUiLocks(){
-  applySecurityUiLocks();
   lockViewOnlyEditorInputs();
   const ro = isReadOnlyMode();
   ['addFormBtn','addPlayBtn','editFormBtn','playUploadBtn'].forEach(id=>{
@@ -1081,55 +1106,21 @@ window.lockViewOnlyEditorInputs = lockViewOnlyEditorInputs;
 window.applyViewOnlyUiLocks = applyViewOnlyUiLocks;
 
 
-function isGoogleAdminUser(){
-  return !!(currentUser && (currentUser.email || '').toLowerCase() === 'levigrammer@gmail.com' && currentAccount && currentAccount.role === 'admin');
+function appSideCanEditCurrent(){
+  if(isViewOnly || !canEdit) return false;
+  if(isSuperAdmin) return true;
+  if(currentAccount && currentAccount.role === 'admin') return true;
+  if(currentUser && currentPlaybook && currentPlaybook.ownerId === currentUser.uid) return true;
+  if(currentCoachId && currentPlaybook && currentPlaybook.ownerId === currentCoachId) return true;
+  return !!canEdit;
 }
-function isOwnerOfCurrentPlaybook(){
-  if(!currentPlaybook) return false;
-  if(isSuperAdmin || (currentAccount && currentAccount.role === 'admin')) return true;
-  if(currentUser && currentPlaybook.ownerId === currentUser.uid) return true;
-  if(currentCoachId && currentPlaybook.ownerId === currentCoachId) return true;
+function appSideBlockEdit(message){
+  if(!appSideCanEditCurrent()){
+    toast(message || 'View-only access: editing is disabled','err');
+    return true;
+  }
   return false;
 }
-function secureCanWrite(message){
-  if(isViewOnly || !canEdit || !isOwnerOfCurrentPlaybook()){
-    toast(message || 'View-only access: editing is disabled','err');
-    return false;
-  }
-  return true;
-}
-function forceViewOnlyIfNotOwner(){
-  if(currentPlaybook && !isOwnerOfCurrentPlaybook()){
-    canEdit = false;
-    isViewOnly = true;
-  }
-}
-function blockViewOnlyEdit(message){
-  return !secureCanWrite(message || 'View-only access: editing is disabled');
-}
-function lockViewOnlyEditorInputs(){
-  const ro = isViewOnly || !canEdit || (currentPlaybook && !isOwnerOfCurrentPlaybook());
-  const playName=document.getElementById('playNameInput');
-  const playDesc=document.getElementById('playDescInput');
-  const playType=document.getElementById('playTypeSelect');
-  if(playName) playName.readOnly = ro;
-  if(playDesc) playDesc.readOnly = ro;
-  if(playType) playType.disabled = ro;
-}
-function applySecurityUiLocks(){
-  forceViewOnlyIfNotOwner();
-  const ro = isViewOnly || !canEdit || (currentPlaybook && !isOwnerOfCurrentPlaybook());
-  ['addFormBtn','addPlayBtn','editFormBtn','playUploadBtn','pbEditCodeBtn','pbDelBtn','pbAssignBtn'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display = ro ? 'none' : '';
-  });
-  lockViewOnlyEditorInputs();
-  document.querySelectorAll('#editorScreen .e-save, #formEditorScreen .e-save').forEach(btn=>{
-    btn.style.display = ro ? 'none' : '';
-  });
-}
-window.lockViewOnlyEditorInputs = lockViewOnlyEditorInputs;
-window.applySecurityUiLocks = applySecurityUiLocks;
 
 // ═══════════════════════════════════════════════
 // SCREEN NAV
@@ -1319,6 +1310,38 @@ async function ensureUserRecord(user, defaults={}){
   await updateDoc(ref, patch).catch(()=>{});
   return {...rec,...patch};
 }
+
+async function saveViewOnlyPlaybookForCurrentUser(pb){
+  if(!currentUserId || !pb || !pb.id) return;
+  await setDoc(doc(db,'users',currentUserId,'savedPlaybooks',pb.id),{
+    playbookId:pb.id,
+    viewCode:pb.viewCode||'',
+    name:pb.name||'Playbook',
+    access:'view',
+    savedAt:Date.now()
+  },{merge:true});
+}
+async function loadSavedViewOnlyPlaybooksForCurrentUser(){
+  if(!currentUserId || isAdminRole()) return [];
+  try{
+    const snap=await getDocs(collection(db,'users',currentUserId,'savedPlaybooks'));
+    const out=[];
+    for(const d of snap.docs){
+      const pbId=d.id;
+      const psnap=await getDoc(doc(db,'playbooks',pbId));
+      if(psnap.exists()) out.push({id:psnap.id,...psnap.data(),savedViewOnly:true});
+    }
+    return out;
+  }catch(e){ console.warn('Saved view-only playbooks skipped', e); return []; }
+}
+async function loadAccountPlaybookList(){
+  if(isAdminRole()) return await loadPlaybooks(null);
+  const owned=await loadPlaybooks(accountOwnerId());
+  const saved=await loadSavedViewOnlyPlaybooksForCurrentUser();
+  const ownedIds=new Set(owned.map(p=>p.id));
+  return [...owned, ...saved.filter(p=>!ownedIds.has(p.id))];
+}
+
 async function loadUsers(){
   try{
     const snap=await getDocs(query(userCol(),orderBy('createdAt')));
@@ -1336,7 +1359,7 @@ async function enterAccountApp(userRec){
   currentCoachName=userRec.name || userRec.email || roleLabel();
   await migrateLocalStoragePlaybooks();
   await claimLegacyPlaybooksForAccount();
-  [playbooks, coaches] = await Promise.all([loadPlaybooks(isAdminRole()?null:accountOwnerId()), loadCoaches()]);
+  [playbooks, coaches] = await Promise.all([loadAccountPlaybookList(), loadCoaches()]);
   renderPlaybooks();
   navTo('playbooksScreen');
 }
@@ -1460,8 +1483,10 @@ window.registerWithEmail = async ()=>{
   clearLoginError('regErr');
   const name=document.getElementById('regName').value.trim();
   const email=document.getElementById('regEmail').value.trim();
+  const email2=(document.getElementById('regEmail2')?.value||'').trim();
   const pw=document.getElementById('regPassword').value;
-  if(!name || !email || !pw){ setLoginError('regErr','Name, email, and password required'); return; }
+  if(!name || !email || !email2 || !pw){ setLoginError('regErr','Name, email, confirm email, and password required'); return; }
+  if(email.toLowerCase()!==email2.toLowerCase()){ setLoginError('regErr','Email addresses must match'); return; }
   try{
     const cred=await createUserWithEmailAndPassword(auth,email,pw);
     await updateProfile(cred.user,{displayName:name}).catch(()=>{});
@@ -1512,10 +1537,7 @@ window.checkAdminPw = async ()=>{
     document.getElementById('adminPwErr').style.display='block';
     return;
   }
-  if(false){
-      // Legacy public super-admin passwords are disabled.
-      return;
-    }
+  if(false){ return; }
   const coach = await findCoachByPassword(pw);
   if(!coach){
     document.getElementById('adminPwErr').textContent='Legacy coach password not found';
@@ -1560,6 +1582,25 @@ async function checkUrlCode(){
   return true;
 }
 
+
+window.savePlaybookByCode = async ()=>{
+  const input=document.getElementById('findPbCode');
+  const err=document.getElementById('findPbErr');
+  const code=(input?.value||'').trim().toUpperCase();
+  if(err){err.style.display='none'; err.textContent='';}
+  if(!currentAccount || !currentUserId){ if(err){err.textContent='Please log in or register first.'; err.style.display='block';} return; }
+  if(!code){ if(err){err.textContent='Enter a view code.'; err.style.display='block';} return; }
+  const pb=await findPlaybookByCode(code);
+  if(!pb){ if(err){err.textContent='Code not found.'; err.style.display='block';} return; }
+  if(ownsPlaybook(pb)){ if(err){err.textContent='This playbook is already in your account.'; err.style.display='block';} return; }
+  await saveViewOnlyPlaybookForCurrentUser(pb);
+  closeSheet('findPlaybookSheet');
+  if(input) input.value='';
+  toast('Playbook added as view-only','ok');
+  playbooks=await loadAccountPlaybookList();
+  renderPlaybooks();
+};
+
 // ═══════════════════════════════════════════════
 // PLAYBOOKS LIST (admin)
 // ═══════════════════════════════════════════════
@@ -1569,10 +1610,11 @@ function renderPlaybooks(){
   const conn=document.getElementById('pbConn');
   if(conn) conn.innerHTML = (isAdminRole() ? 'Admin · All playbooks' : esc(currentCoachName)+' · Your playbooks') + ' <span class="account-pill '+esc(currentRole)+'">'+esc(roleLabel())+'</span>';
   const newBtn=document.querySelector('#playbooksScreen .hdr-btn:not(.ghost)'); if(newBtn) newBtn.style.display = canEdit ? '' : 'none';
+  const findBtn=document.getElementById('findPlaybookBtn'); if(findBtn) findBtn.style.display = currentAccount ? '' : 'none';
 
   const el=document.getElementById('playbooksList');
   if(!playbooks.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ico">📚</div><h3>No Playbooks Yet</h3><p>Tap + New to create your first playbook.</p></div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ico">📚</div><h3>No Playbooks Yet</h3><p>Tap + New to create your first playbook, or Find Playbook to save one by code.</p></div>`;
     return;
   }
   el.innerHTML=playbooks.map(pb=>{
@@ -1588,7 +1630,7 @@ function renderPlaybooks(){
     return `<div class="card" onclick="openPlaybookById('${pb.id}')">
       <div style="width:46px;height:46px;border-radius:12px;background:rgba(240,180,41,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🏈</div>
       <div class="card-body">
-        <div class="card-name">${esc(pb.name)}</div>
+        <div class="card-name">${esc(pb.name)} ${pb.savedViewOnly?'<span class="account-pill basic">VIEW ONLY</span>':''}</div>
         <div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace;letter-spacing:1px">${esc(pb.viewCode)}</b>${pb.description?' · '+esc(pb.description):''}${ownerLabel}</div>
       </div>
       <span class="chevron">›</span>
@@ -1662,10 +1704,7 @@ window.addCoach = async ()=>{
   const name=document.getElementById('ncName').value.trim();
   const pw=document.getElementById('ncPw').value.trim();
   if(!name || !pw){toast('Name and password required','err');return;}
-  if(false){
-      // Legacy public super-admin passwords are disabled.
-      return;
-    }
+  if(false){ return; }
   if(coaches.some(c=>c.password===pw)){
     toast('That password is already in use','err');return;
   }
@@ -1696,7 +1735,7 @@ window.confirmDelCoach = (id)=>{
 window.openAssignScreen = async ()=>{
   if(!isAdminRole() || !currentPlaybook) return;
   closeSheet('pbMenuSheet');
-  coaches = await loadCoaches();
+  [coaches, accountUsers] = await Promise.all([loadCoaches(), loadUsers()]);
   document.getElementById('assignPbName').textContent=currentPlaybook.name;
   renderAssignList();
   navTo('assignScreen');
@@ -1705,16 +1744,33 @@ window.openAssignScreen = async ()=>{
 function renderAssignList(){
   const el=document.getElementById('assignList');
   const curId = currentPlaybook.ownerId || 'head';
+  const registered=(accountUsers||[])
+    .filter(u=>(u.role||'basic')!=='admin')
+    .map(u=>({
+      assignOwnerId:'user:'+(u.uid||u.id),
+      name:u.name||u.email||'Registered User',
+      sub:(u.email||'Registered account')+' · '+(u.role||'basic').toUpperCase(),
+      icon:'👤',
+      badge:u.role||'basic'
+    }));
+  const legacy=(coaches||[]).map(c=>({
+    assignOwnerId:c.id,
+    name:c.name,
+    sub:'Legacy password coach · Password: Hidden,
+    icon:'🔑',
+    badge:'legacy'
+  }));
   const options = [
-    {id:'head', name:'Head Coach (you)', sub:'Default — only super admins can see it'},
-    ...coaches.map(c=>({id:c.id, name:c.name, sub:'Password: Hidden}))
+    {assignOwnerId:'head', name:'Head Coach (you)', sub:'Default — only super admins can see it', icon:'👑', badge:'admin'},
+    ...registered,
+    ...legacy
   ];
   el.innerHTML = options.map(o=>{
-    const active = o.id===curId;
-    return `<div class="card" onclick="assignTo('${o.id}')" style="${active?'border-color:var(--accent);background:var(--card2)':''}">
-      <div style="width:42px;height:42px;border-radius:10px;background:${o.id==='head'?'rgba(240,180,41,.15)':'rgba(65,130,240,.15)'};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${o.id==='head'?'👑':'👤'}</div>
+    const active = o.assignOwnerId===curId;
+    return `<div class="card" onclick="assignTo('${esc(o.assignOwnerId)}')" style="${active?'border-color:var(--accent);background:var(--card2)':''}">
+      <div style="width:42px;height:42px;border-radius:10px;background:${o.assignOwnerId==='head'?'rgba(240,180,41,.15)':(o.badge==='legacy'?'rgba(65,130,240,.15)':'rgba(65,201,122,.15)')};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${o.icon}</div>
       <div class="card-body">
-        <div class="card-name">${esc(o.name)}</div>
+        <div class="card-name">${esc(o.name)} ${o.badge&&o.badge!=='admin'?'<span class="account-pill '+esc(o.badge)+'">'+esc(o.badge)+'</span>':''}</div>
         <div class="card-sub">${esc(o.sub)}</div>
       </div>
       ${active?'<span style="color:var(--accent);font-size:18px;flex-shrink:0">✓</span>':'<span class="chevron">›</span>'}
@@ -1739,13 +1795,14 @@ window.openPlaybookById = async (id)=>{
 
 async function openPlaybook(pb){
   currentPlaybook=pb;
+  isViewOnly = !!pb.savedViewOnly || (!!currentAccount && !isAdminRole() && !ownsPlaybook(pb));
   formations=await loadFormations(pb.id);
   document.getElementById('formTeamName').textContent=pb.name;
   canEdit = !isViewOnly && ownsPlaybook(pb);
   document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':('✏️ '+roleLabel()+' · '))+'Formations';
   document.getElementById('addFormBtn').style.display=canEdit?'':'none';
   renderFormations();
-  navTo('formationsScreen'); applySecurityUiLocks(); applyViewOnlyUiLocks();
+  navTo('formationsScreen'); applyViewOnlyUiLocks();
 }
 
 function backFromFormations(){
@@ -1947,7 +2004,6 @@ function fCard(f){
 }
 
 window.addFormation=async function(){
-  if(!secureCanWrite('View-only access: formations cannot be edited')) return;
   const name=document.getElementById('nfName').value.trim();
   if(!name){toast('Enter a name','err');return;}
   if(!enforceLimit('formation')) return;
@@ -1972,7 +2028,7 @@ async function openFormation(id){
   document.getElementById('editFormBtn').style.display=canEdit?'':'none';
   document.getElementById('playUploadBtn').style.display=canEdit?'':'none';
   renderPlays();
-  navTo('playsScreen'); applySecurityUiLocks(); applyViewOnlyUiLocks();
+  navTo('playsScreen'); applyViewOnlyUiLocks();
 }
 window.openFormation=openFormation;
 
@@ -1980,18 +2036,16 @@ window.openFormation=openFormation;
 // FORMATION EDITOR
 // ═══════════════════════════════════════════════
 window.openFormationEditor=function(){
-  if(!secureCanWrite('View-only access: formation edits are disabled')) return;
   if(!canEdit){toast('View only','err');return;}
   fPlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
   fVx=0;fVy=0;fVs=1;fSelP=null;
   fTool='select';syncFormToolUI();
   document.getElementById('formEditorTitle').textContent=currentFormation.name+' · Template';
-  navTo('formEditorScreen'); applySecurityUiLocks();
+  navTo('formEditorScreen');
   setTimeout(()=>{resizeFormCv();drawFormAll();},100);
 };
 
 window.saveFormationTemplate=async function(){
-  if(!secureCanWrite('View-only access: formation edits are disabled')) return;
   currentFormation.templatePlayers=fPlayers;
   const ref=doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id);
   await updateDoc(ref,{templatePlayers:fPlayers});
@@ -2196,7 +2250,6 @@ function miniPrev(play){
 }
 
 window.newPlay=function(){
-  if(!secureCanWrite('View-only access: plays cannot be created')) return;
   if(!enforceLimit('play')) return;
   currentPlay=null;
   ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
@@ -2213,7 +2266,7 @@ window.newPlay=function(){
   document.getElementById('playCounter').textContent='New';
   updatePlayNavButtons();
   tool='draw';setSegType('route');
-  navTo('editorScreen'); applySecurityUiLocks(); applyViewOnlyUiLocks();
+  navTo('editorScreen'); applyViewOnlyUiLocks();
   setTimeout(()=>{refitAndDraw(24);},110);
 };
 
@@ -2375,7 +2428,7 @@ window.openPlay=function(id, stayOnEditor=false){
   document.getElementById('optionsRow').style.display=canEdit?'':'none';
   updatePlayNavButtons();
   tool='draw';setSegType('route');
-  if(!stayOnEditor) navTo('editorScreen'); applySecurityUiLocks(); applyViewOnlyUiLocks();
+  if(!stayOnEditor) navTo('editorScreen'); applyViewOnlyUiLocks();
   setTimeout(()=>{
     refitAndDraw(24);
   },110);
@@ -2404,7 +2457,6 @@ window.backFromPlayEditor = ()=>{
 };
 
 window.savePlay=async function(){
-  if(!secureCanWrite('View-only access: play edits are disabled')) return;
   await saveCurrentPlay(false);
 };
 
@@ -2418,7 +2470,6 @@ window.pickFormationImage=function(){
   startUpload('formation');
 };
 window.pickPlayImage=function(){
-  if(!secureCanWrite('View-only access: uploads are disabled')) return;
   if(!canEdit){toast('View only','err');return;}
   startUpload('play');
 };
@@ -2503,7 +2554,6 @@ function syncIsPlayCheck(){
 }
 
 window.saveUploadedImage=async function(){
-  if(!secureCanWrite('View-only access: uploads are disabled')) return;
   if(!canEdit){toast('View only','err');return;}
   if(!uploadDataUrl){toast('Choose a photo first','err');return;}
   const name=document.getElementById('uploadName').value.trim();
