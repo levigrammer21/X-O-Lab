@@ -984,7 +984,7 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
-const SUPER_ADMIN_PASSWORDS = []; // Disabled: legacy admin password login removed. Use Google admin account instead.
+const SUPER_ADMIN_PASSWORDS = []; // Disabled: admin access now uses Google/admin account. // Disabled: legacy admin password login removed. Use Google admin account instead.
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -1638,25 +1638,105 @@ window.openAssignScreen = async ()=>{
   navTo('assignScreen');
 };
 
-function renderAssignList(){
-  const el=document.getElementById('assignList');
-  const curId = currentPlaybook.ownerId || 'head';
-  const options = [
-    {id:'head', name:'Head Coach (you)', sub:'Default — only super admins can see it'},
-    ...coaches.map(c=>({id:c.id, name:c.name, sub:'Password: Hidden}))
+
+async function openAssignScreen(){
+  closeSheet('pbMenuSheet');
+  if(!currentPlaybook) return;
+
+  const title = document.getElementById('assignPbName');
+  if(title) title.textContent = currentPlaybook.name || currentPlaybook.teamName || 'Playbook';
+
+  try{
+    coaches = await loadCoaches();
+  }catch(e){
+    coaches = [];
+  }
+
+  let registeredUsers = [];
+  try{
+    const usnap = await getDocs(collection(db,'users'));
+    registeredUsers = usnap.docs.map(d=>({id:d.id, uid:d.id, ...d.data()}));
+  }catch(e){
+    console.warn('Could not load registered users for assignment', e);
+  }
+
+  window.assignableAccounts = [
+    {id:'head', uid:'head', name:'Head Coach / Admin', email:'', role:'admin', accountType:'admin'},
+    ...registeredUsers.map(u=>({
+      id:u.uid || u.id,
+      uid:u.uid || u.id,
+      name:u.name || u.displayName || u.email || 'Registered User',
+      email:u.email || '',
+      role:u.role || 'basic',
+      accountType:'registered'
+    })),
+    ...coaches.map(c=>({
+      id:c.id,
+      uid:c.id,
+      name:c.name || 'Legacy Coach',
+      email:'',
+      role:'legacy',
+      accountType:'legacy'
+    }))
   ];
-  el.innerHTML = options.map(o=>{
-    const active = o.id===curId;
-    return `<div class="card" onclick="assignTo('${o.id}')" style="${active?'border-color:var(--accent);background:var(--card2)':''}">
-      <div style="width:42px;height:42px;border-radius:10px;background:${o.id==='head'?'rgba(240,180,41,.15)':'rgba(65,130,240,.15)'};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${o.id==='head'?'👑':'👤'}</div>
+
+  renderAssignList();
+  navTo('assignScreen');
+}
+window.openAssignScreen = openAssignScreen;
+
+function renderAssignList(){
+  const box = document.getElementById('assignList');
+  if(!box || !currentPlaybook) return;
+
+  const accounts = window.assignableAccounts || [];
+  if(!accounts.length){
+    box.innerHTML = '<div class="empty"><div class="empty-ico">👥</div><h3>No Accounts</h3><p>No registered or legacy coaches found.</p></div>';
+    return;
+  }
+
+  const owner = currentPlaybook.ownerId || 'head';
+
+  box.innerHTML = accounts.map(a=>{
+    const id = a.uid || a.id;
+    const selected = owner === id || (owner === 'head' && id === 'head');
+
+    const typeLabel = a.accountType === 'registered'
+      ? `${a.email || 'Registered account'} · ${(a.role || 'basic').toUpperCase()}`
+      : a.accountType === 'legacy'
+        ? 'Legacy password coach'
+        : 'Default admin owner';
+
+    const icon = a.accountType === 'registered' ? '👤' : (a.accountType === 'legacy' ? '🔑' : '👑');
+    const badge = a.accountType === 'registered'
+      ? `<span class="badge off">${escapeHtml((a.role || 'basic').toUpperCase())}</span>`
+      : (a.accountType === 'legacy' ? '<span class="badge st">LEGACY</span>' : '<span class="badge def">ADMIN</span>');
+
+    return `<div class="card" onclick="assignPlaybookToCoach('${escapeHtml(id)}')" style="${selected ? 'border-color:var(--accent);background:var(--card2)' : ''}">
+      <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">${icon}</div>
       <div class="card-body">
-        <div class="card-name">${esc(o.name)}</div>
-        <div class="card-sub">${esc(o.sub)}</div>
+        <div class="card-name">${escapeHtml(a.name || a.email || 'Account')} ${badge}</div>
+        <div class="card-sub">${escapeHtml(typeLabel)}</div>
       </div>
-      ${active?'<span style="color:var(--accent);font-size:18px;flex-shrink:0">✓</span>':'<span class="chevron">›</span>'}
+      <span class="chevron">${selected ? '✓' : '›'}</span>
     </div>`;
   }).join('');
 }
+window.renderAssignList = renderAssignList;
+
+async function assignPlaybookToCoach(ownerId){
+  if(!currentPlaybook || !isSuperAdmin) return;
+  ownerId = ownerId || 'head';
+  await updateDoc(doc(db,'playbooks',currentPlaybook.id), { ownerId });
+  currentPlaybook.ownerId = ownerId;
+  const pb = playbooks.find(p=>p.id===currentPlaybook.id);
+  if(pb) pb.ownerId = ownerId;
+  toast('Playbook assigned','ok');
+  renderAssignList();
+}
+window.assignPlaybookToCoach = assignPlaybookToCoach;
+
+
 
 window.assignTo = async (ownerId)=>{
   if(!currentPlaybook) return;
@@ -4056,106 +4136,6 @@ onAuthStateChanged(auth, async user=>{
   if(handled) return;
   setTimeout(()=>showScreen('landingScreen'),900);
 })();
-
-
-// ═══════════════════════════════════════════════
-// REGISTERED ACCOUNT ASSIGNMENT PATCH
-// Minimal patch: allow admin to assign playbooks to Firebase registered users as well as legacy coaches.
-// ═══════════════════════════════════════════════
-async function loadRegisteredAccountUsersForAssign(){
-  try{
-    const snap = await getDocs(collection(db,'users'));
-    return snap.docs.map(d=>({id:d.id, uid:d.id, ...d.data()}));
-  }catch(e){
-    console.warn('Could not load registered users for assignment', e);
-    return [];
-  }
-}
-
-window.openAssignScreen = async function(){
-  closeSheet('pbMenuSheet');
-  if(!currentPlaybook) return;
-
-  const title = document.getElementById('assignPbName');
-  if(title) title.textContent = currentPlaybook.name || currentPlaybook.teamName || 'Playbook';
-
-  try{ coaches = await loadCoaches(); }catch(e){ coaches = []; }
-
-  const registeredUsers = await loadRegisteredAccountUsersForAssign();
-
-  window.assignableAccounts = [
-    {id:'head', uid:'head', name:'Head Coach / Admin', email:'', role:'admin', accountType:'admin'},
-    ...registeredUsers.map(u=>({
-      id:u.uid || u.id,
-      uid:u.uid || u.id,
-      name:u.name || u.displayName || u.email || 'Registered User',
-      email:u.email || '',
-      role:u.role || 'basic',
-      accountType:'registered'
-    })),
-    ...coaches.map(c=>({
-      id:c.id,
-      uid:c.id,
-      name:c.name || 'Legacy Coach',
-      email:'',
-      role:'legacy',
-      accountType:'legacy'
-    }))
-  ];
-
-  renderAssignList();
-  navTo('assignScreen');
-};
-
-window.renderAssignList = function(){
-  const box = document.getElementById('assignList');
-  if(!box || !currentPlaybook) return;
-
-  const accounts = window.assignableAccounts || [];
-  if(!accounts.length){
-    box.innerHTML = '<div class="empty"><div class="empty-ico">👥</div><h3>No Accounts</h3><p>No registered or legacy coaches found.</p></div>';
-    return;
-  }
-
-  const owner = currentPlaybook.ownerId || 'head';
-
-  box.innerHTML = accounts.map(a=>{
-    const id = a.uid || a.id;
-    const selected = owner === id || (owner === 'head' && id === 'head');
-
-    const typeLabel = a.accountType === 'registered'
-      ? `${a.email || 'Registered account'} · ${(a.role || 'basic').toUpperCase()}`
-      : a.accountType === 'legacy'
-        ? 'Legacy password coach'
-        : 'Default admin owner';
-
-    const icon = a.accountType === 'registered' ? '👤' : (a.accountType === 'legacy' ? '🔑' : '👑');
-    const badge = a.accountType === 'registered'
-      ? `<span class="badge off">${escapeHtml((a.role || 'basic').toUpperCase())}</span>`
-      : (a.accountType === 'legacy' ? '<span class="badge st">LEGACY</span>' : '<span class="badge def">ADMIN</span>');
-
-    return `<div class="card" onclick="assignPlaybookToAccount('${escapeHtml(id)}')" style="${selected ? 'border-color:var(--accent);background:var(--card2)' : ''}">
-      <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">${icon}</div>
-      <div class="card-body">
-        <div class="card-name">${escapeHtml(a.name || a.email || 'Account')} ${badge}</div>
-        <div class="card-sub">${escapeHtml(typeLabel)}</div>
-      </div>
-      <span class="chevron">${selected ? '✓' : '›'}</span>
-    </div>`;
-  }).join('');
-};
-
-window.assignPlaybookToAccount = async function(accountId){
-  if(!currentPlaybook || !isSuperAdmin) return;
-  const ownerId = accountId || 'head';
-  await updateDoc(doc(db,'playbooks',currentPlaybook.id), { ownerId });
-  currentPlaybook.ownerId = ownerId;
-  const pb = playbooks.find(p=>p.id===currentPlaybook.id);
-  if(pb) pb.ownerId = ownerId;
-  toast('Playbook assigned','ok');
-  renderAssignList();
-};
-
 </script>
 </body>
 </html>
