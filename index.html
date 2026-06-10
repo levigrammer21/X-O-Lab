@@ -553,8 +553,6 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <button class="btn btn-p" onclick="loginWithEmail()">Login</button>
     <div style="height:8px"></div>
     <button class="btn btn-g" onclick="loginWithGoogle()">Continue with Google</button>
-    <div class="auth-divider">Legacy</div>
-    <button class="btn btn-g" onclick="goAdmin()">Legacy Coach/Admin Password</button>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','loginScreen')">Back</button>
   </div>
@@ -630,7 +628,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <p>Temporary access for existing legacy coach passwords. Admin access now uses Google login.</p>
     <div class="field"><label>Password</label><input type="password" id="adminPwInput" placeholder="••••••••" autocomplete="off"></div>
     <div id="adminPwErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Legacy coach password not found</div>
-    <button class="btn btn-p" onclick="checkAdminPw()">Enter</button>
+    <button class="btn btn-p" onclick="goBack('landingScreen','adminPwScreen')">Back to Login</button>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="clearCacheAndReload()">Clear Cache & Reload</button>
     <div style="height:10px"></div>
@@ -667,8 +665,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="screen hidden" id="coachesScreen">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack('playbooksScreen','coachesScreen')">←</button>
-    <div class="hdr-title"><h1>ADMIN</h1><p>Manage users, roles, and legacy coaches</p></div>
-    <button class="hdr-btn" onclick="openSheet('newCoachSheet')">+ Legacy Coach</button>
+    <div class="hdr-title"><h1>ADMIN</h1><p>Manage users, roles, and playbook ownership</p></div>
   </div>
   <div class="scroll" id="coachesList"></div>
 </div>
@@ -937,17 +934,6 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
 </div>
 
-<!-- NEW COACH SHEET -->
-<div class="overlay" id="newCoachOverlay" onclick="closeSheet('newCoachSheet')"></div>
-<div class="sheet" id="newCoachSheet">
-  <div class="handle"></div>
-  <h2>New Coach</h2>
-  <p class="sub">They'll log in with this password and only see their own playbooks.</p>
-  <div class="field"><label>Coach Name</label><input id="ncName" placeholder="e.g. Coach Mike, 3/4 Coach"></div>
-  <div class="field"><label>Password</label><input id="ncPw" placeholder="e.g. coach34" autocomplete="off"></div>
-  <button class="btn btn-p" onclick="addCoach()">Create Coach</button>
-</div>
-
 <div class="overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
 <div class="sheet" id="deleteSheet">
   <div class="handle"></div>
@@ -1000,7 +986,7 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
-const SUPER_ADMIN_PASSWORDS = []; // Disabled: Google admin only; legacy coach passwords still work.
+const SUPER_ADMIN_PASSWORDS = []; // Password admin login removed. Use Google/admin account. // Disabled: Google admin only; legacy coach passwords still work.
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -1496,35 +1482,7 @@ window.clearCacheAndReload = async ()=>{
   }
 };
 
-window.checkAdminPw = async ()=>{
-  const pw=document.getElementById('adminPwInput').value.trim();
-  if(!pw){
-    document.getElementById('adminPwErr').textContent='Enter a password';
-    document.getElementById('adminPwErr').style.display='block';
-    return;
-  }
-  if(SUPER_ADMIN_PASSWORDS.includes(pw)){
-    currentAccount=null; currentUserId=null; currentRole='admin';
-    canEdit=true; isViewOnly=false; isSuperAdmin=true;
-    currentCoachId=null; currentCoachName='Head Coach';
-    [playbooks, coaches] = await Promise.all([loadPlaybooks(), loadCoaches()]);
-    renderPlaybooks();
-    navTo('playbooksScreen');
-    return;
-  }
-  const coach = await findCoachByPassword(pw);
-  if(!coach){
-    document.getElementById('adminPwErr').textContent='Legacy coach password not found';
-    document.getElementById('adminPwErr').style.display='block';
-    return;
-  }
-  currentAccount=null; currentUserId=null; currentRole=coach.role||'basic';
-  canEdit=true; isViewOnly=false; isSuperAdmin=false;
-  currentCoachId=coach.id; currentCoachName=coach.name||'Coach';
-  playbooks = await loadPlaybooks(currentCoachId);
-  renderPlaybooks();
-  navTo('playbooksScreen');
-};
+window.checkAdminPw = async ()=>{ toast('Password login has been removed. Use Google or email login.','err'); };
 
 window.checkViewCode = async ()=>{
   const code=document.getElementById('viewCodeInput').value.trim().toUpperCase();
@@ -1653,7 +1611,7 @@ function renderCoaches(){
       <div style="width:46px;height:46px;border-radius:12px;background:rgba(65,130,240,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🔑</div>
       <div class="card-body">
         <div class="card-name">${esc(c.name)} <span class="account-pill basic">legacy</span></div>
-        <div class="card-sub">Password: <b style="color:var(--accent);font-family:monospace">${esc(c.password)}</b> · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
+        <div class="card-sub">Password hidden<b style="color:var(--accent);font-family:monospace">${esc(c.password)}</b> · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
       </div>
       <button class="icon-del" onclick="confirmDelCoach('${c.id}')">🗑</button>
     </div>`;
@@ -1748,19 +1706,18 @@ function renderAssignList(){
   const legacy=(coaches||[]).map(c=>({
     assignOwnerId:c.id,
     name:c.name || 'Legacy Coach',
-    sub:'Legacy password coach',
+    sub:'Legacy coach removed',
     icon:'🔑',
     badge:'legacy'
   }));
 
   const options = [
     {assignOwnerId:'head', name:'Head Coach / Admin', sub:'Default admin owner', icon:'👑', badge:'admin'},
-    ...registered,
-    ...legacy
+    ...registered
   ];
 
   if(!options.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">👥</div><h3>No Accounts</h3><p>No registered or legacy coaches found.</p></div>';
+    el.innerHTML='<div class="empty"><div class="empty-ico">👥</div><h3>No Accounts</h3><p>No registered users found.</p></div>';
     return;
   }
 
