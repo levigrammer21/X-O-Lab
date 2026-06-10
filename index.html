@@ -3072,9 +3072,32 @@ function drawSegment(c, pts, type, color, isLast, sc){
 }
 
 
-function drawZonesOn(c,canv,sc,zones,selected,toScreen){
+function drawZonesOn(c,canv,sc,zones,selected,toScreen,players=[]){
   (zones||[]).forEach(z=>{
+    const attached=(players||[]).find(p=>p.id===z.playerId);
     const s=toScreen(z.x,z.y);
+
+    // Draw player-to-zone responsibility line first, behind the bubble.
+    if(attached){
+      const ps=toScreen(attached.x,attached.y);
+      c.save();
+      c.strokeStyle=z.stroke||'#4182f0';
+      c.lineWidth=Math.max(2,2.6*Math.min(sc,1.4));
+      c.lineCap='round';
+      c.setLineDash([]);
+      c.beginPath();
+      c.moveTo(ps.x,ps.y);
+      c.lineTo(s.x,s.y);
+      c.stroke();
+
+      // Small dot at zone end so it reads as attached.
+      c.fillStyle=z.stroke||'#4182f0';
+      c.beginPath();
+      c.arc(s.x,s.y,Math.max(3,4*Math.min(sc,1.4)),0,Math.PI*2);
+      c.fill();
+      c.restore();
+    }
+
     const rx=(z.w||180)*sc/2;
     const ry=(z.h||95)*sc/2;
     c.save();
@@ -3088,11 +3111,17 @@ function drawZonesOn(c,canv,sc,zones,selected,toScreen){
     c.setLineDash([8,5]);
     c.stroke();
     c.setLineDash([]);
-    c.fillStyle='rgba(255,255,255,.92)';
-    c.font=`bold ${Math.max(10,13*Math.min(sc,1.3))}px DM Sans`;
-    c.textAlign='center';
-    c.textBaseline='middle';
-    c.fillText((z.label||'ZONE').toUpperCase().slice(0,14),s.x,s.y);
+
+    // Label can be blank; if blank, show attached player's position inside the zone.
+    const attachedLabel=attached?(attached.pos||''):'';
+    const label=(z.label||attachedLabel||'ZONE').toUpperCase().slice(0,14);
+    if(label){
+      c.fillStyle='rgba(255,255,255,.92)';
+      c.font=`bold ${Math.max(10,13*Math.min(sc,1.3))}px DM Sans`;
+      c.textAlign='center';
+      c.textBaseline='middle';
+      c.fillText(label,s.x,s.y);
+    }
     c.restore();
   });
 }
@@ -3113,8 +3142,8 @@ function drawAll(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
   drawFieldOn(ctx,cv,vs,toS);
-  drawZonesOn(ctx,cv,vs,eZones,null,toS);
-  drawZonesOn(ctx,cv,vs,eZones,selZ,toS);
+  drawZonesOn(ctx,cv,vs,eZones,null,toS,ePlayers);
+  drawZonesOn(ctx,cv,vs,eZones,selZ,toS,ePlayers);
   eRoutes.forEach(route=>{
     route.segments.forEach((seg,si)=>{
       const pts=seg.pts.map(p=>toS(p.x,p.y));
@@ -3390,7 +3419,7 @@ cv.addEventListener('touchmove',e=>{
         ctx.clearRect(0,0,cv.width,cv.height);
         ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
         drawFieldOn(ctx,cv,vs,toS);
-        drawZonesOn(ctx,cv,vs,eZones,selZ,toS);
+        drawZonesOn(ctx,cv,vs,eZones,selZ,toS,ePlayers);
         eRoutes.forEach(route=>{route.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===route.segments.length-1,vs);});});
         previewRoute.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===previewRoute.segments.length-1,vs);});
         drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
@@ -3452,19 +3481,26 @@ function handleDown(sx,sy){
   }
   if(tool==='zone'){
     if(zhit){
-      selZ=zhit; selP=null;
+      selZ=zhit;
+      const attached=ePlayers.find(p=>p.id===zhit.playerId);
+      selP=attached||null;
       const fp0=toF(sx,sy);
       zoneDragging=true;
       zoneDragOX=fp0.x-zhit.x;
       zoneDragOY=fp0.y-zhit.y;
       buildOpts(); drawAll();
+    } else if(hit){
+      selP=hit;
+      selZ=null;
+      buildOpts(); drawAll();
+      toast('Defender selected — tap field to place zone','ok');
     } else {
       addZoneAt(fp);
     }
     return;
   }
   if(zhit){
-    selZ=zhit; selP=null; buildOpts(); drawAll(); return;
+    selZ=zhit; selP=ePlayers.find(p=>p.id===zhit.playerId)||null; buildOpts(); drawAll(); return;
   }
   if(hit){
     if(activeRoute && activeRoute.playerId!==hit.id){
@@ -3518,7 +3554,7 @@ window.setZoneTool=function(){
 
 function addZoneAt(fp){
   pushH();
-  const z={id:uid(),x:fp.x,y:fp.y,w:190,h:105,label:zoneLabel,fill:zoneColor,stroke:zoneStroke};
+  const z={id:uid(),x:fp.x,y:fp.y,w:190,h:105,label:zoneLabel,fill:zoneColor,stroke:zoneStroke,playerId:selP?selP.id:null};
   eZones.push(z);
   selZ=z;
   buildOpts();
@@ -3538,6 +3574,20 @@ window.deleteSelectedZone=deleteSelectedZone;
 window.setZoneLabel=function(v){
   if(selZ){ selZ.label=(v||'ZONE').toUpperCase().slice(0,14); drawAll(); }
   zoneLabel=(v||'ZONE').toUpperCase().slice(0,14);
+};
+
+
+window.attachSelectedPlayerToZone=function(){
+  if(!selZ || !selP){ toast('Select a zone and player first',''); return; }
+  selZ.playerId=selP.id;
+  drawAll();
+  toast('Zone attached','ok');
+};
+window.detachZone=function(){
+  if(!selZ) return;
+  selZ.playerId=null;
+  drawAll();
+  toast('Zone detached','ok');
 };
 
 window.setZoneSize=function(size){
@@ -3605,9 +3655,15 @@ function buildOpts(){
     h+=`<button class="chip on" style="background:var(--green);color:#000;border-color:var(--green)" onclick="commitRoute()">✓ DONE</button>`;
     h+=`<div class="osep"></div>`;
   }
+  if(tool==='zone' && !selZ){
+    h+=`<div class="osep"></div><span class="olbl">${selP?'TAP FIELD TO PLACE LINKED ZONE':'TAP DEFENDER, THEN FIELD'}</span>`;
+  }
   if(selZ){
     h+=`<span class="olbl">ZONE</span>`;
     h+=`<input class="label-input" value="${esc(selZ.label||'ZONE')}" maxlength="14" oninput="setZoneLabel(this.value)" placeholder="ZONE" style="width:96px">`;
+    const attachedPlayer=ePlayers.find(p=>p.id===selZ.playerId);
+    h+=`<button class="chip${attachedPlayer?' on':''}" onclick="detachZone()">${attachedPlayer?'Linked: '+esc(attachedPlayer.pos||'P'):'No Link'}</button>`;
+    if(selP && selP.id!==selZ.playerId) h+=`<button class="chip" onclick="attachSelectedPlayerToZone()">Link ${esc(selP.pos||'P')}</button>`;
     h+=`<button class="chip" onclick="setZoneSize('flat')">Flat</button>`;
     h+=`<button class="chip" onclick="setZoneSize('hook')">Hook</button>`;
     h+=`<button class="chip" onclick="setZoneSize('curl')">Curl</button>`;
@@ -3678,7 +3734,7 @@ function renderPlayToImage(play, w=900, h=540){
 
   c.fillStyle='#070809';c.fillRect(0,0,w,h);
   drawFieldOn(c,off,sc,toScreen);
-  drawZonesOn(c,off,sc,play.data?.zones||[],null,toScreen);
+  drawZonesOn(c,off,sc,play.data?.zones||[],null,toScreen,play.data?.players||[]);
   (play.data?.routes||[]).forEach(route=>{
     (route.segments||[]).forEach((seg,si)=>{
       const pts=(seg.pts||[]).map(p=>toScreen(p.x,p.y));
