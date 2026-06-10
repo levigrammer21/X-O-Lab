@@ -646,6 +646,34 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   margin:16px 0 10px;
 }
 
+
+/* MOBILE PLAY FIELD READABILITY PATCH */
+@media (max-width:700px){
+  #editorScreen:not(.presentation-mode) .canvas-wrap{
+    min-height:42vh;
+  }
+  #editorScreen:not(.presentation-mode) .play-info-row{
+    flex-shrink:0;
+  }
+}
+@media (max-width:480px){
+  #editorScreen:not(.presentation-mode) .canvas-wrap{
+    min-height:40vh;
+  }
+}
+
+
+/* ZONE COVERAGE TOOL */
+@media (max-width:700px){
+  #editorScreen:not(.presentation-mode) .tool-row{
+    gap:5px;
+  }
+  #editorScreen:not(.presentation-mode) .tool-btn{
+    font-size:9px;
+    min-width:0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -946,6 +974,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <button class="tool-btn on" id="seg-route" onclick="setSegType('route')"><span class="ti">↗</span>ROUTE</button>
       <button class="tool-btn" id="seg-motion" onclick="setSegType('motion')"><span class="ti">〰</span>MOTION</button>
       <button class="tool-btn" id="seg-block" onclick="setSegType('block')"><span class="ti">▬</span>BLOCK</button>
+      <button class="tool-btn" id="tool-zone" onclick="setZoneTool()"><span class="ti">◯</span>ZONE</button>
       <button class="tool-btn" id="tool-erase" onclick="toggleErase()"><span class="ti">✕</span>ERASE</button>
     </div>
     <div class="opts" id="optionsRow"></div>
@@ -1194,12 +1223,14 @@ let fPinching=false,fPd0=0,fPvx0=0,fPvy0=0;
 let fPColor='#f0b429', fPPos='QB';
 
 // Play editor state
-let ePlayers=[], eRoutes=[];
+let ePlayers=[], eRoutes=[], eZones=[];
 let selP=null;
 let tool='draw';
 let segType='route';
 let pColor='#f0b429', rColor='#41c97a', pPos='WR';
 let activeRoute=null;
+let selZ=null, zoneDragging=false, zoneDragOX=0, zoneDragOY=0;
+let zoneColor='rgba(65,130,240,.20)', zoneStroke='#4182f0', zoneLabel='ZONE';
 let isPanning=false, panSX=0, panSY=0;
 let eHistory=[];
 let vx=0,vy=0,vs=1;
@@ -2442,7 +2473,7 @@ window.newPlay=function(){
   updatePlayNavButtons();
   tool='draw';setSegType('route');
   navTo('editorScreen'); applyViewOnlyUiLocks();
-  setTimeout(()=>{refitAndDraw(24);},110);
+  setTimeout(()=>{refitAndDraw(window.innerWidth<720?8:24);},110);
 };
 
 // Next order value to use for a new play (always appended to the end)
@@ -2563,7 +2594,7 @@ async function saveCurrentPlay(silent=false){
   if(!name){toast('Enter a play name','err');return false;}
   const description=document.getElementById('playDescInput').value.trim();
   const playType=document.getElementById('playTypeSelect').value;
-  const data={players:ePlayers,routes:eRoutes};
+  const data={players:ePlayers,routes:eRoutes,zones:eZones};
   if(currentPlay){
     currentPlay.name=name;currentPlay.description=description;currentPlay.playType=playType;currentPlay.data=data;
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
@@ -2586,6 +2617,7 @@ window.openPlay=function(id, stayOnEditor=false){
   stopRouteAnimation(false);
   ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
+  eZones=JSON.parse(JSON.stringify(currentPlay.data?.zones||[]));
   selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value=currentPlay.name;
   const desc=currentPlay.description||'';
@@ -2605,7 +2637,7 @@ window.openPlay=function(id, stayOnEditor=false){
   tool='draw';setSegType('route');
   if(!stayOnEditor) navTo('editorScreen'); applyViewOnlyUiLocks();
   setTimeout(()=>{
-    refitAndDraw(24);
+    refitAndDraw(window.innerWidth<720?8:24);
   },110);
 };
 
@@ -2903,7 +2935,7 @@ function toF(sx,sy){return{x:(sx-vx-cv.width/2+FW/2*vs)/vs,y:(sy-vy-cv.height/2+
 
 function fitPlayToCanvas(extraPad=24){
   if(!cv.width || !cv.height) return;
-  const pad=Math.max(12,extraPad);
+  const pad=Math.max(6, Math.min(extraPad, cv.width<720?10:extraPad));
   const scaleX=(cv.width-pad*2)/FW;
   const scaleY=(cv.height-pad*2)/FH;
   vs=Math.max(.1,Math.min(scaleX,scaleY));
@@ -2960,7 +2992,7 @@ function drawFieldOn(c,canv,sc,toScreen){
 
 function drawPlayersOn(c,canv,sc,players,selected,toScreen){
   players.forEach(p=>{
-    const s=toScreen(p.x,p.y),r=Math.max(14,18*Math.min(sc,1.4));
+    const s=toScreen(p.x,p.y),r=Math.max(8,18*Math.min(sc,1.4));
     c.save();
     if(p===selected){c.shadowColor='#fff';c.shadowBlur=14;}
     if(p.pos==='C'){
@@ -3039,10 +3071,50 @@ function drawSegment(c, pts, type, color, isLast, sc){
   c.restore();
 }
 
+
+function drawZonesOn(c,canv,sc,zones,selected,toScreen){
+  (zones||[]).forEach(z=>{
+    const s=toScreen(z.x,z.y);
+    const rx=(z.w||180)*sc/2;
+    const ry=(z.h||95)*sc/2;
+    c.save();
+    if(z===selected){ c.shadowColor=z.stroke||'#4182f0'; c.shadowBlur=14; }
+    c.beginPath();
+    c.ellipse(s.x,s.y,Math.max(10,rx),Math.max(8,ry),0,0,Math.PI*2);
+    c.fillStyle=z.fill||'rgba(65,130,240,.20)';
+    c.fill();
+    c.strokeStyle=z.stroke||'#4182f0';
+    c.lineWidth=z===selected?3:2;
+    c.setLineDash([8,5]);
+    c.stroke();
+    c.setLineDash([]);
+    c.fillStyle='rgba(255,255,255,.92)';
+    c.font=`bold ${Math.max(10,13*Math.min(sc,1.3))}px DM Sans`;
+    c.textAlign='center';
+    c.textBaseline='middle';
+    c.fillText((z.label||'ZONE').toUpperCase().slice(0,14),s.x,s.y);
+    c.restore();
+  });
+}
+
+function zoneAt(sx,sy){
+  for(let i=eZones.length-1;i>=0;i--){
+    const z=eZones[i];
+    const s=toS(z.x,z.y);
+    const rx=Math.max(10,(z.w||180)*vs/2);
+    const ry=Math.max(8,(z.h||95)*vs/2);
+    const dx=(sx-s.x)/rx, dy=(sy-s.y)/ry;
+    if(dx*dx+dy*dy<=1) return z;
+  }
+  return null;
+}
+
 function drawAll(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
   drawFieldOn(ctx,cv,vs,toS);
+  drawZonesOn(ctx,cv,vs,eZones,null,toS);
+  drawZonesOn(ctx,cv,vs,eZones,selZ,toS);
   eRoutes.forEach(route=>{
     route.segments.forEach((seg,si)=>{
       const pts=seg.pts.map(p=>toS(p.x,p.y));
@@ -3205,6 +3277,7 @@ window.flipPlay=function(){
   if(activeRoute) commitRoute();
   ePlayers.forEach(p=>{p.x=FW-p.x;});
   eRoutes.forEach(r=>{(r.segments||[]).forEach(seg=>{(seg.pts||[]).forEach(pt=>{pt.x=FW-pt.x;});});});
+  eZones.forEach(z=>{z.x=FW-z.x;});
   drawAll();
   toast('Play flipped — tap Save to keep it','ok');
 };
@@ -3222,7 +3295,7 @@ window.togglePlayFullscreen=async function(){
       setPresentationMode(false);
       const btn=document.getElementById('fullscreenBtn');
       if(btn) btn.textContent='⛶ Fullscreen';
-      setTimeout(()=>{refitAndDraw(24);},200);
+      setTimeout(()=>{refitAndDraw(window.innerWidth<720?8:24);},200);
       return;
     }
     setPresentationMode(true);
@@ -3261,7 +3334,7 @@ window.exitPresentationMode=function(){
 
 function playerAt(sx,sy){
   return ePlayers.find(p=>{
-    const s=toS(p.x,p.y),r=Math.max(14,18*Math.min(vs,1.4));
+    const s=toS(p.x,p.y),r=Math.max(8,18*Math.min(vs,1.4));
     return Math.hypot(sx-s.x,sy-s.y)<r+2;
   });
 }
@@ -3299,6 +3372,11 @@ cv.addEventListener('touchmove',e=>{
   }
   if(e.touches.length===1){
     const p=cvPos(e.touches[0],cv);
+    if(zoneDragging && selZ){
+      const fp=toF(p.x,p.y);
+      selZ.x=fp.x-zoneDragOX; selZ.y=fp.y-zoneDragOY; drawAll();
+      return;
+    }
     if(isPanning){
       vx=p.x-panSX;vy=p.y-panSY;drawAll();
       return;
@@ -3312,6 +3390,7 @@ cv.addEventListener('touchmove',e=>{
         ctx.clearRect(0,0,cv.width,cv.height);
         ctx.fillStyle='#070809';ctx.fillRect(0,0,cv.width,cv.height);
         drawFieldOn(ctx,cv,vs,toS);
+        drawZonesOn(ctx,cv,vs,eZones,selZ,toS);
         eRoutes.forEach(route=>{route.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===route.segments.length-1,vs);});});
         previewRoute.segments.forEach((s,si)=>{drawSegment(ctx,s.pts.map(pt=>toS(pt.x,pt.y)),s.type,s.color,si===previewRoute.segments.length-1,vs);});
         drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
@@ -3327,7 +3406,7 @@ cv.addEventListener('touchend',e=>{
     const dx=p.x-playSwipeSX, dy=p.y-playSwipeSY;
     if(Math.abs(dx)>90 && Math.abs(dx)>Math.abs(dy)*1.8 && (Date.now()-playSwipeT)<800){
       openAdjacentPlay(dx<0?1:-1);
-      pinching=false;isPanning=false;
+      pinching=false;isPanning=false;zoneDragging=false;
       return;
     }
   }
@@ -3336,9 +3415,10 @@ cv.addEventListener('touchend',e=>{
 
 cv.addEventListener('mousedown',e=>handleDown(e.offsetX,e.offsetY));
 cv.addEventListener('mousemove',e=>{
+  if(zoneDragging && selZ){const fp=toF(e.offsetX,e.offsetY);selZ.x=fp.x-zoneDragOX;selZ.y=fp.y-zoneDragOY;drawAll();return;}
   if(isPanning){vx=e.offsetX-panSX;vy=e.offsetY-panSY;drawAll();}
 });
-cv.addEventListener('mouseup',()=>{isPanning=false;});
+cv.addEventListener('mouseup',()=>{isPanning=false;zoneDragging=false;});
 cv.addEventListener('wheel',e=>{
   e.preventDefault();
   const zf=e.deltaY>0?.92:1.09,ns=Math.min(4,Math.max(.25,vs*zf));
@@ -3353,8 +3433,14 @@ function handleDown(sx,sy){
     isPanning=true;panSX=sx-vx;panSY=sy-vy;
     return;
   }
+  const zhit=zoneAt(sx,sy);
   if(tool==='erase'){
-    if(hit){
+    if(zhit){
+      pushH();
+      eZones=eZones.filter(z=>z!==zhit);
+      selZ=null;
+      drawAll();
+    } else if(hit){
       pushH();
       eRoutes=eRoutes.filter(r=>r.playerId!==hit.id);
       drawAll();
@@ -3363,6 +3449,22 @@ function handleDown(sx,sy){
       if(nr){pushH();eRoutes=eRoutes.filter(r=>r!==nr);drawAll();}
     }
     return;
+  }
+  if(tool==='zone'){
+    if(zhit){
+      selZ=zhit; selP=null;
+      const fp0=toF(sx,sy);
+      zoneDragging=true;
+      zoneDragOX=fp0.x-zhit.x;
+      zoneDragOY=fp0.y-zhit.y;
+      buildOpts(); drawAll();
+    } else {
+      addZoneAt(fp);
+    }
+    return;
+  }
+  if(zhit){
+    selZ=zhit; selP=null; buildOpts(); drawAll(); return;
   }
   if(hit){
     if(activeRoute && activeRoute.playerId!==hit.id){
@@ -3403,8 +3505,59 @@ function commitRoute(){
   buildOpts();drawAll();
 }
 
+
+window.setZoneTool=function(){
+  if(activeRoute) commitRoute();
+  tool='zone';
+  selP=null;
+  document.getElementById('tool-erase')?.classList.remove('on');
+  document.getElementById('tool-zone')?.classList.add('on');
+  buildOpts();
+  drawAll();
+};
+
+function addZoneAt(fp){
+  pushH();
+  const z={id:uid(),x:fp.x,y:fp.y,w:190,h:105,label:zoneLabel,fill:zoneColor,stroke:zoneStroke};
+  eZones.push(z);
+  selZ=z;
+  buildOpts();
+  drawAll();
+}
+
+function deleteSelectedZone(){
+  if(!selZ) return;
+  pushH();
+  eZones=eZones.filter(z=>z!==selZ);
+  selZ=null;
+  buildOpts();
+  drawAll();
+}
+window.deleteSelectedZone=deleteSelectedZone;
+
+window.setZoneLabel=function(v){
+  if(selZ){ selZ.label=(v||'ZONE').toUpperCase().slice(0,14); drawAll(); }
+  zoneLabel=(v||'ZONE').toUpperCase().slice(0,14);
+};
+
+window.setZoneSize=function(size){
+  if(!selZ) return;
+  const presets={
+    flat:{w:150,h:85,label:'FLAT'},
+    hook:{w:190,h:110,label:'HOOK'},
+    curl:{w:210,h:120,label:'CURL'},
+    deep:{w:260,h:145,label:'DEEP'}
+  };
+  const p=presets[size]||presets.hook;
+  selZ.w=p.w; selZ.h=p.h;
+  if(!selZ.label || selZ.label==='ZONE') selZ.label=p.label;
+  buildOpts();
+  drawAll();
+};
+
 window.setTool=function(t){
   tool=t;
+  selZ=null; zoneDragging=false; document.getElementById('tool-zone')?.classList.remove('on');
   if(tool!=='erase' && activeRoute) commitRoute();
   buildOpts();drawAll();
 };
@@ -3413,15 +3566,18 @@ window.toggleErase=function(){
   if(tool==='erase'){
     tool='draw';
     document.getElementById('tool-erase').classList.remove('on');
+    document.getElementById('tool-zone')?.classList.remove('on');
   } else {
     if(activeRoute) commitRoute();
     tool='erase';
+    selZ=null;zoneDragging=false;document.getElementById('tool-zone')?.classList.remove('on');
     document.getElementById('tool-erase').classList.add('on');
   }
   buildOpts();drawAll();
 };
 
 window.setSegType=function(t){
+  if(tool==='zone'){ tool='draw'; selZ=null; zoneDragging=false; document.getElementById('tool-zone')?.classList.remove('on'); }
   segType=t;
   ['route','motion','block'].forEach(s=>{
     const el=document.getElementById('seg-'+s);
@@ -3447,6 +3603,16 @@ function buildOpts(){
   h+=`<div class="osep"></div>`;
   if(activeRoute){
     h+=`<button class="chip on" style="background:var(--green);color:#000;border-color:var(--green)" onclick="commitRoute()">✓ DONE</button>`;
+    h+=`<div class="osep"></div>`;
+  }
+  if(selZ){
+    h+=`<span class="olbl">ZONE</span>`;
+    h+=`<input class="label-input" value="${esc(selZ.label||'ZONE')}" maxlength="14" oninput="setZoneLabel(this.value)" placeholder="ZONE" style="width:96px">`;
+    h+=`<button class="chip" onclick="setZoneSize('flat')">Flat</button>`;
+    h+=`<button class="chip" onclick="setZoneSize('hook')">Hook</button>`;
+    h+=`<button class="chip" onclick="setZoneSize('curl')">Curl</button>`;
+    h+=`<button class="chip" onclick="setZoneSize('deep')">Deep</button>`;
+    h+=`<button class="chip red" onclick="deleteSelectedZone()">Delete Zone</button>`;
     h+=`<div class="osep"></div>`;
   }
   if(selP){
@@ -3475,7 +3641,7 @@ window.setSPLabel=(v)=>{ if(selP){ selP.pos=(v||'').toUpperCase().slice(0,3); dr
 window.commitRoute=commitRoute;
 window.finishRoute=commitRoute;
 
-function pushH(){ eHistory.push(JSON.parse(JSON.stringify(eRoutes))); if(eHistory.length>30)eHistory.shift(); }
+function pushH(){ eHistory.push(JSON.parse(JSON.stringify({routes:eRoutes,zones:eZones}))); if(eHistory.length>30)eHistory.shift(); }
 window.undoA=function(){
   if(activeRoute){
     if(activeRoute.segments.length>1){
@@ -3490,10 +3656,13 @@ window.undoA=function(){
     return;
   }
   if(!eHistory.length){toast('Nothing to undo','');return;}
-  eRoutes=eHistory.pop();
+  const prev=eHistory.pop();
+  if(Array.isArray(prev)){ eRoutes=prev; }
+  else { eRoutes=prev.routes||[]; eZones=prev.zones||[]; }
+  selZ=null;zoneDragging=false;
   drawAll();toast('Undone','ok');
 };
-window.clearCv=function(){if(!confirm('Clear all routes?'))return;pushH();eRoutes=[];activeRoute=null;selP=null;buildOpts();drawAll();};
+window.clearCv=function(){if(!confirm('Clear all routes and zones?'))return;pushH();eRoutes=[];eZones=[];activeRoute=null;selP=null;selZ=null;zoneDragging=false;buildOpts();drawAll();};
 
 // ═══════════════════════════════════════════════
 // PRINT (single play + full playbook)
@@ -3509,6 +3678,7 @@ function renderPlayToImage(play, w=900, h=540){
 
   c.fillStyle='#070809';c.fillRect(0,0,w,h);
   drawFieldOn(c,off,sc,toScreen);
+  drawZonesOn(c,off,sc,play.data?.zones||[],null,toScreen);
   (play.data?.routes||[]).forEach(route=>{
     (route.segments||[]).forEach((seg,si)=>{
       const pts=(seg.pts||[]).map(p=>toScreen(p.x,p.y));
