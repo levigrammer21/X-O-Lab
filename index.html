@@ -594,6 +594,58 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   }
 }
 
+
+/* SOCIAL SIGN-IN BUTTON POLISH */
+.social-login-stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:10px;
+}
+.btn-provider{
+  position:relative;
+  min-height:56px;
+  border-radius:15px!important;
+  font-weight:900;
+  letter-spacing:.1px;
+  overflow:hidden;
+  border:1.5px solid rgba(255,255,255,.12)!important;
+}
+.btn-provider .provider-ico{
+  position:absolute;
+  left:16px;
+  width:28px;
+  height:28px;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:900;
+}
+.btn-google{
+  background:#fff!important;
+  color:#1f1f1f!important;
+  box-shadow:0 10px 26px rgba(255,255,255,.08);
+}
+.btn-google .provider-ico{
+  background:#f1f3f4;
+  color:#4285f4;
+}
+.btn-apple{
+  background:#050505!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.22)!important;
+  box-shadow:0 10px 26px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.btn-apple .provider-ico{
+  background:#fff;
+  color:#000;
+}
+.auth-divider.social{
+  margin:16px 0 10px;
+}
+
 </style>
 </head>
 <body>
@@ -666,7 +718,11 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <div id="loginErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="loginWithEmail()">Login</button>
     <div style="height:8px"></div>
-    <button class="btn btn-g" onclick="loginWithGoogle()">Continue with Google</button>
+    <div class="auth-divider social">Fast sign in</div>
+    <div class="social-login-stack">
+      <button class="btn btn-provider btn-google" onclick="loginWithGoogle()"><span class="provider-ico">G</span>Continue with Google</button>
+      <button class="btn btn-provider btn-apple" onclick="loginWithApple()"><span class="provider-ico"></span>Continue with Apple</button>
+    </div>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','loginScreen')">Back</button>
   </div>
@@ -691,7 +747,11 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <div id="regErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="registerWithEmail()">Create Basic Account</button>
     <div style="height:8px"></div>
-    <button class="btn btn-g" onclick="registerWithGoogle()">Register with Google</button>
+    <div class="auth-divider social">Or use a provider</div>
+    <div class="social-login-stack">
+      <button class="btn btn-provider btn-google" onclick="registerWithGoogle()"><span class="provider-ico">G</span>Register with Google</button>
+      <button class="btn btn-provider btn-apple" onclick="registerWithApple()"><span class="provider-ico"></span>Register with Apple</button>
+    </div>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','registerScreen')">Back</button>
   </div>
@@ -1090,7 +1150,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile, linkWithPopup, OAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const fbConfig = {
   apiKey: "AIzaSyAn23czySBNVndL0myYOctnjq5hZaPSaDg",
@@ -1577,6 +1637,35 @@ window.loginWithGoogle = async ()=>{
     await enterAccountApp(rec);
   }catch(e){ setLoginError('loginErr', e.message || 'Google sign-in failed'); }
 };
+
+async function signInWithAppleFlow(){
+  const provider = new OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+  const cred = await signInWithPopup(auth, provider);
+  const user = cred.user;
+  const displayName = user.displayName || user.email || 'Coach';
+  currentUser = user;
+  currentAccount = await ensureUserRecord(user, {name: displayName, role:'basic'});
+  await openUserPlaybooks();
+}
+window.loginWithApple = async function(){
+  try{
+    await signInWithAppleFlow();
+  }catch(e){
+    console.error(e);
+    setLoginError('loginErr', readableAuthError(e));
+  }
+};
+window.registerWithApple = async function(){
+  try{
+    await signInWithAppleFlow();
+  }catch(e){
+    console.error(e);
+    setLoginError('regErr', readableAuthError(e));
+  }
+};
+
 window.registerWithGoogle = async ()=>window.loginWithGoogle();
 window.linkGoogleAccount = async ()=>{
   if(!auth.currentUser){ toast('Login first','err'); return; }
