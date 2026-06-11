@@ -1404,6 +1404,110 @@ async function findPlaybookByCode(code){
   const d=snap.docs[0];
   return {id:d.id,...d.data()};
 }
+
+function getGuestViewerId(){
+  const key='xolab_guest_viewer_id';
+  let id=localStorage.getItem(key);
+  if(!id){
+    id='guest_'+uid();
+    localStorage.setItem(key,id);
+  }
+  return id;
+}
+
+function currentViewerInfo(){
+  const authUser = auth && auth.currentUser ? auth.currentUser : null;
+  if(currentUserId || authUser){
+    return {
+      viewerId:'user:'+(currentUserId || authUser.uid),
+      viewerType:'user',
+      name:(currentAccount && currentAccount.name) || (authUser && authUser.displayName) || '',
+      email:(currentAccount && currentAccount.email) || (authUser && authUser.email) || ''
+    };
+  }
+  return {
+    viewerId:getGuestViewerId(),
+    viewerType:'guest',
+    name:'Guest',
+    email:''
+  };
+}
+
+async function trackViewCodeOpen(pb, source='viewCode'){
+  try{
+    if(!pb || !pb.id) return;
+    const info=currentViewerInfo();
+    const ref=doc(db,'playbooks',pb.id,'viewers',info.viewerId);
+    const snap=await getDoc(ref);
+    const now=Date.now();
+    if(snap.exists()){
+      const old=snap.data() || {};
+      await setDoc(ref,{
+        ...old,
+        playbookId:pb.id,
+        playbookName:pb.name || '',
+        viewCode:pb.viewCode || '',
+        viewerId:info.viewerId,
+        viewerType:info.viewerType,
+        name:info.name || old.name || '',
+        email:info.email || old.email || '',
+        lastViewedAt:now,
+        viewCount:(old.viewCount || 0) + 1,
+        lastSource:source
+      },{merge:true});
+    }else{
+      await setDoc(ref,{
+        playbookId:pb.id,
+        playbookName:pb.name || '',
+        viewCode:pb.viewCode || '',
+        viewerId:info.viewerId,
+        viewerType:info.viewerType,
+        name:info.name || '',
+        email:info.email || '',
+        firstViewedAt:now,
+        lastViewedAt:now,
+        viewCount:1,
+        lastSource:source
+      },{merge:true});
+    }
+  }catch(e){
+    console.warn('View tracking skipped', e);
+  }
+}
+
+async function loadPlaybookViewStats(pbId){
+  try{
+    const snap=await getDocs(collection(db,'playbooks',pbId,'viewers'));
+    let unique=snap.size, total=0, guests=0, users=0, last=0;
+    snap.docs.forEach(d=>{
+      const v=d.data() || {};
+      total += v.viewCount || 1;
+      if(v.viewerType==='user') users++; else guests++;
+      last=Math.max(last, v.lastViewedAt || 0);
+    });
+    return {unique,total,guests,users,last};
+  }catch(e){
+    console.warn('Could not load view stats', e);
+    return {unique:0,total:0,guests:0,users:0,last:0};
+  }
+}
+
+async function loadAllPlaybookViewStats(pbs){
+  const out={};
+  await Promise.all((pbs||[]).map(async pb=>{
+    out[pb.id]=await loadPlaybookViewStats(pb.id);
+  }));
+  return out;
+}
+
+function fmtViewLast(ts){
+  if(!ts) return 'Never';
+  try{
+    const d=new Date(ts);
+    return d.toLocaleDateString([], {month:'short', day:'numeric'})+' '+d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  }catch(e){ return 'Unknown'; }
+}
+
 async function loadFormations(pbId){
   const snap=await getDocs(query(fmCol(pbId),orderBy('createdAt')));
   return snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -1743,6 +1847,7 @@ window.checkViewCode = async ()=>{
   currentAccount=null; currentUserId=null; currentRole='guest';
   currentAccount=null; currentUserId=null; currentRole='guest';
   canEdit=false; isViewOnly=true;
+  await trackViewCodeOpen(pb,'manual-code');
   await openPlaybook(pb);
 };
 
@@ -1753,6 +1858,7 @@ async function checkUrlCode(){
   const pb = await findPlaybookByCode(code);
   if(!pb)return false;
   canEdit=false; isViewOnly=true;
+  await trackViewCodeOpen(pb,'url-code');
   await openPlaybook(pb);
   return true;
 }
@@ -1769,6 +1875,7 @@ window.savePlaybookByCode = async ()=>{
   if(!pb){ if(err){err.textContent='Code not found.'; err.style.display='block';} return; }
   if(ownsPlaybook(pb)){ if(err){err.textContent='This playbook is already in your account.'; err.style.display='block';} return; }
   await saveViewOnlyPlaybookForCurrentUser(pb);
+  await trackViewCodeOpen(pb,'saved-by-code');
   closeSheet('findPlaybookSheet');
   if(input) input.value='';
   toast('Playbook added as view-only','ok');
@@ -1826,6 +1933,7 @@ window.logoutToLanding = ()=>{
 window.openManageCoaches = async ()=>{
   if(!isAdminRole())return;
   [coaches, accountUsers, playbooks] = await Promise.all([loadCoaches(), loadUsers(), loadPlaybooks()]);
+  playbookViewStats = await loadAllPlaybookViewStats(playbooks);
   renderCoaches();
   navTo('coachesScreen');
 };
@@ -1863,7 +1971,18 @@ function renderCoaches(){
     el.innerHTML=`<div class="empty"><div class="empty-ico">👥</div><h3>No Users Yet</h3><p>Registered accounts will appear here. Legacy coaches can still be added.</p></div>`;
     return;
   }
-  el.innerHTML=`<div class="sec-label">Registered Users</div>${userCards || '<div class="card"><div class="card-body"><div class="card-sub">No registered users yet.</div></div></div>'}<div class="sec-label">All Playbooks</div>${playbooks.map(pb=>`<div class="card"><div class="card-body"><div class="card-name">${esc(pb.name)}</div><div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace">${esc(pb.viewCode)}</b> · Owner: ${esc(pb.ownerId||'unclaimed')}</div></div></div>`).join('') || '<div class="card"><div class="card-body"><div class="card-sub">No playbooks.</div></div></div>'}<div class="sec-label">Legacy Password Coaches</div>${legacyCards || '<div class="card"><div class="card-body"><div class="card-sub">No legacy coaches.</div></div></div>'}`;
+  el.innerHTML=`<div class="sec-label">Registered Users</div>${userCards || '<div class="card"><div class="card-body"><div class="card-sub">No registered users yet.</div></div></div>'}<div class="sec-label">All Playbooks · View Code Tracking</div>${playbooks.map(pb=>{
+    const st=playbookViewStats[pb.id] || {unique:0,total:0,guests:0,users:0,last:0};
+    return `<div class="card">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(240,180,41,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📊</div>
+      <div class="card-body">
+        <div class="card-name">${esc(pb.name)}</div>
+        <div class="card-sub">Code: <b style="color:var(--accent);font-family:monospace">${esc(pb.viewCode)}</b> · Owner: ${esc(pb.ownerId||'unclaimed')}</div>
+        <div class="card-sub">Unique viewers: <b style="color:var(--green)">${st.unique}</b> · Total opens: <b style="color:var(--blue)">${st.total}</b> · Users: ${st.users} · Guests: ${st.guests}</div>
+        <div class="card-sub">Last viewed: ${esc(fmtViewLast(st.last))}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="card"><div class="card-body"><div class="card-sub">No playbooks.</div></div></div>'}<div class="sec-label">Legacy Password Coaches</div>${legacyCards || '<div class="card"><div class="card-body"><div class="card-sub">No legacy coaches.</div></div></div>'}`;
 }
 
 window.setUserRole = async (uid, role)=>{
