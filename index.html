@@ -674,6 +674,43 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   }
 }
 
+
+
+/* ADD-ON POLISH: Sandbox + Drills, isolated from live play editor */
+.addon-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+.addon-play-card .play-preview{height:92px;background:#173b14;border:1px solid rgba(255,255,255,.06)}
+.addon-play-card .play-card-sub{gap:6px}
+.addon-play-card .icon-del{font-size:15px;padding:0 2px;color:var(--muted)}
+.addon-editor .canvas-wrap{min-height:340px;background:#050609}
+.addon-info-row{background:var(--card);border-top:1px solid var(--border);padding:8px 10px;display:flex;align-items:stretch;gap:10px;flex-shrink:0}
+.addon-info-row .play-desc-wrap{flex:1 1 auto;min-width:0;padding:0;border:0;background:transparent}
+.addon-info-row .play-desc-wrap textarea{min-height:54px;max-height:78px;padding:9px 11px;font-size:13px;line-height:1.32}
+.addon-side-panel{width:260px;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.addon-side-panel .play-type-select{width:100%;height:36px;font-size:13px;font-weight:800;background:var(--card2)}
+.addon-safe-label{color:var(--green)!important;margin-top:6px!important}
+.addon-control-strip{background:var(--card);border-top:1px solid var(--border);padding:8px 10px;display:grid;grid-template-columns:minmax(130px,1fr) auto minmax(130px,1fr);gap:10px;align-items:center;flex-shrink:0}
+.addon-control-strip .play-step-btn{height:38px;min-width:0;width:100%;font-size:13px}
+.addon-control-strip .play-action-row{display:flex;padding:0;border:0;background:transparent;gap:8px;justify-content:center;overflow:visible}
+.addon-control-strip .play-action-btn{height:38px;padding:0 12px;font-size:12px}
+.addon-bot-bar{padding:7px 10px calc(7px + var(--safe))}
+.addon-tool-row{gap:8px;margin-bottom:7px}
+.addon-tool-row .tool-btn{height:38px;font-size:10px;border-radius:10px}
+.drill-tools .tool-btn{font-size:9px}
+.addon-opts{min-height:28px;gap:9px}
+.play-meta-label.muted,#sandboxSelectedBox.muted,#drillSelectedBox.muted{color:var(--muted)!important}
+@media (max-width:700px){
+  .addon-grid{grid-template-columns:1fr 1fr;}
+  .addon-editor .canvas-wrap{min-height:40vh;}
+  .addon-info-row{display:grid;grid-template-columns:1fr;gap:7px;padding:7px 9px;}
+  .addon-side-panel{width:100%;display:grid;grid-template-columns:auto minmax(120px,1fr);align-items:center;gap:7px 9px;}
+  .addon-side-panel .play-meta-label{margin:0!important;}
+  .addon-control-strip{grid-template-columns:1fr 1fr;gap:8px;}
+  .addon-control-strip .play-action-row{grid-column:1 / -1;grid-row:2;order:2;overflow-x:auto;justify-content:flex-start;}
+  .addon-tool-row{gap:5px;}
+  .addon-tool-row .tool-btn{font-size:9px;min-width:0;}
+}
+@media (max-width:430px){.addon-grid{grid-template-columns:1fr}.addon-play-card .play-preview{height:110px}}
+
 </style>
 </head>
 <body>
@@ -906,25 +943,32 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <div class="screen hidden" id="sandboxScreen">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack('formationsScreen','sandboxScreen')">←</button>
-    <div class="hdr-title"><h1>Sandbox</h1><p>Temporary fronts, blocking, and tweaks — does not edit live plays</p></div>
+    <div class="hdr-title"><h1>Sandbox</h1><p>Test fronts, blocking, and tweaks without changing live plays</p></div>
     <button class="hdr-btn" onclick="newSandbox()">+ New</button>
   </div>
   <div class="scroll" id="sandboxList"></div>
 </div>
 
-<div class="screen hidden" id="sandboxEditorScreen">
+<div class="screen hidden addon-editor" id="sandboxEditorScreen">
   <div class="editor-hdr">
     <button class="e-back" onclick="goBack('sandboxScreen','sandboxEditorScreen')">←</button>
     <div class="name-wrap"><input id="sandboxNameInput" placeholder="Sandbox name…" maxlength="50"></div>
     <button class="e-save" onclick="saveSandbox()">SAVE</button>
   </div>
   <div class="canvas-wrap" id="sandboxCanvasWrap"><canvas id="sandboxCanvas"></canvas></div>
-  <div class="play-desc-wrap" style="display:flex">
-    <label>Sandbox Notes</label>
-    <textarea id="sandboxNotesInput" placeholder="Front, blocking scheme, or tweak notes…" maxlength="500"></textarea>
+  <div class="play-info-row addon-info-row">
+    <div class="play-desc-wrap" style="display:flex">
+      <label>Sandbox Notes</label>
+      <textarea id="sandboxNotesInput" placeholder="Front, blocking scheme, or tweak notes…" maxlength="500"></textarea>
+    </div>
+    <div class="play-meta-row addon-side-panel">
+      <span class="play-meta-label" id="sandboxSelectedBox">Tap a player to edit label</span>
+      <input id="sandboxLabelInput" class="play-type-select" placeholder="O / D / MIKE" maxlength="3" disabled oninput="updateSandboxSelectedLabel()" style="padding:0 10px;text-transform:uppercase">
+      <span class="play-meta-label addon-safe-label">Saves only to Sandbox</span>
+    </div>
   </div>
-  <div class="bot-bar">
-    <div class="tool-row">
+  <div class="bot-bar addon-bot-bar">
+    <div class="tool-row addon-tool-row">
       <button class="tool-btn on" id="sb-select" onclick="setSandboxTool('select')"><span class="ti">↖</span>SELECT</button>
       <button class="tool-btn" id="sb-offense" onclick="setSandboxTool('offense')"><span class="ti">●</span>OFF</button>
       <button class="tool-btn" id="sb-defense" onclick="setSandboxTool('defense')"><span class="ti">●</span>DEF</button>
@@ -932,7 +976,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <button class="tool-btn" id="sb-route" onclick="setSandboxTool('route')"><span class="ti">↗</span>LINE</button>
       <button class="tool-btn" id="sb-erase" onclick="setSandboxTool('erase')"><span class="ti">✕</span>ERASE</button>
     </div>
-    <div class="opts"><button class="chip red" onclick="clearSandboxBoard()">Clear Board</button><span class="olbl">Saves only to Sandbox</span></div>
+    <div class="opts addon-opts"><button class="chip red" onclick="clearSandboxBoard()">Clear Board</button><span class="olbl">Live plays are untouched</span></div>
   </div>
 </div>
 
@@ -946,27 +990,38 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="scroll" id="drillsList"></div>
 </div>
 
-<div class="screen hidden" id="drillEditorScreen">
+<div class="screen hidden addon-editor" id="drillEditorScreen">
   <div class="editor-hdr">
     <button class="e-back" onclick="goBack('drillsScreen','drillEditorScreen')">←</button>
     <div class="name-wrap"><input id="drillNameInput" placeholder="Drill name…" maxlength="50"></div>
     <button class="e-save" onclick="saveDrill()">SAVE</button>
   </div>
   <div class="canvas-wrap" id="drillCanvasWrap"><canvas id="drillCanvas"></canvas></div>
-  <div class="play-info-row">
+  <div class="play-info-row addon-info-row">
     <div class="play-desc-wrap" style="display:flex">
       <label>Drill Notes</label>
       <textarea id="drillNotesInput" placeholder="Coaching points, setup, reps…" maxlength="700"></textarea>
     </div>
-    <div class="play-meta-row" style="width:260px">
+    <div class="play-meta-row addon-side-panel">
       <span class="play-meta-label">Category</span>
-      <input id="drillCategoryInput" class="play-type-select" placeholder="e.g. Blocking" style="padding:0 10px">
+      <input id="drillCategoryInput" class="play-type-select" placeholder="Blocking" style="padding:0 10px">
       <span class="play-meta-label" style="margin-top:8px">Video URL</span>
       <input id="drillVideoInput" class="play-type-select" placeholder="https://…" style="padding:0 10px">
+      <span class="play-meta-label" id="drillSelectedBox" style="margin-top:8px">Tap an object to edit label</span>
+      <input id="drillLabelInput" class="play-type-select" placeholder="RB" maxlength="3" disabled oninput="updateDrillSelectedLabel()" style="padding:0 10px;text-transform:uppercase">
     </div>
   </div>
-  <div class="bot-bar">
-    <div class="tool-row">
+  <div class="play-control-strip addon-control-strip">
+    <button class="play-step-btn" onclick="prevDrillAnimation()">← Previous</button>
+    <div class="play-action-row">
+      <button class="play-action-btn" onclick="animateDrill()">▶ Animate</button>
+      <button class="play-action-btn" onclick="addDrillAnimation()">+ Animation</button>
+      <button class="play-action-btn" id="drillAnimLabel">Animation 1 (1/1)</button>
+    </div>
+    <button class="play-step-btn" onclick="nextDrillAnimation()">Next →</button>
+  </div>
+  <div class="bot-bar addon-bot-bar">
+    <div class="tool-row addon-tool-row drill-tools">
       <button class="tool-btn on" id="dr-select" onclick="setDrillTool('select')"><span class="ti">↖</span>SELECT</button>
       <button class="tool-btn" id="dr-player" onclick="setDrillTool('player')"><span class="ti">●</span>PLAYER</button>
       <button class="tool-btn" id="dr-cone" onclick="setDrillTool('cone')"><span class="ti">▲</span>CONE</button>
@@ -975,7 +1030,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <button class="tool-btn" id="dr-move" onclick="setDrillTool('move')"><span class="ti">↗</span>MOVE</button>
       <button class="tool-btn" id="dr-erase" onclick="setDrillTool('erase')"><span class="ti">✕</span>ERASE</button>
     </div>
-    <div class="opts"><button class="chip" onclick="animateDrill()">▶ Animate</button><button class="chip red" onclick="clearDrillBoard()">Clear Board</button><span class="olbl">Saves only to Drills</span></div>
+    <div class="opts addon-opts"><button class="chip red" onclick="clearDrillBoard()">Clear Board</button><span class="olbl">Live plays are untouched</span></div>
   </div>
 </div>
 
