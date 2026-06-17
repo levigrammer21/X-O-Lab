@@ -901,6 +901,84 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="scroll" id="formationsList"></div>
 </div>
 
+
+<!-- SANDBOX (Pro add-on, isolated from live plays) -->
+<div class="screen hidden" id="sandboxScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','sandboxScreen')">←</button>
+    <div class="hdr-title"><h1>Sandbox</h1><p>Temporary fronts, blocking, and tweaks — does not edit live plays</p></div>
+    <button class="hdr-btn" onclick="newSandbox()">+ New</button>
+  </div>
+  <div class="scroll" id="sandboxList"></div>
+</div>
+
+<div class="screen hidden" id="sandboxEditorScreen">
+  <div class="editor-hdr">
+    <button class="e-back" onclick="goBack('sandboxScreen','sandboxEditorScreen')">←</button>
+    <div class="name-wrap"><input id="sandboxNameInput" placeholder="Sandbox name…" maxlength="50"></div>
+    <button class="e-save" onclick="saveSandbox()">SAVE</button>
+  </div>
+  <div class="canvas-wrap" id="sandboxCanvasWrap"><canvas id="sandboxCanvas"></canvas></div>
+  <div class="play-desc-wrap" style="display:flex">
+    <label>Sandbox Notes</label>
+    <textarea id="sandboxNotesInput" placeholder="Front, blocking scheme, or tweak notes…" maxlength="500"></textarea>
+  </div>
+  <div class="bot-bar">
+    <div class="tool-row">
+      <button class="tool-btn on" id="sb-select" onclick="setSandboxTool('select')"><span class="ti">↖</span>SELECT</button>
+      <button class="tool-btn" id="sb-offense" onclick="setSandboxTool('offense')"><span class="ti">●</span>OFF</button>
+      <button class="tool-btn" id="sb-defense" onclick="setSandboxTool('defense')"><span class="ti">●</span>DEF</button>
+      <button class="tool-btn" id="sb-block" onclick="setSandboxTool('block')"><span class="ti">▬</span>BLOCK</button>
+      <button class="tool-btn" id="sb-route" onclick="setSandboxTool('route')"><span class="ti">↗</span>LINE</button>
+      <button class="tool-btn" id="sb-erase" onclick="setSandboxTool('erase')"><span class="ti">✕</span>ERASE</button>
+    </div>
+    <div class="opts"><button class="chip red" onclick="clearSandboxBoard()">Clear Board</button><span class="olbl">Saves only to Sandbox</span></div>
+  </div>
+</div>
+
+<!-- DRILLS (Pro add-on, isolated from live plays) -->
+<div class="screen hidden" id="drillsScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','drillsScreen')">←</button>
+    <div class="hdr-title"><h1>Drills</h1><p>Animated practice drills with players, cones, bags, balls, notes, and video links</p></div>
+    <button class="hdr-btn" onclick="newDrill()">+ Drill</button>
+  </div>
+  <div class="scroll" id="drillsList"></div>
+</div>
+
+<div class="screen hidden" id="drillEditorScreen">
+  <div class="editor-hdr">
+    <button class="e-back" onclick="goBack('drillsScreen','drillEditorScreen')">←</button>
+    <div class="name-wrap"><input id="drillNameInput" placeholder="Drill name…" maxlength="50"></div>
+    <button class="e-save" onclick="saveDrill()">SAVE</button>
+  </div>
+  <div class="canvas-wrap" id="drillCanvasWrap"><canvas id="drillCanvas"></canvas></div>
+  <div class="play-info-row">
+    <div class="play-desc-wrap" style="display:flex">
+      <label>Drill Notes</label>
+      <textarea id="drillNotesInput" placeholder="Coaching points, setup, reps…" maxlength="700"></textarea>
+    </div>
+    <div class="play-meta-row" style="width:260px">
+      <span class="play-meta-label">Category</span>
+      <input id="drillCategoryInput" class="play-type-select" placeholder="e.g. Blocking" style="padding:0 10px">
+      <span class="play-meta-label" style="margin-top:8px">Video URL</span>
+      <input id="drillVideoInput" class="play-type-select" placeholder="https://…" style="padding:0 10px">
+    </div>
+  </div>
+  <div class="bot-bar">
+    <div class="tool-row">
+      <button class="tool-btn on" id="dr-select" onclick="setDrillTool('select')"><span class="ti">↖</span>SELECT</button>
+      <button class="tool-btn" id="dr-player" onclick="setDrillTool('player')"><span class="ti">●</span>PLAYER</button>
+      <button class="tool-btn" id="dr-cone" onclick="setDrillTool('cone')"><span class="ti">▲</span>CONE</button>
+      <button class="tool-btn" id="dr-bag" onclick="setDrillTool('bag')"><span class="ti">▰</span>BAG</button>
+      <button class="tool-btn" id="dr-ball" onclick="setDrillTool('ball')"><span class="ti">🏈</span>BALL</button>
+      <button class="tool-btn" id="dr-move" onclick="setDrillTool('move')"><span class="ti">↗</span>MOVE</button>
+      <button class="tool-btn" id="dr-erase" onclick="setDrillTool('erase')"><span class="ti">✕</span>ERASE</button>
+    </div>
+    <div class="opts"><button class="chip" onclick="animateDrill()">▶ Animate</button><button class="chip red" onclick="clearDrillBoard()">Clear Board</button><span class="olbl">Saves only to Drills</span></div>
+  </div>
+</div>
+
 <!-- PLAYS -->
 <div class="screen hidden" id="playsScreen">
   <div class="hdr">
@@ -1134,6 +1212,10 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <button class="btn btn-p" onclick="closeSheet('pbMenuSheet');startQuiz()">🎯 Play Test (Quiz)</button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openLeaderboard()">🏆 Leaderboard</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="openSandboxHome()">🧪 Sandbox <span class="account-pill pro">Pro</span></button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="openDrillsHome()">🏋️ Drills <span class="account-pill pro">Pro</span></button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
   <div style="height:8px" id="pbEditCodeSpacer"></div>
@@ -4697,6 +4779,24 @@ onAuthStateChanged(auth, async user=>{
   if(handled) return;
   setTimeout(()=>showScreen('landingScreen'),900);
 })();
+
+
+// Add-on bridge for isolated Pro features. Read-only access to current app state + Firebase helpers.
+window.XOLab = {
+  db, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit,
+  currentPlaybook: () => currentPlaybook,
+  currentFormation: () => currentFormation,
+  currentPlay: () => currentPlay,
+  formations: () => formations,
+  plays: () => plays,
+  canEdit: () => canEdit,
+  isViewOnly: () => isViewOnly,
+  isProRole,
+  isAdminRole,
+  ownsPlaybook
+};
 </script>
+<script src="./sandbox.js"></script>
+<script src="./drills.js"></script>
 </body>
 </html>
