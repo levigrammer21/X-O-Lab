@@ -725,7 +725,6 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- LANDING (account, guest, utilities) -->
 <div class="screen hidden landing" id="landingScreen">
   <div class="auth-utility">
-    <button class="mini-btn pro" onclick="openProInfo()">⭐ Upgrade to Pro</button>
     <button class="mini-btn" onclick="openPatchNotes()">Patch Notes</button>
     <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
   </div>
@@ -756,8 +755,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">🔑</div>
         <div class="landing-card-body">
-          <div class="landing-card-title">Continue as Guest</div>
-          <div class="landing-card-sub">Enter a view code to open a shared playbook.</div>
+          <div class="landing-card-title">Players &amp; Parents</div>
+          <div class="landing-card-sub">Enter your coach's view code here.</div>
         </div>
         <span class="chevron">›</span>
       </div>
@@ -885,8 +884,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- VIEW CODE ENTRY -->
 <div class="screen hidden pw-screen" id="viewCodeScreen">
   <div class="pw-box">
-    <h2>Open Playbook</h2>
-    <p>Enter the view code your coach gave you.</p>
+    <h2>Player / Parent Access</h2>
+    <p>Enter the view code provided by your coach.</p>
     <div class="field"><label>View Code</label><input type="text" id="viewCodeInput" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
     <div id="viewCodeErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Code not found</div>
     <button class="btn btn-p" onclick="checkViewCode()">Open</button>
