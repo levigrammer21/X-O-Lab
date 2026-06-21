@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>X&O Lab</title>
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -15,7 +15,6 @@
   --red: #f04141; --blue: #4182f0; --green: #41c97a;
   --text: #eceef2; --muted: #5a5f6e; --radius: 12px;
   --safe: env(safe-area-inset-bottom,0px);
-  --safe-top: env(safe-area-inset-top,0px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;touch-action:none}
@@ -273,7 +272,6 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .lb-name{flex:1;font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lb-stats{font-size:11px;color:var(--muted);text-align:right}
 .lb-stats b{color:var(--accent);font-size:14px;display:block}
-.lb-date{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap}
 .lb-tabs{display:flex;gap:8px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
 .lb-tabs::-webkit-scrollbar{display:none}
 .lb-tabs .chip{height:32px;padding:0 13px}
@@ -676,15 +674,6 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   }
 }
 
-
-/* iPhone Safari / PWA safe-area patch */
-.screen{top:var(--safe-top);}
-.overlay{top:var(--safe-top);}
-.img-viewer{padding-top:var(--safe-top);}
-@supports (padding: max(0px)){
-  .sheet{padding-bottom:max(18px, calc(18px + var(--safe)));}
-}
-
 </style>
 </head>
 <body>
@@ -692,20 +681,19 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 <!-- SPLASH -->
 <div class="screen splash" id="splashScreen">
   <img src="icon-512.png" alt="X&O Lab" class="splash-img">
-  <div class="tag">LAB</div>
+  <div class="tag" style="display:none"></div>
   <div class="spin"></div>
 </div>
 
 <!-- LANDING (account, guest, utilities) -->
 <div class="screen hidden landing" id="landingScreen">
   <div class="auth-utility">
-    <button class="mini-btn pro" onclick="openProInfo()">⭐ Upgrade to Pro</button>
     <button class="mini-btn" onclick="openPatchNotes()">Patch Notes</button>
     <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
   </div>
   <div class="landing-box">
     <img src="icon-512.png" alt="X&O Lab" class="landing-img">
-    <div class="landing-tag">LAB</div>
+    <div class="landing-tag" style="display:none"></div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -730,8 +718,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">🔑</div>
         <div class="landing-card-body">
-          <div class="landing-card-title">Continue as Guest</div>
-          <div class="landing-card-sub">Enter a view code to open a shared playbook.</div>
+          <div class="landing-card-title">Players &amp; Parents</div>
+          <div class="landing-card-sub">Use your coach's view code to access the playbook.</div>
         </div>
         <span class="chevron">›</span>
       </div>
@@ -752,8 +740,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     </div>
     <h2>Login</h2>
     <p>Sign in with your email/password account or continue with Google.</p>
-    <div class="field"><label>Email</label><input type="email" id="loginEmail" name="email" placeholder="coach@example.com" autocomplete="email"></div>
-    <div class="field"><label>Password</label><input type="password" id="loginPassword" name="current-password" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="loginErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="loginWithEmail()">Login</button>
     <div style="height:8px"></div>
@@ -780,9 +768,9 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     <h2>Register</h2>
     <p>Create your X&O Lab account. New accounts start as Basic Coach.</p>
     <div class="field"><label>Name</label><input type="text" id="regName" placeholder="Coach name" autocomplete="name"></div>
-    <div class="field"><label>Email</label><input type="email" id="regEmail" name="email" placeholder="coach@example.com" autocomplete="email"></div>
-    <div class="field"><label>Confirm Email</label><input type="email" id="regEmail2" name="email-confirm" placeholder="Retype email" autocomplete="email"></div>
-    <div class="field"><label>Password</label><input type="password" id="regPassword" name="new-password" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
+    <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label>Confirm Email</label><input type="email" id="regEmail2" placeholder="Retype email" autocomplete="email"></div>
+    <div class="field"><label>Password</label><input type="password" id="regPassword" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
     <div id="regErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="registerWithEmail()">Create Basic Account</button>
     <div style="height:8px"></div>
@@ -1204,10 +1192,8 @@ const fbApp = initializeApp(fbConfig);
 const db = getFirestore(fbApp);
 const storage = getStorage(fbApp);
 const auth = getAuth(fbApp);
+setPersistence(auth, browserLocalPersistence).catch(e=>console.warn('Auth persistence unavailable', e));
 const googleProvider = new GoogleAuthProvider();
-const authPersistenceReady = setPersistence(auth, browserLocalPersistence).catch(err=>{
-  console.warn('Auth persistence could not be set', err);
-});
 
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
@@ -1758,7 +1744,6 @@ window.loginWithEmail = async ()=>{
   const pw=document.getElementById('loginPassword').value;
   if(!email || !pw){ setLoginError('loginErr','Email and password required'); return; }
   try{
-    await authPersistenceReady;
     const cred=await signInWithEmailAndPassword(auth,email,pw);
     const rec=await ensureUserRecord(cred.user);
     await enterAccountApp(rec);
@@ -1773,7 +1758,6 @@ window.registerWithEmail = async ()=>{
   if(!name || !email || !email2 || !pw){ setLoginError('regErr','Name, email, confirm email, and password required'); return; }
   if(email.toLowerCase()!==email2.toLowerCase()){ setLoginError('regErr','Email addresses must match'); return; }
   try{
-    await authPersistenceReady;
     const cred=await createUserWithEmailAndPassword(auth,email,pw);
     await updateProfile(cred.user,{displayName:name}).catch(()=>{});
     const rec=await ensureUserRecord(cred.user,{name,role:'basic'});
@@ -1783,7 +1767,6 @@ window.registerWithEmail = async ()=>{
 window.loginWithGoogle = async ()=>{
   clearLoginError('loginErr');
   try{
-    await authPersistenceReady;
     const cred=await signInWithPopup(auth,googleProvider);
     const rec=await ensureUserRecord(cred.user,{role:'basic'});
     await enterAccountApp(rec);
@@ -1794,13 +1777,11 @@ async function signInWithAppleFlow(){
   const provider = new OAuthProvider('apple.com');
   provider.addScope('email');
   provider.addScope('name');
-  await authPersistenceReady;
   const cred = await signInWithPopup(auth, provider);
   const user = cred.user;
   const displayName = user.displayName || user.email || 'Coach';
-  currentUser = user;
-  currentAccount = await ensureUserRecord(user, {name: displayName, role:'basic'});
-  await openUserPlaybooks();
+  const rec = await ensureUserRecord(user, {name: displayName, role:'basic'});
+  await enterAccountApp(rec);
 }
 window.loginWithApple = async function(){
   try{
@@ -4587,27 +4568,21 @@ function calcQuizScore(correct,total,timeSec){
   return Math.max(0,1000-(misses*100)-secondsPenalty);
 }
 
+function fmtLeaderboardDate(ts){
+  if(!ts) return '';
+  let d;
+  try{ d = ts.toDate ? ts.toDate() : new Date(ts); }catch(e){ return ''; }
+  if(!d || isNaN(d.getTime())) return '';
+  const now = new Date();
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString([], sameYear ? {month:'short',day:'numeric'} : {month:'short',day:'numeric',year:'numeric'});
+}
 function leaderboardScore(e){
   // Recalculate from correct/total/time so older bonus-score records do NOT need to be reset.
   if(e && e.correct!=null && e.total!=null && e.time!=null){
     return calcQuizScore(Number(e.correct)||0, Number(e.total)||0, Number(e.time)||0);
   }
   return Number(e?.score)||0;
-}
-
-function lbDateValue(v){
-  if(!v) return 0;
-  if(typeof v==='number') return v;
-  if(v && typeof v.toMillis==='function') return v.toMillis();
-  if(v && typeof v.seconds==='number') return v.seconds*1000;
-  const parsed=Date.parse(v);
-  return Number.isFinite(parsed)?parsed:0;
-}
-function formatLbDate(v){
-  const ms=lbDateValue(v);
-  if(!ms) return '';
-  const d=new Date(ms);
-  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
 }
 
 function syncLbTabs(){
@@ -4637,10 +4612,10 @@ window.openLeaderboard=async function(refreshOnly=false){
     const weekAgo=now-(7*24*60*60*1000);
     const monthAgo=now-(30*24*60*60*1000);
     let entries=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(lbRange==='week') entries=entries.filter(e=>lbDateValue(e.createdAt)>=weekAgo);
-    if(lbRange==='month') entries=entries.filter(e=>lbDateValue(e.createdAt)>=monthAgo);
+    if(lbRange==='week') entries=entries.filter(e=>(e.createdAt||0)>=weekAgo);
+    if(lbRange==='month') entries=entries.filter(e=>(e.createdAt||0)>=monthAgo);
     entries=entries
-      .map(e=>({...e, displayScore:leaderboardScore(e), displayDate:formatLbDate(e.createdAt)}))
+      .map(e=>({...e, displayScore:leaderboardScore(e)}))
       .sort((a,b)=>{
         if((b.displayScore||0)!==(a.displayScore||0)) return (b.displayScore||0)-(a.displayScore||0);
         return (a.time||999999)-(b.time||999999);
@@ -4653,10 +4628,11 @@ window.openLeaderboard=async function(refreshOnly=false){
     }
     el.innerHTML=entries.map((e,i)=>{
       const rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const date=fmtLeaderboardDate(e.createdAt);
       return `<div class="lb-row">
         <div class="lb-rank ${rankClass}">${i+1}</div>
         <div class="lb-name">${esc(e.name)}</div>
-        <div class="lb-stats"><b>${e.displayScore}</b>${e.correct}/${e.total} · ${(e.time||0).toFixed(1)}s${e.displayDate?`<div class="lb-date">${esc(e.displayDate)}</div>`:''}</div>
+        <div class="lb-stats"><b>${e.displayScore}</b>${date?esc(date)+'<br>':''}${e.correct}/${e.total} · ${(e.time||0).toFixed(1)}s</div>
       </div>`;
     }).join('');
   }catch(e){
@@ -4712,22 +4688,16 @@ document.getElementById('regPassword').addEventListener('keydown',e=>{if(e.key==
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-let autoAccountEntering=false;
 onAuthStateChanged(auth, async user=>{
   authReady=true;
-  if(!user || autoAccountEntering) return;
-  // Do not auto-navigate over a shared view-code link/session.
-  if(new URLSearchParams(location.search).get('code') || isViewOnly) return;
-  if(currentAccount && currentUserId===user.uid) return;
+  if(!user) return;
+  // Keep direct view-code links in view-only mode. Otherwise, restore signed-in users automatically.
+  if(new URLSearchParams(location.search).get('code')) return;
   try{
-    autoAccountEntering=true;
-    await authPersistenceReady;
-    const rec=await ensureUserRecord(user,{role:'basic'});
+    const rec=await ensureUserRecord(user);
     await enterAccountApp(rec);
   }catch(e){
-    console.warn('Saved login could not be restored', e);
-  }finally{
-    autoAccountEntering=false;
+    console.warn('Auto-login skipped', e);
   }
 });
 (async()=>{
@@ -4742,7 +4712,7 @@ onAuthStateChanged(auth, async user=>{
   }
   const handled=await checkUrlCode();
   if(handled) return;
-  setTimeout(()=>showScreen('landingScreen'),900);
+  setTimeout(()=>{ if(!auth.currentUser) showScreen('landingScreen'); },900);
 })();
 </script>
 </body>
