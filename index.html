@@ -479,6 +479,13 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
 .patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
 .patch-list li{margin-bottom:7px}
+.app-version-badge{display:inline-flex;align-items:center;justify-content:center;margin:0 auto 24px;padding:6px 12px;border-radius:999px;border:1px solid rgba(240,180,41,.28);background:rgba(240,180,41,.09);color:var(--accent);font-size:10px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase}
+.patch-version-card{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:13px;padding:13px 14px;margin:12px 0}
+.patch-version-card.current{border-color:rgba(240,180,41,.28);background:linear-gradient(180deg, rgba(240,180,41,.10), rgba(255,255,255,.025))}
+.patch-version-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.4px;margin-bottom:8px;color:var(--text)}
+.patch-version-title span{color:var(--accent)}
+.patch-current-label{display:inline-flex;margin:5px 0 10px;padding:4px 9px;border-radius:999px;background:rgba(65,201,122,.10);border:1px solid rgba(65,201,122,.24);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}
+.patch-build-foot{margin-top:12px;text-align:center;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.9px;text-transform:uppercase}
 
 
 #playNameInput[readonly], #playDescInput[readonly], #playTypeSelect:disabled{
@@ -759,6 +766,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="landing-box">
     <img src="icon-512.png" alt="X&O Lab" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
+    <div class="app-version-badge" id="appVersionBadge">v1.1.0 · HD Foundation</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -880,16 +888,33 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="patchNotesScreen">
   <div class="pw-box">
     <h2>Patch Notes</h2>
-    <p>Account system upgrade.</p>
-    <ul class="patch-list">
-      <li>Email/password login and registration.</li>
-      <li>Google Sign-In with account linking support.</li>
-      <li>Guest mode keeps code-only viewing and play test access.</li>
-      <li>Basic, Pro, and Admin roles with creation limits.</li>
-      <li>Admin can view users and playbooks, then upgrade or downgrade roles.</li>
-      <li>Existing legacy admin and coach password login still works.</li>
-      <li>Existing Firestore playbooks and browser localStorage are not wiped.</li>
-    </ul>
+    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.0</b></p>
+
+    <div class="patch-version-card current">
+      <div class="patch-current-label">Current Build</div>
+      <div class="patch-version-title"><span>v1.1.0</span> — HD Foundation</div>
+      <ul class="patch-list">
+        <li>HD visual overhaul for a sharper premium app feel.</li>
+        <li>Improved field rendering, player icons, routes, and play previews.</li>
+        <li>Play Test fit patch so diagrams show fully with compact notes.</li>
+        <li>Ball progression foundation with Basic and Advanced settings.</li>
+        <li>Version badge and persistent changelog system added.</li>
+      </ul>
+    </div>
+
+    <div class="patch-version-card">
+      <div class="patch-version-title"><span>v1.0.0</span> — Initial Public Build</div>
+      <ul class="patch-list">
+        <li>Playbooks, formations, and play editor.</li>
+        <li>Player routes, motion, blocks, zones, and animation.</li>
+        <li>Play Test and leaderboard foundation.</li>
+        <li>View-code access for players and parents.</li>
+        <li>Email, Google, Apple, guest, and legacy coach access paths.</li>
+      </ul>
+    </div>
+
+    <div class="patch-build-foot" id="patchBuildFoot">X&amp;O Lab v1.1.0 · HD Foundation</div>
+    <div style="height:12px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
   </div>
 </div>
@@ -1260,6 +1285,21 @@ const storage = getStorage(fbApp);
 const auth = getAuth(fbApp);
 setPersistence(auth, browserLocalPersistence).catch(e=>console.warn('Auth persistence unavailable', e));
 const googleProvider = new GoogleAuthProvider();
+
+// ═══════════════════════════════════════════════
+// APP VERSION
+// ═══════════════════════════════════════════════
+const APP_VERSION = '1.1.0';
+const RELEASE_NAME = 'HD Foundation';
+function hydrateAppVersion(){
+  const badge = document.getElementById('appVersionBadge');
+  if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
+  const current = document.getElementById('patchCurrentVersion');
+  if(current) current.textContent = `v${APP_VERSION}`;
+  const foot = document.getElementById('patchBuildFoot');
+  if(foot) foot.textContent = `X&O Lab v${APP_VERSION} · ${RELEASE_NAME}`;
+}
+hydrateAppVersion();
 
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
