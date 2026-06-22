@@ -746,14 +746,6 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 #editorScreen:not(.presentation-mode) .tool-btn.on{box-shadow:0 0 0 1px rgba(240,180,41,.16), inset 0 1px 0 rgba(255,255,255,.05)}
 @media (max-width:560px){#playsScreen .hdr-title:before{display:none}#playsScreen .hdr-title{display:block}.play-preview{height:104px}.play-card{padding:11px}.reorder-row .rb{height:38px}}
 
-
-/* PRINT PLAYBOOK OPTIONS */
-.print-option-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.print-option-grid .chip{height:42px;border-radius:12px;font-size:12px}
-.print-option-grid .chip.on{color:#000;background:var(--accent);border-color:var(--accent)}
-.print-mini-note{font-size:11px;color:var(--muted);line-height:1.45;margin:-4px 0 14px}
-@media (max-width:430px){.print-option-grid{grid-template-columns:repeat(2,1fr)}}
-
 </style>
 </head>
 <body>
@@ -774,7 +766,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="landing-box">
     <img src="icon-512.png" alt="X&O Lab" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
-    <div class="app-version-badge" id="appVersionBadge">v1.2.0 · Print Playbook</div>
+    <div class="app-version-badge" id="appVersionBadge">v1.1.2 · Ball Timing Control</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -896,21 +888,10 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="patchNotesScreen">
   <div class="pw-box">
     <h2>Patch Notes</h2>
-    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.2.0</b></p>
+    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.2</b></p>
 
     <div class="patch-version-card current">
       <div class="patch-current-label">Current Build</div>
-      <div class="patch-version-title"><span>v1.2.0</span> — Print Playbook</div>
-      <ul class="patch-list">
-        <li>Added Print Playbook output that opens in a clean print/PDF window.</li>
-        <li>Choose 1, 2, 3, or 4 plays per page.</li>
-        <li>Print the current play, current formation, or full playbook.</li>
-        <li>Printed pages include play names, formations, play type badges, diagrams, notes, page numbers, and app version footer.</li>
-        <li>Improved paper-friendly formatting for phone, tablet, and desktop printing.</li>
-      </ul>
-    </div>
-
-    <div class="patch-version-card">
       <div class="patch-version-title"><span>v1.1.2</span> — Ball Timing Control</div>
       <ul class="patch-list">
         <li>Snap now instantly places the ball on the first selected non-center player.</li>
@@ -952,7 +933,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       </ul>
     </div>
 
-    <div class="patch-build-foot" id="patchBuildFoot">X&amp;O Lab v1.2.0 · Print Playbook</div>
+    <div class="patch-build-foot" id="patchBuildFoot">X&amp;O Lab v1.1.2 · Ball Timing Control</div>
     <div style="height:12px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
   </div>
@@ -1268,39 +1249,11 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div style="height:8px" id="pbEditCodeSpacer"></div>
   <button class="btn btn-g" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none">✏️ Edit View Code</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="openPrintPlaybookSheet()">📖 Print Playbook / PDF</button>
+  <button class="btn btn-g" onclick="printPlaybook()">🖨 Print Full Playbook</button>
   <div style="height:8px" id="pbAssignSpacer"></div>
   <button class="btn btn-g" onclick="openAssignScreen()" id="pbAssignBtn" style="display:none">👤 Assign to Coach</button>
   <div style="height:8px" id="pbAdminSpacer"></div>
   <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
-</div>
-
-<div class="overlay" id="printPlaybookOverlay" onclick="closeSheet('printPlaybookSheet')"></div>
-<div class="sheet" id="printPlaybookSheet">
-  <div class="handle"></div>
-  <h2>Print Playbook</h2>
-  <p class="sub">Choose what to print and how many plays should appear on each page.</p>
-
-  <div class="field"><label>Print Scope</label>
-    <select id="printScopeSelect">
-      <option value="play">Current Play</option>
-      <option value="formation">Current Formation</option>
-      <option value="playbook" selected>Full Playbook</option>
-    </select>
-  </div>
-
-  <div class="field"><label>Plays Per Page</label></div>
-  <div class="print-option-grid" id="printPerPageGrid">
-    <button class="chip" data-print-count="1" onclick="setPrintPerPage(1)">1 / Page</button>
-    <button class="chip on" data-print-count="2" onclick="setPrintPerPage(2)">2 / Page</button>
-    <button class="chip" data-print-count="3" onclick="setPrintPerPage(3)">3 / Page</button>
-    <button class="chip" data-print-count="4" onclick="setPrintPerPage(4)">4 / Page</button>
-  </div>
-  <div class="print-mini-note">Tip: 1/page is best for install sheets, 2/page feels like a classic playbook, and 4/page is great for quick references.</div>
-
-  <button class="btn btn-p" onclick="printPlaybook()">Generate Print / PDF</button>
-  <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="closeSheet('printPlaybookSheet')">Cancel</button>
 </div>
 
 <div class="overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
@@ -1356,8 +1309,8 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // APP VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = '1.2.0';
-const RELEASE_NAME = 'Print Playbook';
+const APP_VERSION = '1.1.2';
+const RELEASE_NAME = 'Ball Timing Control';
 function hydrateAppVersion(){
   const badge = document.getElementById('appVersionBadge');
   if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
@@ -1386,7 +1339,6 @@ let currentAccount = null;
 let currentRole = 'guest';
 let currentUserId = null;
 let playbooks = [], formations = [], plays = [], coaches = [], accountUsers = [];
-let playbookViewStats = {};
 let formationImages = [];   // images attached to current formation (formation-level)
 
 // Formation editor state
@@ -4276,43 +4228,13 @@ window.undoA=function(){
 window.clearCv=function(){if(!confirm('Clear all routes and zones?'))return;pushH();eRoutes=[];eZones=[];activeRoute=null;selP=null;selZ=null;zoneDragging=false;buildOpts();drawAll();};
 
 // ═══════════════════════════════════════════════
-// PRINT (single play + playbook layouts)
+// PRINT (single play + full playbook)
 // ═══════════════════════════════════════════════
-let printPerPage = 2;
-
-window.setPrintPerPage=function(n){
-  printPerPage = Math.max(1, Math.min(4, Number(n)||2));
-  document.querySelectorAll('[data-print-count]').forEach(btn=>{
-    btn.classList.toggle('on', Number(btn.dataset.printCount)===printPerPage);
-  });
-};
-
-window.openPrintPlaybookSheet=function(){
-  if(!currentPlaybook){toast('Open a playbook first','err');return;}
-  closeSheet('pbMenuSheet');
-  const scope=document.getElementById('printScopeSelect');
-  if(scope){
-    const hasPlay=!!currentPlay;
-    const hasFormation=!!currentFormation;
-    Array.from(scope.options).forEach(o=>{
-      if(o.value==='play') o.disabled=!hasPlay;
-      if(o.value==='formation') o.disabled=!hasFormation;
-    });
-    scope.value=hasFormation ? 'formation' : 'playbook';
-    if(hasPlay) scope.value='play';
-  }
-  setPrintPerPage(printPerPage||2);
-  openSheet('printPlaybookSheet');
-};
-
-function printEsc(v){return esc(v==null?'':String(v));}
-function printTypeLabel(type){return type==='run'?'RUN':(type==='pass'?'PASS':'');}
-
-function renderPlayToImage(play, w=1800, h=1080){
+function renderPlayToImage(play, w=1600, h=960){
   const off=document.createElement('canvas');
   off.width=w; off.height=h;
   const c=off.getContext('2d');
-  const pad=28;
+  const pad=20;
   const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
   const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
   const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
@@ -4328,7 +4250,7 @@ function renderPlayToImage(play, w=1800, h=1080){
     });
   });
   drawPlayersOn(c,off,sc,play.data?.players||[],null,toScreen);
-  try{ drawBallForCarrier(c,sc,toScreen,normalizeBallData(play.data?.ball),play.data?.players||[]); }catch(e){}
+  drawBallForCarrier(c,sc,toScreen,normalizeBallData(play.data?.ball),play.data?.players||[]);
   return off.toDataURL('image/png');
 }
 
@@ -4336,7 +4258,7 @@ function renderFormationToImage(form, w=1600, h=960){
   const off=document.createElement('canvas');
   off.width=w; off.height=h;
   const c=off.getContext('2d');
-  const pad=24;
+  const pad=20;
   const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
   const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
   const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
@@ -4346,180 +4268,395 @@ function renderFormationToImage(form, w=1600, h=960){
   return off.toDataURL('image/png');
 }
 
-function currentEditorPlayRecord(){
-  if(!document.getElementById('editorScreen')?.classList.contains('hidden')){
-    const data={players:ePlayers||[],routes:eRoutes||[],zones:eZones||[],ball:eBall||null};
-    return {
-      id:currentPlay?.id || 'current-editor-play',
-      name:document.getElementById('playNameInput')?.value || currentPlay?.name || 'Current Play',
-      description:document.getElementById('playDescInput')?.value || currentPlay?.description || '',
-      playType:document.getElementById('playTypeSelect')?.value || currentPlay?.playType || '',
-      kind:'drawn',
-      data
-    };
-  }
-  return currentPlay;
-}
-
 window.printPlay=function(){
   if(activeRoute) commitRoute();
-  const play=currentEditorPlayRecord();
-  if(!play){toast('No play open','err');return;}
-  openPrintWindow({scope:'play', perPage:1, includeCover:false, title:play.name, groups:[{formation:currentFormation, plays:[play]}]});
-};
-
-async function collectPrintGroups(scope){
-  if(scope==='play'){
-    const p=currentEditorPlayRecord();
-    if(!p) throw new Error('No current play selected.');
-    return [{formation:currentFormation||{name:'Current Formation'}, plays:[p]}];
-  }
-  if(scope==='formation'){
-    if(!currentFormation) throw new Error('No formation selected.');
-    const ps=(plays && plays.length && currentFormation) ? plays : await loadPlays(currentPlaybook.id,currentFormation.id);
-    const sorted=[...ps].sort((a,b)=>((a.order??a.createdAt??0)-(b.order??b.createdAt??0)));
-    return [{formation:currentFormation, plays:sorted}];
-  }
-  const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
-  const groups=[];
-  const sortedForms=[...fs].sort((a,b)=>{
-    const typeOrder={off:0,def:1,st:2};
-    const ta=typeOrder[a.type||'off']??9, tb=typeOrder[b.type||'off']??9;
-    if(ta!==tb) return ta-tb;
-    return (a.name||'').localeCompare(b.name||'');
-  });
-  for(const f of sortedForms){
-    const ps=await loadPlays(currentPlaybook.id,f.id);
-    const sorted=[...ps].sort((a,b)=>((a.order??a.createdAt??0)-(b.order??b.createdAt??0)));
-    groups.push({formation:f, plays:sorted});
-  }
-  return groups;
-}
-
-function flattenPrintablePlays(groups){
-  const out=[];
-  groups.forEach(g=>{
-    (g.plays||[]).forEach(p=>out.push({formation:g.formation, play:p}));
-  });
-  return out;
-}
-
-function playCardHtml(item, idx, perPage){
-  const p=item.play;
-  const f=item.formation||{};
-  const type=printTypeLabel(p.playType);
-  const notes=(p.description||'').trim();
-  const isImage=p.kind==='image';
-  const img=isImage ? (p.url||'') : (p.data&&p.data.players ? renderPlayToImage(p, perPage===1?1900:1500, perPage===1?1120:900) : '');
-  const noDiagram=!img;
-  return `<article class="play-print-card play-count-${perPage}">
-    <header class="play-print-head">
-      <div>
-        <div class="play-print-kicker">${printEsc(f.name||'Formation')}</div>
-        <h2>${printEsc(p.name||'Untitled Play')}</h2>
-      </div>
-      ${type?`<span class="play-print-type ${printEsc((p.playType||'').toLowerCase())}">${type}</span>`:''}
-    </header>
-    <div class="play-print-diagram ${noDiagram?'empty':''}">
-      ${noDiagram?'<span>No diagram</span>':`<img src="${img}" alt="${printEsc(p.name||'Play diagram')}">`}
-    </div>
-    <section class="play-print-notes">
-      <div class="notes-label">Coaching Notes</div>
-      <div class="notes-text">${notes?printEsc(notes):'<span class="muted">—</span>'}</div>
-    </section>
-  </article>`;
-}
-
-function chunk(arr, size){
-  const out=[];
-  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
-  return out;
-}
-
-function printCss(perPage){
-  return `
-    @page{size:letter;margin:.35in}
-    *{box-sizing:border-box}
-    body{margin:0;background:#fff;color:#111;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .cover{height:10.3in;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:2px solid #111;padding:.5in}
-    .cover-mark{width:88px;height:88px;border-radius:20px;background:#111;color:#f0b429;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',Impact,sans-serif;font-size:42px;letter-spacing:2px;margin-bottom:24px}
-    .cover h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:58px;letter-spacing:4px;margin:0 0 6px;text-transform:uppercase}
-    .cover p{margin:6px 0;color:#555;font-size:13px;max-width:5.8in;line-height:1.45}
-    .cover-code{margin-top:24px;border:1px solid #222;border-radius:999px;padding:8px 18px;font-size:12px;font-weight:800;letter-spacing:1.5px}
-    .page{height:10.3in;page-break-after:always;display:flex;flex-direction:column;gap:.12in;position:relative;padding-bottom:.18in}
-    .page-top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:.06in;margin-bottom:.05in;min-height:.34in}
-    .brand{font-family:'Bebas Neue',Impact,sans-serif;font-size:20px;letter-spacing:2px;text-transform:uppercase}
-    .book-title{font-size:10px;color:#555;text-align:right;text-transform:uppercase;letter-spacing:.8px}
-    .play-grid{flex:1;display:grid;gap:.16in;min-height:0}
-    .play-grid.count-1{grid-template-columns:1fr;grid-template-rows:1fr}
-    .play-grid.count-2{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
-    .play-grid.count-3{grid-template-columns:1fr;grid-template-rows:1fr 1fr 1fr}
-    .play-grid.count-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-    .play-print-card{border:1.5px solid #111;border-radius:8px;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#fff;page-break-inside:avoid}
-    .play-print-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#111;color:#fff;padding:.09in .12in}
-    .play-print-kicker{font-size:9px;color:#f0b429;font-weight:900;text-transform:uppercase;letter-spacing:.9px;margin-bottom:1px}
-    .play-print-head h2{font-family:'Bebas Neue',Impact,sans-serif;font-size:${perPage===1?'28px':'21px'};letter-spacing:1.2px;line-height:1;margin:0;text-transform:uppercase}
-    .play-print-type{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:900;letter-spacing:.8px;background:#f0b429;color:#000;white-space:nowrap}
-    .play-print-type.pass{background:#dce9ff}.play-print-type.run{background:#dff5e8}
-    .play-print-diagram{flex:1;min-height:0;background:#0b0c0f;display:flex;align-items:center;justify-content:center;padding:${perPage===1?'.12in':'.07in'}}
-    .play-print-diagram img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;display:block;border-radius:4px}
-    .play-print-diagram.empty{background:#f4f4f4;color:#777;font-size:12px}
-    .play-print-notes{border-top:1px solid #ddd;padding:.07in .1in .08in;background:#fff;min-height:${perPage===1?'.95in':'.52in'};max-height:${perPage===1?'1.55in':'.78in'};overflow:hidden}
-    .notes-label{font-size:8px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:#777;margin-bottom:3px}
-    .notes-text{font-size:${perPage===1?'11px':'9.5px'};line-height:1.32;white-space:pre-wrap;color:#222}.muted{color:#aaa}
-    .page-foot{display:flex;justify-content:space-between;align-items:center;color:#777;font-size:8px;letter-spacing:.5px;text-transform:uppercase;border-top:1px solid #ddd;padding-top:.05in;margin-top:.05in}
-    .empty-book{height:9in;display:flex;align-items:center;justify-content:center;text-align:center;color:#777;border:1px dashed #aaa;border-radius:8px}
-    @media print{.no-print{display:none}.page:last-child{page-break-after:auto}.cover{page-break-after:always}}
-  `;
-}
-
-function openPrintWindow({scope='playbook', perPage=2, includeCover=true, title='', groups=[]}){
-  const items=flattenPrintablePlays(groups);
-  const pages=chunk(items, perPage);
-  const bookName=currentPlaybook?.name || title || 'XO Playbook';
-  const scopeLabel=scope==='play'?'Current Play':(scope==='formation'?'Current Formation':'Full Playbook');
-  let html=`<!DOCTYPE html><html><head><title>${printEsc(bookName)} Print</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>${printCss(perPage)}</style></head><body>`;
-  if(includeCover){
-    html+=`<section class="cover">
-      <div class="cover-mark">X&O</div>
-      <h1>${printEsc(bookName)}</h1>
-      <p>${printEsc(scopeLabel)} · ${items.length} play${items.length===1?'':'s'} · ${perPage} per page</p>
-      ${currentPlaybook?.description?`<p>${printEsc(currentPlaybook.description)}</p>`:''}
-      ${currentPlaybook?.viewCode?`<div class="cover-code">VIEW CODE ${printEsc(currentPlaybook.viewCode)}</div>`:''}
-      <p style="margin-top:36px;font-size:10px;color:#999">Generated ${new Date().toLocaleDateString()} · X&O Lab v${APP_VERSION}</p>
-    </section>`;
-  }
-  if(!items.length){
-    html+=`<section class="page"><div class="page-top"><div class="brand">X&O Playbook</div><div class="book-title">${printEsc(bookName)}</div></div><div class="empty-book">No printable plays found.</div><footer class="page-foot"><span>X&O Lab v${APP_VERSION}</span><span>Page 1</span></footer></section>`;
-  }else{
-    pages.forEach((pageItems,pageIdx)=>{
-      html+=`<section class="page"><div class="page-top"><div class="brand">X&O Playbook</div><div class="book-title">${printEsc(bookName)} · ${printEsc(scopeLabel)}</div></div><div class="play-grid count-${perPage}">`;
-      pageItems.forEach((item,idx)=>{ html+=playCardHtml(item, pageIdx*perPage+idx, perPage); });
-      html+=`</div><footer class="page-foot"><span>X&O Lab v${APP_VERSION}</span><span>Page ${pageIdx+1} of ${pages.length}</span></footer></section>`;
-    });
-  }
-  html+=`<script>setTimeout(function(){window.focus();window.print();},500);<\/script></body></html>`;
+  const name=document.getElementById('playNameInput').value||'Play';
+  const description=document.getElementById('playDescInput').value||'';
+  const url=cv.toDataURL('image/png');
   const w=window.open('','_blank');
-  if(!w){ toast('Allow popups to print','err'); return; }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  w.document.write(`<!DOCTYPE html><html><head><title>${esc(name)}</title><style>
+    body{margin:20px;font-family:sans-serif}
+    img{max-width:100%;border-radius:8px}
+    h2{margin-bottom:4px}
+    p{color:#666;margin-bottom:16px;font-size:13px}
+  
+
+
+
+
+
+/* LOGIN LANDING POLISH */
+#landingScreen{
+  justify-content:flex-start;
+  padding:clamp(78px, 10vh, 118px) 18px 28px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(240,180,41,.16), transparent 28%),
+    radial-gradient(circle at 80% 65%, rgba(65,130,240,.09), transparent 30%),
+    linear-gradient(180deg, #090a0d 0%, #0b0c0f 58%, #08090b 100%);
 }
+#landingScreen .landing-box{
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+}
+#landingScreen .landing-img{
+  width:150px;
+  height:150px;
+  border-radius:34px;
+  margin-bottom:12px;
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 18px 60px rgba(0,0,0,.62), 0 0 0 8px rgba(255,255,255,.018);
+}
+#landingScreen .landing-tag{
+  margin-bottom:32px;
+  font-size:13px;
+  letter-spacing:6px;
+  color:rgba(236,238,242,.42);
+}
+#landingScreen .landing-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+  background:linear-gradient(135deg, rgba(28,31,39,.96), rgba(15,17,22,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+#landingScreen .landing-card:before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, rgba(255,255,255,.07), transparent 34%);
+  opacity:.55;
+  pointer-events:none;
+}
+#landingScreen .landing-card:active{
+  border-color:var(--accent);
+  transform:translateY(1px);
+}
+#landingScreen .landing-card-ico{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+#landingScreen .landing-card-title{
+  font-size:22px;
+  letter-spacing:2px;
+}
+#landingScreen .landing-card-sub{
+  font-size:13px;
+  color:#737887;
+}
+#landingScreen #connTag{
+  margin-top:22px!important;
+  color:var(--green)!important;
+  font-size:12px!important;
+  font-weight:700;
+  letter-spacing:.4px!important;
+}
+.auth-utility{
+  left:12px;
+  right:12px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+.auth-utility .mini-btn.pro{
+  color:#000;
+  background:linear-gradient(135deg, #f0b429, #ffe08a);
+  border-color:rgba(240,180,41,.45);
+}
+.auth-utility .mini-btn.pro:active{
+  color:#000;
+  filter:brightness(.94);
+}
+@media (max-width:560px){
+  #landingScreen{ padding-top:92px; }
+  .auth-utility .mini-btn{ height:32px; padding:0 11px; }
+  #landingScreen .landing-img{ width:142px; height:142px; }
+  #landingScreen .landing-card{ padding:17px; }
+}
+@media (max-height:720px){
+  #landingScreen{ padding-top:70px; }
+  #landingScreen .landing-img{ width:120px; height:120px; border-radius:28px; }
+  #landingScreen .landing-tag{ margin-bottom:22px; }
+  #landingScreen .landing-card{ margin-bottom:10px; padding:15px; }
+}
+.pro-box{
+  background:linear-gradient(180deg, rgba(240,180,41,.12), rgba(19,21,26,.98) 34%);
+}
+.pro-list{
+  margin:14px 0 18px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.pro-item{
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px 12px;
+  font-size:13px;
+  line-height:1.35;
+}
+.pro-item b{ color:var(--accent); }
+
+/* ACCOUNT SYSTEM ADDITIONS */
+.auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
+.auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
+.auth-utility .mini-btn:active{border-color:var(--accent);color:var(--accent)}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:12px 0}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:var(--border);flex:1}
+.account-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);border-radius:999px;padding:3px 9px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-left:6px}
+.account-pill.basic{color:var(--accent);border-color:rgba(240,180,41,.35);background:rgba(240,180,41,.1)}
+.account-pill.pro{color:var(--green);border-color:rgba(65,201,122,.35);background:rgba(65,201,122,.1)}
+.account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
+.patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
+.patch-list li{margin-bottom:7px}
+
+</style></head><body>
+    <h2>${esc(name)}</h2>
+    <p>${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</p>
+    ${description?`<p style="color:#333;font-size:14px;line-height:1.45;white-space:pre-wrap">${esc(description)}</p>`:''}
+    <img src="${url}">
+    <script>window.print();<\/script>
+  </body></html>`);
+  w.document.close();
+};
 
 window.printPlaybook=async function(){
   if(!currentPlaybook){toast('No playbook open','err');return;}
-  const scope=document.getElementById('printScopeSelect')?.value || 'playbook';
-  const perPage=printPerPage||2;
-  closeSheet('printPlaybookSheet');
   closeSheet('pbMenuSheet');
-  toast('Building print layout…','');
-  try{
-    const groups=await collectPrintGroups(scope);
-    openPrintWindow({scope, perPage, includeCover:scope==='playbook', title:currentPlaybook.name, groups});
-  }catch(e){
-    console.error(e);
-    toast(e.message || 'Could not build print layout','err');
+  toast('Building playbook…','');
+  const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
+  const groups={off:[],def:[],st:[]};
+  for(const f of fs){
+    const ps=await loadPlays(currentPlaybook.id,f.id);
+    const imgs=await loadFormationImages(currentPlaybook.id,f.id);
+    groups[f.type||'off'].push({form:f,plays:ps,images:imgs});
   }
+  const groupLabels={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
+  let html=`<!DOCTYPE html><html><head><title>${esc(currentPlaybook.name)}</title><style>
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Helvetica Neue',Arial,sans-serif;color:#111;background:#fff}
+    .cover{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;page-break-after:always}
+    .cover h1{font-size:64px;letter-spacing:6px;margin:0 0 8px;font-weight:900}
+    .cover h2{font-size:24px;margin:0 0 40px;color:#444;font-weight:400}
+    .cover .code{font-size:14px;color:#888;letter-spacing:2px;margin-bottom:8px}
+    .cover .badge{display:inline-block;padding:8px 18px;background:#f0b429;color:#000;border-radius:30px;font-weight:700;letter-spacing:1px}
+    .section{padding:20px 30px;page-break-after:always}
+    .section h2{font-size:32px;margin:0 0 24px;padding-bottom:8px;border-bottom:3px solid #f0b429;letter-spacing:2px}
+    .form-block{margin-bottom:30px;page-break-inside:avoid}
+    .form-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;border-bottom:1px solid #ccc;padding-bottom:4px}
+    .form-head h3{font-size:22px;margin:0;letter-spacing:1px}
+    .form-head span{font-size:12px;color:#666}
+    .form-notes{font-size:12px;color:#666;margin-bottom:10px;font-style:italic}
+    .play-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .play-item{page-break-inside:avoid}
+    .play-item .name{font-size:14px;font-weight:700;margin-bottom:4px}
+    .play-item img{width:100%;border:1px solid #ddd;border-radius:6px;display:block}
+    .template img{width:100%;max-width:600px;border:1px solid #ddd;border-radius:6px;display:block;margin-bottom:12px}
+    .empty-note{color:#888;font-style:italic;font-size:13px;padding:8px 0}
+    @media print { .section{page-break-after:always} }
+  
+
+
+
+
+
+/* LOGIN LANDING POLISH */
+#landingScreen{
+  justify-content:flex-start;
+  padding:clamp(78px, 10vh, 118px) 18px 28px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(240,180,41,.16), transparent 28%),
+    radial-gradient(circle at 80% 65%, rgba(65,130,240,.09), transparent 30%),
+    linear-gradient(180deg, #090a0d 0%, #0b0c0f 58%, #08090b 100%);
+}
+#landingScreen .landing-box{
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+}
+#landingScreen .landing-img{
+  width:150px;
+  height:150px;
+  border-radius:34px;
+  margin-bottom:12px;
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 18px 60px rgba(0,0,0,.62), 0 0 0 8px rgba(255,255,255,.018);
+}
+#landingScreen .landing-tag{
+  margin-bottom:32px;
+  font-size:13px;
+  letter-spacing:6px;
+  color:rgba(236,238,242,.42);
+}
+#landingScreen .landing-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+  background:linear-gradient(135deg, rgba(28,31,39,.96), rgba(15,17,22,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+#landingScreen .landing-card:before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, rgba(255,255,255,.07), transparent 34%);
+  opacity:.55;
+  pointer-events:none;
+}
+#landingScreen .landing-card:active{
+  border-color:var(--accent);
+  transform:translateY(1px);
+}
+#landingScreen .landing-card-ico{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+#landingScreen .landing-card-title{
+  font-size:22px;
+  letter-spacing:2px;
+}
+#landingScreen .landing-card-sub{
+  font-size:13px;
+  color:#737887;
+}
+#landingScreen #connTag{
+  margin-top:22px!important;
+  color:var(--green)!important;
+  font-size:12px!important;
+  font-weight:700;
+  letter-spacing:.4px!important;
+}
+.auth-utility{
+  left:12px;
+  right:12px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+.auth-utility .mini-btn.pro{
+  color:#000;
+  background:linear-gradient(135deg, #f0b429, #ffe08a);
+  border-color:rgba(240,180,41,.45);
+}
+.auth-utility .mini-btn.pro:active{
+  color:#000;
+  filter:brightness(.94);
+}
+@media (max-width:560px){
+  #landingScreen{ padding-top:92px; }
+  .auth-utility .mini-btn{ height:32px; padding:0 11px; }
+  #landingScreen .landing-img{ width:142px; height:142px; }
+  #landingScreen .landing-card{ padding:17px; }
+}
+@media (max-height:720px){
+  #landingScreen{ padding-top:70px; }
+  #landingScreen .landing-img{ width:120px; height:120px; border-radius:28px; }
+  #landingScreen .landing-tag{ margin-bottom:22px; }
+  #landingScreen .landing-card{ margin-bottom:10px; padding:15px; }
+}
+.pro-box{
+  background:linear-gradient(180deg, rgba(240,180,41,.12), rgba(19,21,26,.98) 34%);
+}
+.pro-list{
+  margin:14px 0 18px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.pro-item{
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px 12px;
+  font-size:13px;
+  line-height:1.35;
+}
+.pro-item b{ color:var(--accent); }
+
+/* ACCOUNT SYSTEM ADDITIONS */
+.auth-utility{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:5}
+.auth-utility .mini-btn{height:30px;padding:0 10px;border-radius:9px;background:rgba(28,31,39,.92);border:1.5px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
+.auth-utility .mini-btn:active{border-color:var(--accent);color:var(--accent)}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:12px 0}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:var(--border);flex:1}
+.account-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);border-radius:999px;padding:3px 9px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-left:6px}
+.account-pill.basic{color:var(--accent);border-color:rgba(240,180,41,.35);background:rgba(240,180,41,.1)}
+.account-pill.pro{color:var(--green);border-color:rgba(65,201,122,.35);background:rgba(65,201,122,.1)}
+.account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
+.patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
+.patch-list li{margin-bottom:7px}
+
+</style></head><body>`;
+
+  html+=`<div class="cover">
+    <h1>X&O</h1>
+    <h2>${esc(currentPlaybook.name)}</h2>
+    ${currentPlaybook.description?`<p style="font-size:14px;color:#555;max-width:400px;margin:0 0 30px">${esc(currentPlaybook.description)}</p>`:''}
+    <div class="code">VIEW CODE</div>
+    <div class="badge">${esc(currentPlaybook.viewCode)}</div>
+    <p style="margin-top:60px;font-size:11px;color:#aaa">Generated ${new Date().toLocaleDateString()}</p>
+  </div>`;
+
+  for(const groupKey of ['off','def','st']){
+    const items=groups[groupKey];
+    if(!items.length)continue;
+    html+=`<div class="section"><h2>${groupLabels[groupKey]}</h2>`;
+    for(const {form,plays:formPlays,images:formImages} of items){
+      const formImg=renderFormationToImage(form,900,400);
+      html+=`<div class="form-block">
+        <div class="form-head"><h3>${esc(form.name)}</h3><span>${formPlays.length} play${formPlays.length===1?'':'s'}</span></div>
+        ${form.notes?`<div class="form-notes">${esc(form.notes)}</div>`:''}
+        <div class="template"><img src="${formImg}"></div>
+      </div>`;
+      // Uploaded formation images
+      if(formImages && formImages.length){
+        html+=`<div class="play-grid">`;
+        for(const im of formImages){
+          html+=`<div class="play-item"><div class="name">${esc(im.name)}${im.isPlay?' · 🏈':''}</div><img src="${im.url}" crossorigin="anonymous"></div>`;
+        }
+        html+=`</div>`;
+      }
+      if(formPlays.length){
+        html+=`<div class="play-grid">`;
+        for(const p of formPlays){
+          if(p.kind==='image'){
+            html+=`<div class="play-item"><div class="name">${esc(p.name)}${p.isPlay?' · 🏈':''}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${p.url}" crossorigin="anonymous"></div>`;
+            continue;
+          }
+          if(!p.data || !p.data.players){
+            html+=`<div class="play-item"><div class="name">${esc(p.name)}</div><div class="empty-note">No diagram</div></div>`;
+            continue;
+          }
+          const img=renderPlayToImage(p,700,420);
+          html+=`<div class="play-item"><div class="name">${esc(p.name)}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${img}"></div>`;
+        }
+        html+=`</div>`;
+      } else if(!(formImages && formImages.length)){
+        html+=`<div class="empty-note">No plays yet for this formation.</div>`;
+      }
+    }
+    html+=`</div>`;
+  }
+
+  if(!groups.off.length && !groups.def.length && !groups.st.length){
+    html+=`<div class="section"><h2>Empty Playbook</h2><p>No formations or plays yet.</p></div>`;
+  }
+
+  html+=`<script>setTimeout(()=>window.print(),800);<\/script></body></html>`;
+
+  const w=window.open('','_blank');
+  if(!w){ toast('Allow popups to print','err'); return; }
+  w.document.write(html);
+  w.document.close();
 };
 
 // ═══════════════════════════════════════════════
