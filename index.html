@@ -677,6 +677,40 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 
 
 
+
+
+/* PLAY TEST HD FIT PATCH - compact notes + full-play canvas fit */
+.quiz-screen{overflow:hidden}
+.quiz-info{padding:10px 14px;background:linear-gradient(180deg, rgba(19,21,26,.98), rgba(12,14,18,.98));align-items:center}
+.quiz-note-card{min-height:76px;max-height:108px;overflow:hidden;border-radius:14px}
+.quiz-note-top{margin-bottom:6px}
+.quiz-note-text{max-height:52px;overflow-y:auto;font-size:13px;line-height:1.38}
+.quiz-note-text.empty{display:flex;align-items:center;justify-content:center;min-height:40px;text-align:center}
+.quiz-animate-btn{height:86px;min-height:86px;border-radius:14px}
+.quiz-field{flex:1 1 auto;min-height:280px}
+.quiz-question{padding:12px 14px}
+.quiz-options{padding:10px 14px calc(12px + var(--safe));gap:8px}
+.quiz-opt{min-height:56px;padding:13px 10px;font-size:14px}
+@media (max-height:760px){
+  .quiz-info{padding:8px 12px}
+  .quiz-note-card{min-height:66px;max-height:82px;padding:8px 10px}
+  .quiz-note-text{max-height:38px;font-size:12px;line-height:1.3}
+  .quiz-animate-btn{height:72px;min-height:72px}
+  .quiz-question{padding:10px 12px}
+  .quiz-options{padding-top:8px}
+  .quiz-opt{min-height:50px;padding:11px 8px}
+}
+@media (max-width:560px){
+  .quiz-info{flex-direction:row;align-items:center}
+  .quiz-animate-btn{width:128px;height:72px;min-height:72px;flex:0 0 128px}
+  .quiz-note-card{min-height:72px;max-height:86px}
+  .quiz-note-text{max-height:42px}
+}
+@media (max-width:430px){
+  .quiz-info{gap:8px;padding:8px}
+  .quiz-animate-btn{width:112px;flex-basis:112px;font-size:12px}
+}
+
 /* HD VISUAL PASS - field, cards, responsive polish */
 body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transparent 34%), var(--bg);}
 .hdr{background:linear-gradient(180deg, rgba(19,21,26,.98), rgba(12,14,18,.98));box-shadow:0 10px 30px rgba(0,0,0,.18)}
@@ -4393,6 +4427,30 @@ function resizeQuizCv(){
   setupHdCanvas(qcv,w);
 }
 
+function getQuizFit(play,w,h){
+  const pad=Math.max(18, Math.min(w,h)*0.035);
+  let minX=0, minY=0, maxX=FW, maxY=FH;
+  const add=(x,y)=>{
+    if(!Number.isFinite(x)||!Number.isFinite(y)) return;
+    minX=Math.min(minX,x); minY=Math.min(minY,y);
+    maxX=Math.max(maxX,x); maxY=Math.max(maxY,y);
+  };
+  (play.data?.players||[]).forEach(pl=>add(pl.x,pl.y));
+  (play.data?.routes||[]).forEach(route=>{
+    (route.segments||[]).forEach(seg=>{
+      (seg.pts||[]).forEach(pt=>add(pt.x,pt.y));
+    });
+  });
+  const contentPad=70;
+  minX-=contentPad; minY-=contentPad; maxX+=contentPad; maxY+=contentPad;
+  const bw=Math.max(1,maxX-minX), bh=Math.max(1,maxY-minY);
+  const sc=Math.min((w-pad*2)/bw,(h-pad*2)/bh);
+  const ox=pad+(w-pad*2-bw*sc)/2-minX*sc;
+  const oy=pad+(h-pad*2-bh*sc)/2-minY*sc;
+  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  return {sc,toScreen};
+}
+
 function drawQuizPlay(item){
   // item = {play, formName, isImage}
   const play=item.play;
@@ -4408,10 +4466,7 @@ function drawQuizPlay(item){
   quizImgEl.src='';
   resizeQuizCv();
   const w=qcv.width, h=qcv.height;
-  const pad=12;
-  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
-  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
-  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  const {sc,toScreen}=getQuizFit(play,w,h);
   qctx.clearRect(0,0,w,h);
   qctx.fillStyle='#070809';qctx.fillRect(0,0,w,h);
   drawFieldOn(qctx,qcv,sc,toScreen);
@@ -4448,10 +4503,7 @@ function drawQuizAnimated(item, progress){
   const motionProg=hasMotion ? Math.min(1, progress/preSnapPortion) : 1;
   const snapProg=hasMotion ? Math.max(0, Math.min(1, (progress-preSnapPortion)/(1-preSnapPortion))) : progress;
   const w=qcv.width, h=qcv.height;
-  const pad=12;
-  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
-  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
-  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  const {sc,toScreen}=getQuizFit(play,w,h);
   qctx.clearRect(0,0,w,h);
   qctx.fillStyle='#070809';qctx.fillRect(0,0,w,h);
   drawFieldOn(qctx,qcv,sc,toScreen);
