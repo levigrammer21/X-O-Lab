@@ -479,6 +479,13 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .account-pill.admin{color:var(--blue);border-color:rgba(65,130,240,.35);background:rgba(65,130,240,.1)}
 .patch-list{font-size:13px;color:var(--text);line-height:1.55;padding-left:18px;margin-bottom:14px}
 .patch-list li{margin-bottom:7px}
+.app-version-badge{display:inline-flex;align-items:center;justify-content:center;margin:0 auto 24px;padding:6px 12px;border-radius:999px;border:1px solid rgba(240,180,41,.28);background:rgba(240,180,41,.09);color:var(--accent);font-size:10px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase}
+.patch-version-card{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:13px;padding:13px 14px;margin:12px 0}
+.patch-version-card.current{border-color:rgba(240,180,41,.28);background:linear-gradient(180deg, rgba(240,180,41,.10), rgba(255,255,255,.025))}
+.patch-version-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.4px;margin-bottom:8px;color:var(--text)}
+.patch-version-title span{color:var(--accent)}
+.patch-current-label{display:inline-flex;margin:5px 0 10px;padding:4px 9px;border-radius:999px;background:rgba(65,201,122,.10);border:1px solid rgba(65,201,122,.24);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}
+.patch-build-foot{margin-top:12px;text-align:center;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.9px;text-transform:uppercase}
 
 
 #playNameInput[readonly], #playDescInput[readonly], #playTypeSelect:disabled{
@@ -677,19 +684,75 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 
 
 
+
+
+/* PLAY TEST HD FIT PATCH - compact notes + full-play canvas fit */
+.quiz-screen{overflow:hidden}
+.quiz-info{padding:10px 14px;background:linear-gradient(180deg, rgba(19,21,26,.98), rgba(12,14,18,.98));align-items:center}
+.quiz-note-card{min-height:76px;max-height:108px;overflow:hidden;border-radius:14px}
+.quiz-note-top{margin-bottom:6px}
+.quiz-note-text{max-height:52px;overflow-y:auto;font-size:13px;line-height:1.38}
+.quiz-note-text.empty{display:flex;align-items:center;justify-content:center;min-height:40px;text-align:center}
+.quiz-animate-btn{height:86px;min-height:86px;border-radius:14px}
+.quiz-field{flex:1 1 auto;min-height:280px}
+.quiz-question{padding:12px 14px}
+.quiz-options{padding:10px 14px calc(12px + var(--safe));gap:8px}
+.quiz-opt{min-height:56px;padding:13px 10px;font-size:14px}
+@media (max-height:760px){
+  .quiz-info{padding:8px 12px}
+  .quiz-note-card{min-height:66px;max-height:82px;padding:8px 10px}
+  .quiz-note-text{max-height:38px;font-size:12px;line-height:1.3}
+  .quiz-animate-btn{height:72px;min-height:72px}
+  .quiz-question{padding:10px 12px}
+  .quiz-options{padding-top:8px}
+  .quiz-opt{min-height:50px;padding:11px 8px}
+}
+@media (max-width:560px){
+  .quiz-info{flex-direction:row;align-items:center}
+  .quiz-animate-btn{width:128px;height:72px;min-height:72px;flex:0 0 128px}
+  .quiz-note-card{min-height:72px;max-height:86px}
+  .quiz-note-text{max-height:42px}
+}
+@media (max-width:430px){
+  .quiz-info{gap:8px;padding:8px}
+  .quiz-animate-btn{width:112px;flex-basis:112px;font-size:12px}
+}
+
+/* HD VISUAL PASS - field, cards, responsive polish */
+body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transparent 34%), var(--bg);}
+.hdr{background:linear-gradient(180deg, rgba(19,21,26,.98), rgba(12,14,18,.98));box-shadow:0 10px 30px rgba(0,0,0,.18)}
+#playsScreen .hdr-title h1,#formationsScreen .hdr-title h1{font-size:24px;text-shadow:0 1px 12px rgba(255,255,255,.06)}
+#playsScreen .hdr-title:before{content:'';display:inline-block;width:34px;height:34px;border-radius:8px;background:url('icon-192.png') center/cover no-repeat;vertical-align:middle;margin-right:10px;box-shadow:0 6px 16px rgba(0,0,0,.35);flex:0 0 auto}
+#playsScreen .hdr-title{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center}
+#playsScreen .hdr-title:before{grid-row:1 / span 2;grid-column:1}
+#playsScreen .hdr-title h1{grid-column:2;grid-row:1}
+#playsScreen .hdr-title p{grid-column:2;grid-row:2}
+.play-grid{grid-template-columns:1fr;gap:14px}
+@media (min-width:640px){.play-grid{grid-template-columns:1fr 1fr;gap:14px}}
+@media (min-width:1120px){.play-grid{grid-template-columns:repeat(3,1fr);gap:16px}}
+.play-card{background:linear-gradient(180deg, rgba(22,25,32,.98), rgba(13,15,20,.98));border-color:rgba(255,255,255,.10);box-shadow:0 14px 32px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);padding:12px;border-radius:16px}
+.play-card:hover{border-color:rgba(240,180,41,.38);transform:translateY(-1px)}
+.play-card:active{transform:translateY(0);border-color:var(--accent)}
+.play-preview{height:112px;border-radius:12px;background:#113b13;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), inset 0 -20px 40px rgba(0,0,0,.14);margin-bottom:12px}
+@media (min-width:700px){.play-preview{height:128px}}
+@media (min-width:1120px){.play-preview{height:120px}}
+.play-card-name{font-size:16px;letter-spacing:-.2px}.play-card-sub{font-size:13px;color:#767c8d}
+.play-type-badge{padding:3px 9px;font-size:10px;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.reorder-row{gap:8px;margin-top:12px;padding-top:12px}.reorder-row .rb{height:40px;border-radius:10px;background:linear-gradient(180deg, rgba(32,36,46,.96), rgba(22,25,32,.96));font-size:18px}
+#editorScreen:not(.presentation-mode) .canvas-wrap{background:linear-gradient(180deg,#050609,#080a0c);padding:14px}
+#editorScreen:not(.presentation-mode) canvas{border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,.35)}
+#editorScreen:not(.presentation-mode) .play-info-row,#editorScreen:not(.presentation-mode) .play-control-strip,#editorScreen:not(.presentation-mode) .bot-bar{background:linear-gradient(180deg, rgba(19,21,26,.98), rgba(12,14,18,.98))}
+#editorScreen:not(.presentation-mode) .play-action-btn,#editorScreen:not(.presentation-mode) .play-step-btn,#editorScreen:not(.presentation-mode) .tool-btn,#editorScreen:not(.presentation-mode) .chip{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+#editorScreen:not(.presentation-mode) .tool-btn.on{box-shadow:0 0 0 1px rgba(240,180,41,.16), inset 0 1px 0 rgba(255,255,255,.05)}
+@media (max-width:560px){#playsScreen .hdr-title:before{display:none}#playsScreen .hdr-title{display:block}.play-preview{height:104px}.play-card{padding:11px}.reorder-row .rb{height:38px}}
+
+
 /* PRINT PLAYBOOK OPTIONS */
 .print-option-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.print-choice{height:46px;border-radius:12px;background:var(--card2);border:1.5px solid var(--border);color:var(--muted);font-size:12px;font-weight:900;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center}
-.print-choice.on{border-color:var(--accent);background:var(--adim);color:var(--accent);box-shadow:0 0 0 1px rgba(240,180,41,.12)}
-.print-scope-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.print-scope{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--card2);border:1.5px solid var(--border);cursor:pointer}
-.print-scope.on{border-color:var(--accent);background:var(--adim)}
-.print-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.print-scope.on .print-radio{border-color:var(--accent)}
-.print-scope.on .print-radio:after{content:'';width:9px;height:9px;border-radius:50%;background:var(--accent)}
-.print-scope-body{flex:1;min-width:0}.print-scope-body .t{font-size:14px;font-weight:800}.print-scope-body .d{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35}
-.print-toggle-row{display:flex;gap:8px;margin-bottom:14px}.print-toggle-row .chip{height:34px;border-radius:12px}
-@media (max-width:470px){.print-option-grid{grid-template-columns:repeat(2,1fr)}}
+.print-option-grid .chip{height:42px;border-radius:12px;font-size:12px}
+.print-option-grid .chip.on{color:#000;background:var(--accent);border-color:var(--accent)}
+.print-mini-note{font-size:11px;color:var(--muted);line-height:1.45;margin:-4px 0 14px}
+@media (max-width:430px){.print-option-grid{grid-template-columns:repeat(2,1fr)}}
 
 </style>
 </head>
@@ -711,6 +774,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div class="landing-box">
     <img src="icon-512.png" alt="X&O Lab" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
+    <div class="app-version-badge" id="appVersionBadge">v1.2.0 · Print Playbook</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -838,11 +902,11 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <div class="patch-current-label">Current Build</div>
       <div class="patch-version-title"><span>v1.2.0</span> — Print Playbook</div>
       <ul class="patch-list">
-        <li>Added a full Print Playbook system.</li>
+        <li>Added Print Playbook output that opens in a clean print/PDF window.</li>
         <li>Choose 1, 2, 3, or 4 plays per page.</li>
-        <li>Print current play, current formation, or the entire playbook.</li>
-        <li>Added PDF-friendly playbook pages with clean titles, diagrams, notes, page numbers, and version footer.</li>
-        <li>Improved print styling so exported pages feel like a real coaching playbook.</li>
+        <li>Print the current play, current formation, or full playbook.</li>
+        <li>Printed pages include play names, formations, play type badges, diagrams, notes, page numbers, and app version footer.</li>
+        <li>Improved paper-friendly formatting for phone, tablet, and desktop printing.</li>
       </ul>
     </div>
 
@@ -1039,6 +1103,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
       <button class="tool-btn" id="seg-motion" onclick="setSegType('motion')"><span class="ti">〰</span>MOTION</button>
       <button class="tool-btn" id="seg-block" onclick="setSegType('block')"><span class="ti">▬</span>BLOCK</button>
       <button class="tool-btn" id="tool-zone" onclick="setZoneTool()"><span class="ti">◯</span>ZONE</button>
+      <button class="tool-btn" id="tool-ball" onclick="setBallTool()"><span class="ti">🏈</span>BALL</button>
       <button class="tool-btn" id="tool-erase" onclick="toggleErase()"><span class="ti">✕</span>ERASE</button>
     </div>
     <div class="opts" id="optionsRow"></div>
@@ -1203,42 +1268,39 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
   <div style="height:8px" id="pbEditCodeSpacer"></div>
   <button class="btn btn-g" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none">✏️ Edit View Code</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="openPrintSheet()">📖 Print Playbook</button>
+  <button class="btn btn-g" onclick="openPrintPlaybookSheet()">📖 Print Playbook / PDF</button>
   <div style="height:8px" id="pbAssignSpacer"></div>
   <button class="btn btn-g" onclick="openAssignScreen()" id="pbAssignBtn" style="display:none">👤 Assign to Coach</button>
   <div style="height:8px" id="pbAdminSpacer"></div>
   <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
 </div>
 
-<div class="overlay" id="printOptionsOverlay" onclick="closeSheet('printOptionsSheet')"></div>
-<div class="sheet" id="printOptionsSheet">
+<div class="overlay" id="printPlaybookOverlay" onclick="closeSheet('printPlaybookSheet')"></div>
+<div class="sheet" id="printPlaybookSheet">
   <div class="handle"></div>
   <h2>Print Playbook</h2>
-  <p class="sub">Choose a legit playbook layout. You can print on paper or save as PDF.</p>
-  <div class="field">
-    <label>Plays Per Page</label>
-    <div class="print-option-grid" id="printPerPageChoices">
-      <button class="print-choice on" onclick="setPrintPerPage(1)" data-pp="1">1 / Page</button>
-      <button class="print-choice" onclick="setPrintPerPage(2)" data-pp="2">2 / Page</button>
-      <button class="print-choice" onclick="setPrintPerPage(3)" data-pp="3">3 / Page</button>
-      <button class="print-choice" onclick="setPrintPerPage(4)" data-pp="4">4 / Page</button>
-    </div>
+  <p class="sub">Choose what to print and how many plays should appear on each page.</p>
+
+  <div class="field"><label>Print Scope</label>
+    <select id="printScopeSelect">
+      <option value="play">Current Play</option>
+      <option value="formation">Current Formation</option>
+      <option value="playbook" selected>Full Playbook</option>
+    </select>
   </div>
-  <div class="field">
-    <label>Print Scope</label>
-    <div class="print-scope-list" id="printScopeChoices">
-      <div class="print-scope" onclick="setPrintScope('current')" data-scope="current"><div class="print-radio"></div><div class="print-scope-body"><div class="t">Current Play</div><div class="d">Only the open play.</div></div></div>
-      <div class="print-scope" onclick="setPrintScope('formation')" data-scope="formation"><div class="print-radio"></div><div class="print-scope-body"><div class="t">Current Formation</div><div class="d">All plays inside the selected formation.</div></div></div>
-      <div class="print-scope on" onclick="setPrintScope('playbook')" data-scope="playbook"><div class="print-radio"></div><div class="print-scope-body"><div class="t">Entire Playbook</div><div class="d">All formations and all plays.</div></div></div>
-    </div>
+
+  <div class="field"><label>Plays Per Page</label></div>
+  <div class="print-option-grid" id="printPerPageGrid">
+    <button class="chip" data-print-count="1" onclick="setPrintPerPage(1)">1 / Page</button>
+    <button class="chip on" data-print-count="2" onclick="setPrintPerPage(2)">2 / Page</button>
+    <button class="chip" data-print-count="3" onclick="setPrintPerPage(3)">3 / Page</button>
+    <button class="chip" data-print-count="4" onclick="setPrintPerPage(4)">4 / Page</button>
   </div>
-  <div class="print-toggle-row">
-    <button class="chip on" id="printNotesToggle" onclick="togglePrintNotes()">Notes On</button>
-    <button class="chip on" id="printCoverToggle" onclick="togglePrintCover()">Cover On</button>
-  </div>
+  <div class="print-mini-note">Tip: 1/page is best for install sheets, 2/page feels like a classic playbook, and 4/page is great for quick references.</div>
+
   <button class="btn btn-p" onclick="printPlaybook()">Generate Print / PDF</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="closeSheet('printOptionsSheet')">Cancel</button>
+  <button class="btn btn-g" onclick="closeSheet('printPlaybookSheet')">Cancel</button>
 </div>
 
 <div class="overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
@@ -1292,6 +1354,21 @@ setPersistence(auth, browserLocalPersistence).catch(e=>console.warn('Auth persis
 const googleProvider = new GoogleAuthProvider();
 
 // ═══════════════════════════════════════════════
+// APP VERSION
+// ═══════════════════════════════════════════════
+const APP_VERSION = '1.2.0';
+const RELEASE_NAME = 'Print Playbook';
+function hydrateAppVersion(){
+  const badge = document.getElementById('appVersionBadge');
+  if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
+  const current = document.getElementById('patchCurrentVersion');
+  if(current) current.textContent = `v${APP_VERSION}`;
+  const foot = document.getElementById('patchBuildFoot');
+  if(foot) foot.textContent = `X&O Lab v${APP_VERSION} · ${RELEASE_NAME}`;
+}
+hydrateAppVersion();
+
+// ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
 const SUPER_ADMIN_PASSWORDS = []; // Password admin login removed. Use Google/admin account. // Disabled: Google admin only; legacy coach passwords still work.
@@ -1309,6 +1386,7 @@ let currentAccount = null;
 let currentRole = 'guest';
 let currentUserId = null;
 let playbooks = [], formations = [], plays = [], coaches = [], accountUsers = [];
+let playbookViewStats = {};
 let formationImages = [];   // images attached to current formation (formation-level)
 
 // Formation editor state
@@ -1320,6 +1398,7 @@ let fPColor='#f0b429', fPPos='QB';
 
 // Play editor state
 let ePlayers=[], eRoutes=[], eZones=[];
+let eBall={enabled:false,mode:'basic',sequence:[]};
 let selP=null;
 let tool='draw';
 let segType='route';
@@ -1333,17 +1412,6 @@ let vx=0,vy=0,vs=1;
 let pinching=false,pd0=0,pvx0=0,pvy0=0;
 let animId=null, animating=false;
 let playSwipeSX=0, playSwipeSY=0, playSwipeT=0;
-
-const APP_VERSION = '1.2.0';
-const RELEASE_NAME = 'Print Playbook';
-function syncVersionLabels(){
-  const badge=document.getElementById('appVersionBadge');
-  if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
-  const current=document.getElementById('patchCurrentVersion');
-  if(current) current.textContent = `v${APP_VERSION}`;
-  const foot=document.getElementById('patchBuildFoot');
-  if(foot) foot.textContent = `X&O Lab v${APP_VERSION} · ${RELEASE_NAME}`;
-}
 
 // Quiz state
 let quizQuestions=[], quizIdx=0, quizScore=0, quizStart=0, quizTimerId=null, quizAnswered=false, quizAllPlays=[];
@@ -1427,7 +1495,6 @@ function goBack(toId, fromId){
   history.replaceState({screen:toId,depth:navStack.length},'',location.href);
 }
 window.goBack = goBack;
-setTimeout(syncVersionLabels, 0);
 
 function pushGuard(){ history.pushState({guard:true},'',location.href); }
 
@@ -2570,6 +2637,151 @@ function drawFootballOn(c,x,y,sc,angle=0){
   c.restore();
 }
 
+function normalizeBallData(ball){
+  const b=ball&&typeof ball==='object'?JSON.parse(JSON.stringify(ball)):{};
+  return {
+    enabled:!!b.enabled,
+    mode:b.mode==='advanced'?'advanced':'basic',
+    sequence:Array.isArray(b.sequence)?b.sequence.filter(x=>x&&x.playerId).map(x=>({
+      playerId:x.playerId,
+      type:x.type||'auto',
+      speed:x.speed||'normal',
+      time: Number.isFinite(Number(x.time)) ? Number(x.time) : null
+    })):[]
+  };
+}
+function ballPlayerLabel(id, players=ePlayers){
+  const p=players.find(pl=>pl.id===id);
+  return p?(p.pos||'P'):'?';
+}
+function ballPlayerById(id, players=ePlayers){ return players.find(p=>p.id===id)||null; }
+function centerPlayer(players=ePlayers){ return players.find(p=>(p.pos||'').toUpperCase()==='C')||null; }
+function qbPlayer(players=ePlayers){ return players.find(p=>(p.pos||'').toUpperCase()==='QB')||null; }
+function ballSequencePlayers(ball=eBall, players=ePlayers){
+  ball=normalizeBallData(ball);
+  const seq=ball.sequence.map(x=>ballPlayerById(x.playerId,players)).filter(Boolean);
+  if(!seq.length) return [];
+  const c=centerPlayer(players);
+  if(c && seq[0].id!==c.id) return [c,...seq];
+  return seq;
+}
+function ballCarrierPlayer(ball=eBall, players=ePlayers){
+  const seq=ballSequencePlayers(ball,players);
+  return seq.length?seq[seq.length-1]:null;
+}
+function ballAttachOffset(sc){
+  const m=Math.min(sc||1,1.45);
+  return {x:Math.max(7,13*m),y:-Math.max(8,12*m)};
+}
+function drawBallAttachedToPlayer(c,sc,toScreen,p,angle=.35){
+  if(!p) return;
+  const s=toScreen(p.x,p.y), o=ballAttachOffset(sc);
+  drawFootballOn(c,s.x+o.x,s.y+o.y,sc,angle);
+}
+function drawBallForCarrier(c,sc,toScreen,ball=eBall,players=ePlayers){
+  if(!ball?.enabled) return;
+  const p=ballCarrierPlayer(ball,players);
+  drawBallAttachedToPlayer(c,sc,toScreen,p,.35);
+}
+const BALL_TIMES=[0,0.1,0.2,0.4,0.7,1.0,1.4,1.8,2.2,2.8];
+const BALL_TIMELINE_SECONDS=2.8;
+function transferWeight(step, mode){
+  if(mode!=='advanced') return 1;
+  const speed=(step&&step.speed)||'normal';
+  return speed==='fast'?.7:speed==='slow'?1.45:1;
+}
+function transferType(step, idx=0){
+  const raw=((step&&step.type)||'auto').toLowerCase();
+  const type=raw==='throw'?'pass':raw;
+  if(type==='auto') return idx===0?'snap':'instant';
+  if(type==='handoff' || type==='pitch') return 'instant';
+  return type;
+}
+function defaultBallStepTime(i, mode){
+  if(i<=0) return 0;
+  return mode==='advanced' ? Math.min(2.8, .2 + (i-1)*.6) : Math.min(1.2, i*.22);
+}
+function ballStepTime(step, i, mode){
+  const n=Number(step&&step.time);
+  if(mode==='advanced' && Number.isFinite(n)) return Math.max(0,Math.min(BALL_TIMELINE_SECONDS,n));
+  return defaultBallStepTime(i,mode);
+}
+function nextBallTimeValue(v){
+  const cur=Number.isFinite(Number(v))?Number(v):0;
+  let best=0, dist=999;
+  BALL_TIMES.forEach((t,i)=>{ const d=Math.abs(t-cur); if(d<dist){dist=d;best=i;} });
+  return BALL_TIMES[(best+1)%BALL_TIMES.length];
+}
+function ballTimeLabel(step,i){
+  const t=ballStepTime(step,i,'advanced');
+  return t===0?'NOW':`${t.toFixed(1)}s`;
+}
+function ballMetaForReceiver(ball, receiverId){
+  return (ball.sequence||[]).find(x=>x&&x.playerId===receiverId)||{};
+}
+function ballPointAtProgress(ball, players, progress){
+  ball=normalizeBallData(ball);
+  if(!ball.enabled) return null;
+  const seq=ballSequencePlayers(ball,players);
+  if(!seq.length) return null;
+  if(seq.length===1) return {attach:seq[0],angle:.35};
+
+  const p=Math.max(0,Math.min(1,progress));
+  let holder=seq[0];
+  for(let i=0;i<seq.length-1;i++){
+    const receiver=seq[i+1];
+    const meta=ballMetaForReceiver(ball, receiver.id);
+    const type=transferType(meta,i);
+    const start=ballStepTime(meta,i,ball.mode)/BALL_TIMELINE_SECONDS;
+    const nextMeta=seq[i+2]?ballMetaForReceiver(ball, seq[i+2].id):null;
+    const nextStart=seq[i+2]?ballStepTime(nextMeta,i+1,ball.mode)/BALL_TIMELINE_SECONDS:1;
+
+    if(p < start) return {attach:holder,angle:.35};
+
+    if(type==='pass'){
+      const durSeconds=meta.speed==='fast'?.35:meta.speed==='slow'?.9:.6;
+      const dur=Math.min(Math.max(durSeconds/BALL_TIMELINE_SECONDS,.08), Math.max(.08,nextStart-start-.02));
+      if(p <= start+dur){
+        const local=Math.max(0,Math.min(1,(p-start)/dur));
+        const arc=Math.sin(local*Math.PI)*55;
+        const x=seq[i].x+(receiver.x-seq[i].x)*local;
+        const y=seq[i].y+(receiver.y-seq[i].y)*local-arc;
+        return {x,y,angle:Math.atan2(receiver.y-seq[i].y,receiver.x-seq[i].x)};
+      }
+    }
+
+    // Snap, handoff, pitch, auto, and instant are possession changes.
+    // Once the timing threshold hits, the ball immediately sticks to the receiver.
+    holder=receiver;
+  }
+  return {attach:holder,angle:.35};
+}
+function drawAnimatedBall(c,sc,toScreen,ball,players,progress){
+  const pt=ballPointAtProgress(ball,players,progress);
+  if(!pt) return;
+  if(pt.attach){ drawBallAttachedToPlayer(c,sc,toScreen,pt.attach,pt.angle||.35); return; }
+  const s=toScreen(pt.x,pt.y);
+  drawFootballOn(c,s.x,s.y,sc,pt.angle||0);
+}
+function cycleVal(v, arr){ const i=arr.indexOf(v); return arr[(i+1+arr.length)%arr.length]; }
+window.setBallTool=function(){
+  if(activeRoute) commitRoute();
+  tool='ball'; selZ=null; zoneDragging=false;
+  document.getElementById('tool-zone')?.classList.remove('on');
+  document.getElementById('tool-ball')?.classList.remove('on');
+  document.getElementById('tool-erase')?.classList.remove('on');
+  document.getElementById('tool-ball')?.classList.add('on');
+  eBall.enabled=true;
+  buildOpts(); drawAll();
+  toast('Tap players in ball order','ok');
+};
+window.setBallMode=function(mode){ eBall.enabled=true; eBall.mode=mode==='advanced'?'advanced':'basic'; buildOpts(); drawAll(); };
+window.clearBallSequence=function(){ eBall={enabled:false,mode:eBall.mode||'basic',sequence:[]}; buildOpts(); drawAll(); };
+window.removeBallStep=function(i){ eBall.sequence.splice(i,1); eBall.enabled=eBall.sequence.length>0; buildOpts(); drawAll(); };
+window.cycleBallType=function(i){ if(!eBall.sequence[i])return; eBall.sequence[i].type=cycleVal(eBall.sequence[i].type||'auto',['auto','instant','snap','handoff','pitch','pass']); buildOpts(); drawAll(); };
+window.cycleBallSpeed=function(i){ if(!eBall.sequence[i])return; eBall.sequence[i].speed=cycleVal(eBall.sequence[i].speed||'normal',['fast','normal','slow']); buildOpts(); drawAll(); };
+window.cycleBallTime=function(i){ if(!eBall.sequence[i])return; eBall.sequence[i].time=nextBallTimeValue(eBall.sequence[i].time ?? defaultBallStepTime(i,eBall.mode)); buildOpts(); drawAll(); };
+
 const fcv=document.getElementById('formCanvas');
 const fctx=fcv.getContext('2d');
 function resizeFormCv(){
@@ -2687,7 +2899,7 @@ function miniPrev(play){
   if(!wrap||wrap.querySelector('canvas'))return;
   const c=document.createElement('canvas');
   const dpr=hdDpr();
-  const cw=Math.max(1, wrap.clientWidth||148), ch=Math.max(1, wrap.clientHeight||78);
+  const cw=Math.max(1, wrap.clientWidth||220), ch=Math.max(1, wrap.clientHeight||112);
   c.style.width=cw+'px'; c.style.height=ch+'px';
   c.width=Math.round(cw*dpr); c.height=Math.round(ch*dpr);
   wrap.appendChild(c);
@@ -2695,36 +2907,27 @@ function miniPrev(play){
   cx.scale(dpr,dpr);
   cx.imageSmoothingEnabled=true;
   cx.imageSmoothingQuality='high';
-  const sx=x=>x/FW*cw, sy=y=>y/FH*ch;
-  cx.fillStyle='#183f14';cx.fillRect(0,0,cw,ch);
-  for(let i=0;i<6;i++){cx.fillStyle=i%2?'#1a4516':'#214d1b';cx.fillRect(0,i*ch/6,cw,ch/6);}
-  cx.strokeStyle='rgba(255,255,255,.18)';cx.lineWidth=Math.max(1,1.2*dpr/dpr);
-  for(let i=0;i<=6;i++){const y=i*ch/6;cx.beginPath();cx.moveTo(0,y);cx.lineTo(cw,y);cx.stroke();}
-  cx.strokeStyle='rgba(240,180,41,.55)';cx.lineWidth=2.2;cx.setLineDash([6,4]);
-  cx.beginPath();cx.moveTo(0,ch/2);cx.lineTo(cw,ch/2);cx.stroke();cx.setLineDash([]);
+  const toScreen=(fx,fy)=>({x:fx/FW*cw,y:fy/FH*ch});
+  drawFieldOn(cx,{width:cw,height:ch},1,toScreen);
   (play.data?.routes||[]).forEach(r=>{
-    (r.segments||[]).forEach(seg=>{
-      if(!seg.pts||seg.pts.length<2)return;
-      cx.strokeStyle=seg.color||'#41c97a';cx.lineWidth=seg.type==='block'?3.4:2.5;
-      cx.lineCap='round';cx.lineJoin='round';
-      cx.setLineDash(seg.type==='motion'?[6,4]:[]);
-      cx.beginPath();cx.moveTo(sx(seg.pts[0].x),sy(seg.pts[0].y));
-      seg.pts.forEach(p=>cx.lineTo(sx(p.x),sy(p.y)));cx.stroke();cx.setLineDash([]);
+    (r.segments||[]).forEach((seg,si)=>{
+      const pts=(seg.pts||[]).map(p=>toScreen(p.x,p.y));
+      if(pts.length<2)return;
+      drawSegment(cx,pts,seg.type,seg.color||'#41c97a',si===(r.segments||[]).length-1,.55);
     });
   });
-  (play.data?.players||[]).forEach(p=>{
-    const x=sx(p.x), y=sy(p.y), r=6.2;
-    cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);
-    cx.fillStyle=p.color||'#f0b429';cx.fill();
-    cx.strokeStyle='rgba(0,0,0,.75)';cx.lineWidth=1.2;cx.stroke();
-  });
+  drawPlayersOn(cx,{width:cw,height:ch},.48,play.data?.players||[],null,toScreen);
+  drawBallForCarrier(cx,.48,toScreen,normalizeBallData(play.data?.ball),play.data?.players||[]);
+  const hi=cx.createLinearGradient(0,0,0,ch);
+  hi.addColorStop(0,'rgba(255,255,255,.08)');hi.addColorStop(.35,'rgba(255,255,255,0)');hi.addColorStop(1,'rgba(0,0,0,.16)');
+  cx.fillStyle=hi;cx.fillRect(0,0,cw,ch);
 }
 
 window.newPlay=function(){
   if(!enforceLimit('play')) return;
   currentPlay=null;
   ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
-  eRoutes=[];selP=null;eHistory=[];activeRoute=null;
+  eRoutes=[];eZones=[];eBall={enabled:false,mode:'basic',sequence:[]};selP=null;eHistory=[];activeRoute=null;
   vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value='';
   document.getElementById('playDescInput').value='';
@@ -2859,7 +3062,7 @@ async function saveCurrentPlay(silent=false){
   if(!name){toast('Enter a play name','err');return false;}
   const description=document.getElementById('playDescInput').value.trim();
   const playType=document.getElementById('playTypeSelect').value;
-  const data={players:ePlayers,routes:eRoutes,zones:eZones};
+  const data={players:ePlayers,routes:eRoutes,zones:eZones,ball:eBall};
   if(currentPlay){
     currentPlay.name=name;currentPlay.description=description;currentPlay.playType=playType;currentPlay.data=data;
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
@@ -2883,6 +3086,7 @@ window.openPlay=function(id, stayOnEditor=false){
   ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
   eZones=JSON.parse(JSON.stringify(currentPlay.data?.zones||[]));
+  eBall=normalizeBallData(currentPlay.data?.ball);
   selP=null;eHistory=[];activeRoute=null;vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value=currentPlay.name;
   const desc=currentPlay.description||'';
@@ -3220,56 +3424,110 @@ function setPresentationMode(on){
 function drawFieldOn(c,canv,sc,toScreen){
   const tl=toScreen(0,0),br=toScreen(FW,FH);
   const fw=br.x-tl.x,fh=br.y-tl.y;
-  c.fillStyle='#1e4d18';c.fillRect(tl.x,tl.y,fw,fh);
-  const numStripes=10;
-  for(let i=0;i<numStripes;i++){
-    c.fillStyle = i%2===0 ? '#234f1c' : '#1a4516';
-    c.fillRect(tl.x,tl.y+i*fh/numStripes,fw,fh/numStripes);
+  if(fw<=0||fh<=0) return;
+  c.save();
+  c.fillStyle='#050609';
+  c.fillRect(0,0,canv.width,canv.height);
+  c.shadowColor='rgba(0,0,0,.55)';
+  c.shadowBlur=Math.max(0,18*Math.min(sc,1.2));
+  c.shadowOffsetY=Math.max(0,8*Math.min(sc,1.2));
+  c.fillStyle='#154416';
+  c.fillRect(tl.x,tl.y,fw,fh);
+  c.shadowColor='transparent';
+  const stripes=12;
+  for(let i=0;i<stripes;i++){
+    const y=tl.y+i*fh/stripes;
+    c.fillStyle=i%2?'#174b18':'#105015';
+    c.fillRect(tl.x,y,fw,Math.ceil(fh/stripes)+1);
   }
-  const numYards=10;
-  c.strokeStyle='rgba(255,255,255,0.32)';c.lineWidth=Math.max(1.2,1.8*Math.min(sc,1));
-  for(let i=0;i<=numYards;i++){
-    const y=tl.y+i*fh/numYards;
+  const g=c.createRadialGradient(tl.x+fw*.5,tl.y+fh*.48,Math.min(fw,fh)*.10,tl.x+fw*.5,tl.y+fh*.48,Math.max(fw,fh)*.72);
+  g.addColorStop(0,'rgba(255,255,255,.045)');
+  g.addColorStop(.62,'rgba(0,0,0,0)');
+  g.addColorStop(1,'rgba(0,0,0,.30)');
+  c.fillStyle=g;c.fillRect(tl.x,tl.y,fw,fh);
+  c.strokeStyle='rgba(255,255,255,.28)';
+  c.lineWidth=Math.max(1,1.35*Math.min(sc,1.4));
+  for(let i=0;i<=10;i++){
+    const y=tl.y+i*fh/10;
     c.beginPath();c.moveTo(tl.x,y);c.lineTo(br.x,y);c.stroke();
   }
-  const hash1X=tl.x+fw*0.28;
-  const hash2X=tl.x+fw*0.72;
-  c.strokeStyle='rgba(255,255,255,0.42)';c.lineWidth=Math.max(1.1,1.4*Math.min(sc,1));
-  for(let i=0;i<=numYards;i++){
-    const y=tl.y+i*fh/numYards;
-    const hlen=fh*0.025;
-    c.beginPath();c.moveTo(hash1X-hlen,y);c.lineTo(hash1X+hlen,y);c.stroke();
-    c.beginPath();c.moveTo(hash2X-hlen,y);c.lineTo(hash2X+hlen,y);c.stroke();
+  c.strokeStyle='rgba(255,255,255,.16)';
+  c.lineWidth=Math.max(.75,1*Math.min(sc,1.2));
+  for(let i=1;i<8;i++){
+    const x=tl.x+i*fw/8;
+    c.beginPath();c.moveTo(x,tl.y);c.lineTo(x,br.y);c.stroke();
   }
-  c.strokeStyle='rgba(255,255,255,0.55)';c.lineWidth=Math.max(2,2.4*Math.min(sc,1.2));
+  c.strokeStyle='rgba(255,255,255,.34)';
+  c.lineWidth=Math.max(1,1.15*Math.min(sc,1.3));
+  const hashXs=[.28,.72];
+  for(let i=0;i<=10;i++){
+    const y=tl.y+i*fh/10;
+    hashXs.forEach(fr=>{
+      const x=tl.x+fw*fr, h=Math.max(5,fh*.018);
+      c.beginPath();c.moveTo(x-h,y);c.lineTo(x+h,y);c.stroke();
+    });
+  }
+  c.strokeStyle='rgba(255,255,255,.26)';
+  c.lineWidth=Math.max(.8,1*Math.min(sc,1));
+  for(let i=0;i<=40;i++){
+    const x=tl.x+i*fw/40;
+    const len=(i%5===0?fh*.035:fh*.018);
+    c.beginPath();c.moveTo(x,tl.y);c.lineTo(x,tl.y+len);c.stroke();
+    c.beginPath();c.moveTo(x,br.y);c.lineTo(x,br.y-len);c.stroke();
+  }
+  if(fw>520 && fh>300){
+    c.fillStyle='rgba(255,255,255,.70)';
+    c.font=`900 ${Math.max(18,26*Math.min(sc,1.1))}px DM Sans`;
+    c.textAlign='center';c.textBaseline='middle';
+    [['20',.18,.18],['10',.18,.36],['10',.82,.36],['20',.82,.18],['10',.18,.64],['20',.18,.82],['10',.82,.64],['20',.82,.82]].forEach(([t,x,y])=>c.fillText(t,tl.x+fw*x,tl.y+fh*y));
+  }
+  c.strokeStyle='rgba(255,255,255,.72)';
+  c.lineWidth=Math.max(2,2.6*Math.min(sc,1.5));
   c.strokeRect(tl.x,tl.y,fw,fh);
   const midY=toScreen(0,FH/2).y;
-  c.strokeStyle='rgba(240,180,41,0.92)';c.lineWidth=Math.max(3,3.6*Math.min(sc,1.2));c.setLineDash([]);
+  c.strokeStyle='rgba(240,180,41,.96)';
+  c.lineWidth=Math.max(2.4,3.4*Math.min(sc,1.25));
+  c.setLineDash([]);
   c.beginPath();c.moveTo(tl.x,midY);c.lineTo(br.x,midY);c.stroke();
-  c.fillStyle='rgba(240,180,41,0.9)';
-  c.font=`bold ${Math.max(9,12*Math.min(sc,1.2))}px DM Sans`;
+  c.fillStyle='rgba(240,180,41,.98)';
+  c.font=`900 ${Math.max(10,14*Math.min(sc,1.25))}px DM Sans`;
   c.textAlign='left';c.textBaseline='bottom';
-  c.fillText('LOS',tl.x+6,midY-3);
+  c.fillText('LOS',tl.x+8,midY-5);
+  c.restore();
 }
 
 function drawPlayersOn(c,canv,sc,players,selected,toScreen){
   players.forEach(p=>{
     const s=toScreen(p.x,p.y),r=Math.max(9,19*Math.min(sc,1.45));
     c.save();
-    if(p===selected){c.shadowColor='#fff';c.shadowBlur=14;}
-    if(p.pos==='C'){
-      c.beginPath();c.rect(s.x-r,s.y-r,r*2,r*2);
+    c.shadowColor=p===selected?'rgba(255,255,255,.85)':'rgba(0,0,0,.48)';
+    c.shadowBlur=p===selected?18:8;
+    c.shadowOffsetY=p===selected?0:3;
+    const isSquare=p.pos==='C';
+    if(isSquare){
+      const rr=Math.max(5,r*.32);
+      c.beginPath();
+      c.moveTo(s.x-r+rr,s.y-r);c.lineTo(s.x+r-rr,s.y-r);c.quadraticCurveTo(s.x+r,s.y-r,s.x+r,s.y-r+rr);
+      c.lineTo(s.x+r,s.y+r-rr);c.quadraticCurveTo(s.x+r,s.y+r,s.x+r-rr,s.y+r);
+      c.lineTo(s.x-r+rr,s.y+r);c.quadraticCurveTo(s.x-r,s.y+r,s.x-r,s.y+r-rr);
+      c.lineTo(s.x-r,s.y-r+rr);c.quadraticCurveTo(s.x-r,s.y-r,s.x-r+rr,s.y-r);
     } else {
       c.beginPath();c.arc(s.x,s.y,r,0,Math.PI*2);
     }
-    c.fillStyle=p.color||'#f0b429';c.fill();
-    c.strokeStyle=p===selected?'#fff':'rgba(0,0,0,.62)';c.lineWidth=p===selected?3:1.8;c.stroke();
-    c.fillStyle='#000';
+    const base=p.color||'#f0b429';
+    const grad=c.createRadialGradient(s.x-r*.35,s.y-r*.45,r*.15,s.x,s.y,r*1.2);
+    grad.addColorStop(0,'rgba(255,255,255,.45)');grad.addColorStop(.18,base);grad.addColorStop(1,'#c88909');
+    c.fillStyle=grad;c.fill();
+    c.shadowColor='transparent';
+    c.strokeStyle=p===selected?'#fff':'rgba(0,0,0,.78)';
+    c.lineWidth=p===selected?3:Math.max(1.5,2*Math.min(sc,1.2));c.stroke();
+    c.strokeStyle='rgba(255,255,255,.30)';c.lineWidth=Math.max(.8,1*Math.min(sc,1));c.stroke();
+    c.fillStyle='#111';
     const lbl=(p.pos||'?').toString();
-    const baseFs=Math.max(9,11*Math.min(sc,1.4));
-    const fs = lbl.length>=3 ? baseFs*0.78 : baseFs;
-    c.font=`bold ${fs}px DM Sans`;
-    c.textAlign='center';c.textBaseline='middle';c.fillText(lbl,s.x,s.y);
+    const baseFs=Math.max(9,11.5*Math.min(sc,1.4));
+    const fs = lbl.length>=3 ? baseFs*0.74 : baseFs;
+    c.font=`900 ${fs}px DM Sans`;
+    c.textAlign='center';c.textBaseline='middle';c.fillText(lbl,s.x,s.y+.4);
     c.restore();
   });
 }
@@ -3421,6 +3679,7 @@ function drawAll(){
     });
   }
   drawPlayersOn(ctx,cv,vs,ePlayers,selP,toS);
+  drawBallForCarrier(ctx,vs,toS,eBall,ePlayers);
 }
 function stopRouteAnimation(redraw=true){
   if(animId) cancelAnimationFrame(animId);
@@ -3541,13 +3800,14 @@ function drawAnimated(progress){
     if(pt){moving[i].x=pt.x;moving[i].y=pt.y;}
   });
   drawPlayersOn(ctx,cv,vs,moving,null,toS);
+  drawAnimatedBall(ctx,vs,toS,eBall,moving,snapProg);
 }
 
 
 window.toggleRouteAnimation=function(){
   if(animating){ stopRouteAnimation(true); return; }
   if(activeRoute) commitRoute();
-  if(!eRoutes.length){ toast('No routes to animate',''); return; }
+  if(!eRoutes.length && !(eBall?.enabled && (eBall.sequence||[]).length>1)){ toast('No routes or ball sequence to animate',''); return; }
   animating=true;
   const btn=document.getElementById('animateBtn');
   if(btn) btn.textContent='■ Stop';
@@ -3725,6 +3985,17 @@ function handleDown(sx,sy){
     return;
   }
   const zhit=zoneAt(sx,sy);
+  if(tool==='ball'){
+    if(hit){
+      eBall.enabled=true;
+      if(!eBall.mode) eBall.mode='basic';
+      if(!Array.isArray(eBall.sequence)) eBall.sequence=[];
+      const last=eBall.sequence[eBall.sequence.length-1];
+      if(!last || last.playerId!==hit.id) eBall.sequence.push({playerId:hit.id,type:'auto',speed:'normal',time:defaultBallStepTime(eBall.sequence.length,eBall.mode||'basic')});
+      selP=hit; buildOpts(); drawAll(); return;
+    }
+    isPanning=true; panSX=sx-vx; panSY=sy-vy; return;
+  }
   if(tool==='erase'){
     if(zhit){
       pushH();
@@ -3870,6 +4141,7 @@ window.setZoneSize=function(size){
 window.setTool=function(t){
   tool=t;
   selZ=null; zoneDragging=false; document.getElementById('tool-zone')?.classList.remove('on');
+  document.getElementById('tool-ball')?.classList.remove('on');
   if(tool!=='erase' && activeRoute) commitRoute();
   buildOpts();drawAll();
 };
@@ -3879,17 +4151,19 @@ window.toggleErase=function(){
     tool='draw';
     document.getElementById('tool-erase').classList.remove('on');
     document.getElementById('tool-zone')?.classList.remove('on');
+    document.getElementById('tool-ball')?.classList.remove('on');
   } else {
     if(activeRoute) commitRoute();
     tool='erase';
     selZ=null;zoneDragging=false;document.getElementById('tool-zone')?.classList.remove('on');
+    document.getElementById('tool-ball')?.classList.remove('on');
     document.getElementById('tool-erase').classList.add('on');
   }
   buildOpts();drawAll();
 };
 
 window.setSegType=function(t){
-  if(tool==='zone'){ tool='draw'; selZ=null; zoneDragging=false; document.getElementById('tool-zone')?.classList.remove('on'); }
+  if(tool==='zone' || tool==='ball'){ tool='draw'; selZ=null; zoneDragging=false; document.getElementById('tool-zone')?.classList.remove('on'); document.getElementById('tool-ball')?.classList.remove('on'); }
   segType=t;
   ['route','motion','block'].forEach(s=>{
     const el=document.getElementById('seg-'+s);
@@ -3939,6 +4213,25 @@ function buildOpts(){
     h+=`<div class="osep"></div>`;
     h+=`<input class="label-input" id="selLabelInput" value="${esc(selP.pos||'')}" maxlength="3" oninput="setSPLabel(this.value)" placeholder="LBL">`;
   }
+  if(tool==='ball'){
+    h+=`<span class="olbl">BALL</span>`;
+    h+=`<button class="chip${eBall.mode!=='advanced'?' on':''}" onclick="setBallMode('basic')">Basic</button>`;
+    h+=`<button class="chip${eBall.mode==='advanced'?' on':''}" onclick="setBallMode('advanced')">Advanced</button>`;
+    h+=`<div class="osep"></div>`;
+    if(!eBall.sequence.length){
+      h+=`<span class="olbl">Tap QB / RB / WR in order. Ball starts at C automatically.</span>`;
+    } else {
+      eBall.sequence.forEach((step,i)=>{
+        h+=`<button class="chip on" onclick="removeBallStep(${i})">${i+1}. ${esc(ballPlayerLabel(step.playerId))} ×</button>`;
+        if(eBall.mode==='advanced'){
+          h+=`<button class="chip" onclick="cycleBallType(${i})">${esc((step.type||'auto').toUpperCase())}</button>`;
+          h+=`<button class="chip" onclick="cycleBallTime(${i})">${esc(ballTimeLabel(step,i))}</button>`;
+          if(transferType(step,i)==='pass') h+=`<button class="chip" onclick="cycleBallSpeed(${i})">${esc((step.speed||'normal').toUpperCase())}</button>`;
+        }
+      });
+    }
+    h+=`<button class="chip red" onclick="clearBallSequence()">Clear Ball</button><div class="osep"></div>`;
+  }
   h+=`<div class="osep"></div><button class="chip" onclick="undoA()">↩ UNDO</button>`;
   if(canEdit) h+=`<button class="chip red" onclick="clearCv()">✕ CLEAR</button>`;
   row.innerHTML=h;
@@ -3959,7 +4252,7 @@ window.setSPLabel=(v)=>{ if(selP){ selP.pos=(v||'').toUpperCase().slice(0,3); dr
 window.commitRoute=commitRoute;
 window.finishRoute=commitRoute;
 
-function pushH(){ eHistory.push(JSON.parse(JSON.stringify({routes:eRoutes,zones:eZones}))); if(eHistory.length>30)eHistory.shift(); }
+function pushH(){ eHistory.push(JSON.parse(JSON.stringify({routes:eRoutes,zones:eZones,ball:eBall}))); if(eHistory.length>30)eHistory.shift(); }
 window.undoA=function(){
   if(activeRoute){
     if(activeRoute.segments.length>1){
@@ -3976,7 +4269,7 @@ window.undoA=function(){
   if(!eHistory.length){toast('Nothing to undo','');return;}
   const prev=eHistory.pop();
   if(Array.isArray(prev)){ eRoutes=prev; }
-  else { eRoutes=prev.routes||[]; eZones=prev.zones||[]; }
+  else { eRoutes=prev.routes||[]; eZones=prev.zones||[]; eBall=normalizeBallData(prev.ball); }
   selZ=null;zoneDragging=false;
   drawAll();toast('Undone','ok');
 };
@@ -3985,53 +4278,41 @@ window.clearCv=function(){if(!confirm('Clear all routes and zones?'))return;push
 // ═══════════════════════════════════════════════
 // PRINT (single play + playbook layouts)
 // ═══════════════════════════════════════════════
-let printPerPage = 1;
-let printScope = 'playbook';
-let printIncludeNotes = true;
-let printIncludeCover = true;
+let printPerPage = 2;
 
-function setPrintPerPage(n){
-  printPerPage = Number(n) || 1;
-  document.querySelectorAll('#printPerPageChoices .print-choice').forEach(b=>b.classList.toggle('on', Number(b.dataset.pp)===printPerPage));
-}
-window.setPrintPerPage=setPrintPerPage;
-
-function setPrintScope(scope){
-  printScope = scope || 'playbook';
-  document.querySelectorAll('#printScopeChoices .print-scope').forEach(b=>b.classList.toggle('on', b.dataset.scope===printScope));
-}
-window.setPrintScope=setPrintScope;
-
-window.togglePrintNotes=function(){
-  printIncludeNotes=!printIncludeNotes;
-  const b=document.getElementById('printNotesToggle');
-  if(b){ b.classList.toggle('on',printIncludeNotes); b.textContent=printIncludeNotes?'Notes On':'Notes Off'; }
-};
-window.togglePrintCover=function(){
-  printIncludeCover=!printIncludeCover;
-  const b=document.getElementById('printCoverToggle');
-  if(b){ b.classList.toggle('on',printIncludeCover); b.textContent=printIncludeCover?'Cover On':'Cover Off'; }
+window.setPrintPerPage=function(n){
+  printPerPage = Math.max(1, Math.min(4, Number(n)||2));
+  document.querySelectorAll('[data-print-count]').forEach(btn=>{
+    btn.classList.toggle('on', Number(btn.dataset.printCount)===printPerPage);
+  });
 };
 
-window.openPrintSheet=function(){
-  if(!currentPlaybook){toast('No playbook open','err');return;}
+window.openPrintPlaybookSheet=function(){
+  if(!currentPlaybook){toast('Open a playbook first','err');return;}
   closeSheet('pbMenuSheet');
-  const cur=document.querySelector('#printScopeChoices [data-scope="current"]');
-  const frm=document.querySelector('#printScopeChoices [data-scope="formation"]');
-  if(cur) cur.style.opacity = currentPlay ? '1' : '.45';
-  if(frm) frm.style.opacity = currentFormation ? '1' : '.45';
-  if(printScope==='current' && !currentPlay) setPrintScope(currentFormation?'formation':'playbook');
-  if(printScope==='formation' && !currentFormation) setPrintScope('playbook');
-  setPrintPerPage(printPerPage);
-  setPrintScope(printScope);
-  openSheet('printOptionsSheet');
+  const scope=document.getElementById('printScopeSelect');
+  if(scope){
+    const hasPlay=!!currentPlay;
+    const hasFormation=!!currentFormation;
+    Array.from(scope.options).forEach(o=>{
+      if(o.value==='play') o.disabled=!hasPlay;
+      if(o.value==='formation') o.disabled=!hasFormation;
+    });
+    scope.value=hasFormation ? 'formation' : 'playbook';
+    if(hasPlay) scope.value='play';
+  }
+  setPrintPerPage(printPerPage||2);
+  openSheet('printPlaybookSheet');
 };
 
-function renderPlayToImage(play, w=1600, h=960){
+function printEsc(v){return esc(v==null?'':String(v));}
+function printTypeLabel(type){return type==='run'?'RUN':(type==='pass'?'PASS':'');}
+
+function renderPlayToImage(play, w=1800, h=1080){
   const off=document.createElement('canvas');
   off.width=w; off.height=h;
   const c=off.getContext('2d');
-  const pad=20;
+  const pad=28;
   const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
   const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
   const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
@@ -4047,6 +4328,7 @@ function renderPlayToImage(play, w=1600, h=960){
     });
   });
   drawPlayersOn(c,off,sc,play.data?.players||[],null,toScreen);
+  try{ drawBallForCarrier(c,sc,toScreen,normalizeBallData(play.data?.ball),play.data?.players||[]); }catch(e){}
   return off.toDataURL('image/png');
 }
 
@@ -4054,7 +4336,7 @@ function renderFormationToImage(form, w=1600, h=960){
   const off=document.createElement('canvas');
   off.width=w; off.height=h;
   const c=off.getContext('2d');
-  const pad=20;
+  const pad=24;
   const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
   const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
   const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
@@ -4064,121 +4346,180 @@ function renderFormationToImage(form, w=1600, h=960){
   return off.toDataURL('image/png');
 }
 
+function currentEditorPlayRecord(){
+  if(!document.getElementById('editorScreen')?.classList.contains('hidden')){
+    const data={players:ePlayers||[],routes:eRoutes||[],zones:eZones||[],ball:eBall||null};
+    return {
+      id:currentPlay?.id || 'current-editor-play',
+      name:document.getElementById('playNameInput')?.value || currentPlay?.name || 'Current Play',
+      description:document.getElementById('playDescInput')?.value || currentPlay?.description || '',
+      playType:document.getElementById('playTypeSelect')?.value || currentPlay?.playType || '',
+      kind:'drawn',
+      data
+    };
+  }
+  return currentPlay;
+}
+
 window.printPlay=function(){
   if(activeRoute) commitRoute();
-  const name=document.getElementById('playNameInput').value||'Play';
-  const description=document.getElementById('playDescInput').value||'';
-  const url=cv.toDataURL('image/png');
-  const w=window.open('','_blank');
-  if(!w){ toast('Allow popups to print','err'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><title>${esc(name)}</title><style>
-    @page{size:letter;margin:.45in}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;color:#111;background:#fff}
-    .sheet{min-height:10in;border:2px solid #111;padding:.25in;display:flex;flex-direction:column;gap:12px}
-    .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #111;padding-bottom:8px}
-    h1{font-size:26px;margin:0;text-transform:uppercase;letter-spacing:.8px}
-    .meta{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;text-align:right}
-    img{width:100%;border:2px solid #111;border-radius:8px;display:block}
-    .notes{border:1px solid #bbb;border-radius:8px;padding:10px;white-space:pre-wrap;font-size:12px;line-height:1.35;min-height:70px}
-    .foot{margin-top:auto;border-top:1px solid #aaa;padding-top:6px;color:#777;font-size:9px;text-align:center;text-transform:uppercase;letter-spacing:.8px}
-  </style></head><body><div class="sheet">
-    <div class="top"><h1>${esc(name)}</h1><div class="meta">${esc(currentFormation?.name||'')}<br>${esc(currentPlaybook?.name||'')}</div></div>
-    <img src="${url}">
-    ${description?`<div class="notes"><b>Coaching Notes</b><br>${esc(description)}</div>`:''}
-    <div class="foot">X&O Lab v${APP_VERSION}</div>
-    <script>window.print();<\/script>
-  </div></body></html>`);
-  w.document.close();
+  const play=currentEditorPlayRecord();
+  if(!play){toast('No play open','err');return;}
+  openPrintWindow({scope:'play', perPage:1, includeCover:false, title:play.name, groups:[{formation:currentFormation, plays:[play]}]});
 };
 
-function printTypeLabel(type){
-  if(type==='run') return 'RUN';
-  if(type==='pass') return 'PASS';
-  return 'UNLABELED';
-}
-
-function splitIntoPages(items, perPage){
-  const pages=[];
-  for(let i=0;i<items.length;i+=perPage) pages.push(items.slice(i,i+perPage));
-  return pages;
-}
-
-async function collectPrintItems(scope){
-  if(scope==='current'){
-    if(!currentPlay || !currentFormation) throw new Error('Open a play first.');
-    return [{formation:currentFormation, play:currentPlay}];
+async function collectPrintGroups(scope){
+  if(scope==='play'){
+    const p=currentEditorPlayRecord();
+    if(!p) throw new Error('No current play selected.');
+    return [{formation:currentFormation||{name:'Current Formation'}, plays:[p]}];
   }
-  const fs = scope==='formation'
-    ? (currentFormation ? [currentFormation] : [])
-    : (formations.length ? formations : await loadFormations(currentPlaybook.id));
-  if(scope==='formation' && !fs.length) throw new Error('Open a formation first.');
+  if(scope==='formation'){
+    if(!currentFormation) throw new Error('No formation selected.');
+    const ps=(plays && plays.length && currentFormation) ? plays : await loadPlays(currentPlaybook.id,currentFormation.id);
+    const sorted=[...ps].sort((a,b)=>((a.order??a.createdAt??0)-(b.order??b.createdAt??0)));
+    return [{formation:currentFormation, plays:sorted}];
+  }
+  const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
+  const groups=[];
+  const sortedForms=[...fs].sort((a,b)=>{
+    const typeOrder={off:0,def:1,st:2};
+    const ta=typeOrder[a.type||'off']??9, tb=typeOrder[b.type||'off']??9;
+    if(ta!==tb) return ta-tb;
+    return (a.name||'').localeCompare(b.name||'');
+  });
+  for(const f of sortedForms){
+    const ps=await loadPlays(currentPlaybook.id,f.id);
+    const sorted=[...ps].sort((a,b)=>((a.order??a.createdAt??0)-(b.order??b.createdAt??0)));
+    groups.push({formation:f, plays:sorted});
+  }
+  return groups;
+}
+
+function flattenPrintablePlays(groups){
   const out=[];
-  for(const f of fs){
-    const formPlays = (currentFormation && f.id===currentFormation.id && plays.length) ? plays : await loadPlays(currentPlaybook.id,f.id);
-    formPlays
-      .slice()
-      .sort((a,b)=>((a.order!=null?a.order:a.createdAt||0)-(b.order!=null?b.order:b.createdAt||0)))
-      .forEach(play=>out.push({formation:f,play}));
-  }
+  groups.forEach(g=>{
+    (g.plays||[]).forEach(p=>out.push({formation:g.formation, play:p}));
+  });
   return out;
 }
 
-function buildPrintCard(item, idx, perPage){
-  const p=item.play, f=item.formation;
-  const isImage=p.kind==='image';
-  const hasDiagram=isImage ? !!p.url : !!(p.data && p.data.players);
-  const img= isImage ? p.url : (hasDiagram ? renderPlayToImage(p,1200,720) : '');
+function playCardHtml(item, idx, perPage){
+  const p=item.play;
+  const f=item.formation||{};
+  const type=printTypeLabel(p.playType);
   const notes=(p.description||'').trim();
-  const noteHtml=(printIncludeNotes && notes) ? `<div class="notes"><b>COACHING NOTES</b><span>${esc(notes)}</span></div>` : '';
-  const type=printTypeLabel(p.playType||'');
-  return `<article class="play-card-print">
-    <div class="play-head">
-      <div><div class="play-title">${idx+1}. ${esc(p.name||'Untitled Play')}</div><div class="play-sub">${esc(f.name||'Formation')}</div></div>
-      <div class="play-badge ${esc((p.playType||'').toLowerCase())}">${esc(type)}</div>
+  const isImage=p.kind==='image';
+  const img=isImage ? (p.url||'') : (p.data&&p.data.players ? renderPlayToImage(p, perPage===1?1900:1500, perPage===1?1120:900) : '');
+  const noDiagram=!img;
+  return `<article class="play-print-card play-count-${perPage}">
+    <header class="play-print-head">
+      <div>
+        <div class="play-print-kicker">${printEsc(f.name||'Formation')}</div>
+        <h2>${printEsc(p.name||'Untitled Play')}</h2>
+      </div>
+      ${type?`<span class="play-print-type ${printEsc((p.playType||'').toLowerCase())}">${type}</span>`:''}
+    </header>
+    <div class="play-print-diagram ${noDiagram?'empty':''}">
+      ${noDiagram?'<span>No diagram</span>':`<img src="${img}" alt="${printEsc(p.name||'Play diagram')}">`}
     </div>
-    <div class="diagram-wrap">${img?`<img src="${img}" crossorigin="anonymous">`:`<div class="no-diagram">No diagram</div>`}</div>
-    ${noteHtml}
+    <section class="play-print-notes">
+      <div class="notes-label">Coaching Notes</div>
+      <div class="notes-text">${notes?printEsc(notes):'<span class="muted">—</span>'}</div>
+    </section>
   </article>`;
+}
+
+function chunk(arr, size){
+  const out=[];
+  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
+  return out;
+}
+
+function printCss(perPage){
+  return `
+    @page{size:letter;margin:.35in}
+    *{box-sizing:border-box}
+    body{margin:0;background:#fff;color:#111;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cover{height:10.3in;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:2px solid #111;padding:.5in}
+    .cover-mark{width:88px;height:88px;border-radius:20px;background:#111;color:#f0b429;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',Impact,sans-serif;font-size:42px;letter-spacing:2px;margin-bottom:24px}
+    .cover h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:58px;letter-spacing:4px;margin:0 0 6px;text-transform:uppercase}
+    .cover p{margin:6px 0;color:#555;font-size:13px;max-width:5.8in;line-height:1.45}
+    .cover-code{margin-top:24px;border:1px solid #222;border-radius:999px;padding:8px 18px;font-size:12px;font-weight:800;letter-spacing:1.5px}
+    .page{height:10.3in;page-break-after:always;display:flex;flex-direction:column;gap:.12in;position:relative;padding-bottom:.18in}
+    .page-top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:.06in;margin-bottom:.05in;min-height:.34in}
+    .brand{font-family:'Bebas Neue',Impact,sans-serif;font-size:20px;letter-spacing:2px;text-transform:uppercase}
+    .book-title{font-size:10px;color:#555;text-align:right;text-transform:uppercase;letter-spacing:.8px}
+    .play-grid{flex:1;display:grid;gap:.16in;min-height:0}
+    .play-grid.count-1{grid-template-columns:1fr;grid-template-rows:1fr}
+    .play-grid.count-2{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+    .play-grid.count-3{grid-template-columns:1fr;grid-template-rows:1fr 1fr 1fr}
+    .play-grid.count-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+    .play-print-card{border:1.5px solid #111;border-radius:8px;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#fff;page-break-inside:avoid}
+    .play-print-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#111;color:#fff;padding:.09in .12in}
+    .play-print-kicker{font-size:9px;color:#f0b429;font-weight:900;text-transform:uppercase;letter-spacing:.9px;margin-bottom:1px}
+    .play-print-head h2{font-family:'Bebas Neue',Impact,sans-serif;font-size:${perPage===1?'28px':'21px'};letter-spacing:1.2px;line-height:1;margin:0;text-transform:uppercase}
+    .play-print-type{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:900;letter-spacing:.8px;background:#f0b429;color:#000;white-space:nowrap}
+    .play-print-type.pass{background:#dce9ff}.play-print-type.run{background:#dff5e8}
+    .play-print-diagram{flex:1;min-height:0;background:#0b0c0f;display:flex;align-items:center;justify-content:center;padding:${perPage===1?'.12in':'.07in'}}
+    .play-print-diagram img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;display:block;border-radius:4px}
+    .play-print-diagram.empty{background:#f4f4f4;color:#777;font-size:12px}
+    .play-print-notes{border-top:1px solid #ddd;padding:.07in .1in .08in;background:#fff;min-height:${perPage===1?'.95in':'.52in'};max-height:${perPage===1?'1.55in':'.78in'};overflow:hidden}
+    .notes-label{font-size:8px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:#777;margin-bottom:3px}
+    .notes-text{font-size:${perPage===1?'11px':'9.5px'};line-height:1.32;white-space:pre-wrap;color:#222}.muted{color:#aaa}
+    .page-foot{display:flex;justify-content:space-between;align-items:center;color:#777;font-size:8px;letter-spacing:.5px;text-transform:uppercase;border-top:1px solid #ddd;padding-top:.05in;margin-top:.05in}
+    .empty-book{height:9in;display:flex;align-items:center;justify-content:center;text-align:center;color:#777;border:1px dashed #aaa;border-radius:8px}
+    @media print{.no-print{display:none}.page:last-child{page-break-after:auto}.cover{page-break-after:always}}
+  `;
+}
+
+function openPrintWindow({scope='playbook', perPage=2, includeCover=true, title='', groups=[]}){
+  const items=flattenPrintablePlays(groups);
+  const pages=chunk(items, perPage);
+  const bookName=currentPlaybook?.name || title || 'XO Playbook';
+  const scopeLabel=scope==='play'?'Current Play':(scope==='formation'?'Current Formation':'Full Playbook');
+  let html=`<!DOCTYPE html><html><head><title>${printEsc(bookName)} Print</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>${printCss(perPage)}</style></head><body>`;
+  if(includeCover){
+    html+=`<section class="cover">
+      <div class="cover-mark">X&O</div>
+      <h1>${printEsc(bookName)}</h1>
+      <p>${printEsc(scopeLabel)} · ${items.length} play${items.length===1?'':'s'} · ${perPage} per page</p>
+      ${currentPlaybook?.description?`<p>${printEsc(currentPlaybook.description)}</p>`:''}
+      ${currentPlaybook?.viewCode?`<div class="cover-code">VIEW CODE ${printEsc(currentPlaybook.viewCode)}</div>`:''}
+      <p style="margin-top:36px;font-size:10px;color:#999">Generated ${new Date().toLocaleDateString()} · X&O Lab v${APP_VERSION}</p>
+    </section>`;
+  }
+  if(!items.length){
+    html+=`<section class="page"><div class="page-top"><div class="brand">X&O Playbook</div><div class="book-title">${printEsc(bookName)}</div></div><div class="empty-book">No printable plays found.</div><footer class="page-foot"><span>X&O Lab v${APP_VERSION}</span><span>Page 1</span></footer></section>`;
+  }else{
+    pages.forEach((pageItems,pageIdx)=>{
+      html+=`<section class="page"><div class="page-top"><div class="brand">X&O Playbook</div><div class="book-title">${printEsc(bookName)} · ${printEsc(scopeLabel)}</div></div><div class="play-grid count-${perPage}">`;
+      pageItems.forEach((item,idx)=>{ html+=playCardHtml(item, pageIdx*perPage+idx, perPage); });
+      html+=`</div><footer class="page-foot"><span>X&O Lab v${APP_VERSION}</span><span>Page ${pageIdx+1} of ${pages.length}</span></footer></section>`;
+    });
+  }
+  html+=`<script>setTimeout(function(){window.focus();window.print();},500);<\/script></body></html>`;
+  const w=window.open('','_blank');
+  if(!w){ toast('Allow popups to print','err'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
 window.printPlaybook=async function(){
   if(!currentPlaybook){toast('No playbook open','err');return;}
-  closeSheet('printOptionsSheet');
+  const scope=document.getElementById('printScopeSelect')?.value || 'playbook';
+  const perPage=printPerPage||2;
+  closeSheet('printPlaybookSheet');
+  closeSheet('pbMenuSheet');
   toast('Building print layout…','');
-  let items=[];
-  try{ items=await collectPrintItems(printScope); }
-  catch(err){ toast(err.message||'Could not build print view','err'); return; }
-  if(!items.length){ toast('No plays to print','err'); return; }
-  const perPage=Math.max(1,Math.min(4,Number(printPerPage)||1));
-  const pages=splitIntoPages(items,perPage);
-  const scopeLabel=printScope==='current'?'Current Play':printScope==='formation'?'Current Formation':'Full Playbook';
-  const generated=new Date().toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'});
-  const title=esc(currentPlaybook.name||'Playbook');
-  const w=window.open('','_blank');
-  if(!w){ toast('Allow popups to print','err'); return; }
-  let html=`<!DOCTYPE html><html><head><title>${title} Print Playbook</title><style>
-    @page{size:letter;margin:.35in}
-    *{box-sizing:border-box}
-    body{margin:0;background:#fff;color:#101010;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .cover{height:10.3in;border:3px solid #111;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.5in;page-break-after:always;position:relative}
-    .cover-mark{font-size:76px;font-weight:900;letter-spacing:8px;line-height:1;margin-bottom:8px}.cover h1{font-size:34px;margin:0;text-transform:uppercase;letter-spacing:1.5px}.cover .desc{max-width:5.8in;color:#444;font-size:13px;line-height:1.45;margin:16px 0 26px}.cover .pill{background:#f0b429;color:#000;border:2px solid #111;border-radius:999px;padding:8px 18px;font-weight:900;letter-spacing:1.2px}.cover-foot{position:absolute;bottom:.35in;left:.35in;right:.35in;border-top:1px solid #aaa;padding-top:8px;color:#777;font-size:9px;text-transform:uppercase;letter-spacing:1px}
-    .print-page{height:10.3in;page-break-after:always;display:flex;flex-direction:column;border:2px solid #111;padding:.18in;background:#fff;overflow:hidden}
-    .page-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:3px solid #111;padding:0 0 7px;margin-bottom:8px}.brand{font-weight:900;font-size:18px;letter-spacing:1.4px}.book-title{font-size:11px;color:#444;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}.page-meta{text-align:right;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.8px;line-height:1.35}.play-grid-print{flex:1;display:grid;gap:8px;min-height:0}.p1 .play-grid-print{grid-template-columns:1fr;grid-template-rows:1fr}.p2 .play-grid-print{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.p3 .play-grid-print{grid-template-columns:1fr;grid-template-rows:1fr 1fr 1fr}.p4 .play-grid-print{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-    .play-card-print{border:1.5px solid #222;border-radius:8px;padding:7px;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#fff}.play-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:5px;border-bottom:1px solid #ccc;padding-bottom:4px}.play-title{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.2px}.play-sub{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-top:1px}.play-badge{border:1px solid #111;border-radius:999px;padding:3px 8px;font-size:9px;font-weight:900;white-space:nowrap}.play-badge.run{background:#dff5e8}.play-badge.pass{background:#dfeaff}.diagram-wrap{flex:1;min-height:0;border:1px solid #bbb;border-radius:6px;overflow:hidden;background:#07100a;display:flex;align-items:center;justify-content:center}.diagram-wrap img{width:100%;height:100%;object-fit:contain;display:block}.no-diagram{color:#777;font-style:italic;font-size:12px}.notes{margin-top:5px;border-top:1px solid #ddd;padding-top:4px;font-size:10px;line-height:1.25;max-height:.72in;overflow:hidden;white-space:pre-wrap}.notes b{display:block;font-size:8px;letter-spacing:.8px;margin-bottom:2px}.notes span{display:block;color:#222}.p1 .play-title{font-size:19px}.p1 .play-sub{font-size:12px}.p1 .notes{font-size:12px;max-height:1.35in;line-height:1.35}.p2 .play-title{font-size:16px}.p2 .notes{font-size:11px;max-height:.95in}.p4 .play-title{font-size:12px}.p4 .play-sub{font-size:9px}.p4 .notes{font-size:9px;max-height:.55in}
-    .page-foot{display:flex;justify-content:space-between;border-top:1px solid #aaa;margin-top:8px;padding-top:5px;color:#777;font-size:8px;text-transform:uppercase;letter-spacing:.8px}.screen-print-actions{position:fixed;top:12px;right:12px;display:flex;gap:8px;z-index:10}.screen-print-actions button{border:0;border-radius:8px;background:#111;color:#fff;padding:10px 12px;font-weight:800;cursor:pointer}.screen-print-actions button:first-child{background:#f0b429;color:#000}@media print{.screen-print-actions{display:none}.print-page:last-child{page-break-after:auto}}
-  </style></head><body>`;
-  html+=`<div class="screen-print-actions"><button onclick="window.print()">Print / Save PDF</button><button onclick="window.close()">Close</button></div>`;
-  if(printIncludeCover && printScope==='playbook'){
-    html+=`<section class="cover"><div class="cover-mark">X&O</div><h1>${title}</h1>${currentPlaybook.description?`<div class="desc">${esc(currentPlaybook.description)}</div>`:''}<div class="pill">VIEW CODE ${esc(currentPlaybook.viewCode||'')}</div><div class="cover-foot">${esc(scopeLabel)} · ${items.length} plays · Generated ${esc(generated)} · X&O Lab v${APP_VERSION}</div></section>`;
+  try{
+    const groups=await collectPrintGroups(scope);
+    openPrintWindow({scope, perPage, includeCover:scope==='playbook', title:currentPlaybook.name, groups});
+  }catch(e){
+    console.error(e);
+    toast(e.message || 'Could not build print layout','err');
   }
-  pages.forEach((page,i)=>{
-    const start=i*perPage;
-    html+=`<section class="print-page p${perPage}"><div class="page-top"><div><div class="brand">X&O PLAYBOOK</div><div class="book-title">${title}</div></div><div class="page-meta">${esc(scopeLabel)}<br>${esc(generated)}</div></div><div class="play-grid-print">${page.map((it,j)=>buildPrintCard(it,start+j,perPage)).join('')}</div><div class="page-foot"><span>X&O Lab v${APP_VERSION}</span><span>Page ${i+1} of ${pages.length}</span></div></section>`;
-  });
-  html+=`<script>setTimeout(()=>window.print(),700);<\/script></body></html>`;
-  w.document.write(html);
-  w.document.close();
 };
 
 // ═══════════════════════════════════════════════
@@ -4192,6 +4533,30 @@ let quizAnimating=false, quizAnimId=null;
 function resizeQuizCv(){
   const w=document.getElementById('quizField');
   setupHdCanvas(qcv,w);
+}
+
+function getQuizFit(play,w,h){
+  const pad=Math.max(18, Math.min(w,h)*0.035);
+  let minX=0, minY=0, maxX=FW, maxY=FH;
+  const add=(x,y)=>{
+    if(!Number.isFinite(x)||!Number.isFinite(y)) return;
+    minX=Math.min(minX,x); minY=Math.min(minY,y);
+    maxX=Math.max(maxX,x); maxY=Math.max(maxY,y);
+  };
+  (play.data?.players||[]).forEach(pl=>add(pl.x,pl.y));
+  (play.data?.routes||[]).forEach(route=>{
+    (route.segments||[]).forEach(seg=>{
+      (seg.pts||[]).forEach(pt=>add(pt.x,pt.y));
+    });
+  });
+  const contentPad=70;
+  minX-=contentPad; minY-=contentPad; maxX+=contentPad; maxY+=contentPad;
+  const bw=Math.max(1,maxX-minX), bh=Math.max(1,maxY-minY);
+  const sc=Math.min((w-pad*2)/bw,(h-pad*2)/bh);
+  const ox=pad+(w-pad*2-bw*sc)/2-minX*sc;
+  const oy=pad+(h-pad*2-bh*sc)/2-minY*sc;
+  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  return {sc,toScreen};
 }
 
 function drawQuizPlay(item){
@@ -4209,10 +4574,7 @@ function drawQuizPlay(item){
   quizImgEl.src='';
   resizeQuizCv();
   const w=qcv.width, h=qcv.height;
-  const pad=12;
-  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
-  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
-  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  const {sc,toScreen}=getQuizFit(play,w,h);
   qctx.clearRect(0,0,w,h);
   qctx.fillStyle='#070809';qctx.fillRect(0,0,w,h);
   drawFieldOn(qctx,qcv,sc,toScreen);
@@ -4224,6 +4586,7 @@ function drawQuizPlay(item){
     });
   });
   drawPlayersOn(qctx,qcv,sc,play.data?.players||[],null,toScreen);
+  drawBallForCarrier(qctx,sc,toScreen,normalizeBallData(play.data?.ball),play.data?.players||[]);
 }
 
 
@@ -4249,10 +4612,7 @@ function drawQuizAnimated(item, progress){
   const motionProg=hasMotion ? Math.min(1, progress/preSnapPortion) : 1;
   const snapProg=hasMotion ? Math.max(0, Math.min(1, (progress-preSnapPortion)/(1-preSnapPortion))) : progress;
   const w=qcv.width, h=qcv.height;
-  const pad=12;
-  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
-  const ox=(w-FW*sc)/2, oy=(h-FH*sc)/2;
-  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  const {sc,toScreen}=getQuizFit(play,w,h);
   qctx.clearRect(0,0,w,h);
   qctx.fillStyle='#070809';qctx.fillRect(0,0,w,h);
   drawFieldOn(qctx,qcv,sc,toScreen);
@@ -4293,13 +4653,14 @@ function drawQuizAnimated(item, progress){
     if(pt){ moving[i].x=pt.x; moving[i].y=pt.y; }
   });
   drawPlayersOn(qctx,qcv,sc,moving,null,toScreen);
+  drawAnimatedBall(qctx,sc,toScreen,normalizeBallData(play.data?.ball),moving,snapProg);
 }
 
 window.toggleQuizAnimation=function(){
   const q=quizQuestions[quizIdx];
   if(!q) return;
   if(quizAnimating){ stopQuizAnimation(true); return; }
-  if(q.play.kind==='image' || !(q.play.data?.routes||[]).length){ toast('No routes to animate',''); return; }
+  if(q.play.kind==='image' || (!((q.play.data?.routes||[]).length) && !(q.play.data?.ball?.enabled && (q.play.data?.ball?.sequence||[]).length>1))){ toast('No routes or ball sequence to animate',''); return; }
   quizAnimating=true;
   const btn=document.getElementById('quizAnimateBtn');
   if(btn) btn.textContent='■ Stop';
