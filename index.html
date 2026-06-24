@@ -746,6 +746,70 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 #editorScreen:not(.presentation-mode) .tool-btn.on{box-shadow:0 0 0 1px rgba(240,180,41,.16), inset 0 1px 0 rgba(255,255,255,.05)}
 @media (max-width:560px){#playsScreen .hdr-title:before{display:none}#playsScreen .hdr-title{display:block}.play-preview{height:104px}.play-card{padding:11px}.reorder-row .rb{height:38px}}
 
+
+
+/* SURGICAL iPHONE FORMATIONS HEADER FIX
+   Keeps the live flow unchanged. On narrow iPhone screens, the secondary
+   Play Test / Leaderboard buttons move behind the existing ⋯ menu so the
+   back button, playbook name, menu, and + Formation button stay visible. */
+@media (max-width:560px){
+  #formationsScreen .hdr{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr) 40px auto;
+    grid-template-areas:"back title menu add";
+    align-items:center;
+    gap:7px;
+    padding:calc(10px + env(safe-area-inset-top,0px)) 9px 10px;
+    overflow:visible;
+  }
+  #formationsScreen .hdr-back{
+    grid-area:back;
+    width:40px;
+    height:40px;
+  }
+  #formationsScreen .hdr-title{
+    grid-area:title;
+    min-width:0;
+    overflow:hidden;
+  }
+  #formationsScreen .hdr-title h1{
+    font-size:20px!important;
+    line-height:1.05;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #formationsScreen .hdr-title p{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #formationsScreen #playTestHdrBtn,
+  #formationsScreen #leaderboardHdrBtn{
+    display:none!important;
+  }
+  #formationsScreen #pbMenuBtn{
+    grid-area:menu;
+    width:40px!important;
+    height:40px;
+    padding:0!important;
+  }
+  #formationsScreen #addFormBtn{
+    grid-area:add;
+    height:40px;
+    padding:0 11px!important;
+    font-size:13px!important;
+    max-width:118px;
+  }
+}
+@media (max-width:370px){
+  #formationsScreen #addFormBtn{
+    padding:0 9px!important;
+    font-size:12px!important;
+    max-width:108px;
+  }
+}
+
 </style>
 </head>
 <body>
