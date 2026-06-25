@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>X&O Lab</title>
+<title>XO Playbook</title>
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -810,13 +810,97 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   }
 }
 
+
+/* SURGICAL iPHONE 16e / SAFARI VIEWPORT GUARD
+   iOS Safari can mis-report the visible viewport when the bottom address bar,
+   call bar, split view, or zoom state changes. These rules use JS-provided
+   viewport variables so the active screen is always pushed below the iPhone
+   status area and sized to the actually visible screen. Android/desktop are
+   left unchanged. */
+:root{
+  --app-height:100dvh;
+  --ios-screen-top:0px;
+}
+@supports (height:100dvh){
+  html,body{height:100dvh;}
+}
+@media (max-width:700px){
+  html.is-ios, html.is-ios body{
+    height:var(--app-height)!important;
+    min-height:var(--app-height)!important;
+    position:fixed;
+    inset:0;
+    width:100%;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+  html.is-ios .screen{
+    top:var(--ios-screen-top)!important;
+    bottom:auto!important;
+    height:calc(var(--app-height) - var(--ios-screen-top))!important;
+    min-height:0!important;
+  }
+  html.is-ios .hdr{
+    padding-top:12px!important;
+  }
+  html.is-ios #formationsScreen .hdr{
+    padding-top:10px!important;
+  }
+  html.is-ios .scroll{
+    min-height:0;
+  }
+}
+
 </style>
 </head>
 <body>
+<script>
+/* SURGICAL iPHONE VIEWPORT AUTO-FIT
+   Keeps menus visible on iPhone 16e and other iPhones by measuring the real
+   visible viewport after Safari chrome/call bars/zoom changes. */
+(function(){
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if(!isIOS) return;
+  document.documentElement.classList.add('is-ios');
+
+  function setIOSViewport(){
+    const vv = window.visualViewport;
+    const width = Math.min(window.innerWidth || 0, vv ? vv.width : Infinity);
+    const height = vv ? vv.height : window.innerHeight;
+    const offsetTop = vv ? Math.max(0, vv.offsetTop || 0) : 0;
+
+    const phoneFallbackTop = width && width <= 700 ? 34 : 0;
+    const topPad = Math.max(offsetTop, phoneFallbackTop);
+
+    document.documentElement.style.setProperty('--app-height', height + 'px');
+    document.documentElement.style.setProperty('--ios-screen-top', topPad + 'px');
+
+    clearTimeout(window.__xoViewportTimer);
+    window.__xoViewportTimer = setTimeout(function(){
+      try{
+        if(window.resizeCv && !document.getElementById('editorScreen')?.classList.contains('hidden')) window.resizeCv();
+        if(window.resizeFormCv && !document.getElementById('formEditorScreen')?.classList.contains('hidden')) window.resizeFormCv();
+        if(window.resizeQuizCv && !document.getElementById('quizScreen')?.classList.contains('hidden')) window.resizeQuizCv();
+      }catch(e){}
+    }, 80);
+  }
+
+  setIOSViewport();
+  window.addEventListener('resize', setIOSViewport, {passive:true});
+  window.addEventListener('orientationchange', function(){ setTimeout(setIOSViewport, 250); }, {passive:true});
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize', setIOSViewport, {passive:true});
+    visualViewport.addEventListener('scroll', setIOSViewport, {passive:true});
+  }
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) setTimeout(setIOSViewport, 80); });
+})();
+</script>
+
 
 <!-- SPLASH -->
 <div class="screen splash" id="splashScreen">
-  <img src="icon-512.png" alt="X&O Lab" class="splash-img">
+  <img src="icon-512.png" alt="XO Playbook" class="splash-img">
   <div class="tag" style="display:none"></div>
   <div class="spin"></div>
 </div>
@@ -828,9 +912,9 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
   </div>
   <div class="landing-box">
-    <img src="icon-512.png" alt="X&O Lab" class="landing-img">
+    <img src="icon-512.png" alt="XO Playbook" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
-    <div class="app-version-badge" id="appVersionBadge">v1.1.2 · Ball Timing Control</div>
+    <div class="app-version-badge" id="appVersionBadge">v1.1.3 · iPhone Compatibility Update</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -869,9 +953,9 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="loginScreen">
   <div class="pw-box">
     <div class="auth-brand">
-      <img src="icon-512.png" alt="X&O Lab">
+      <img src="icon-512.png" alt="XO Playbook">
       <div>
-        <div class="auth-brand-title">X&amp;O Lab</div>
+        <div class="auth-brand-title">XO Playbook</div>
         <div class="auth-brand-sub">Secure coach account access</div>
       </div>
     </div>
@@ -896,14 +980,14 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="registerScreen">
   <div class="pw-box">
     <div class="auth-brand">
-      <img src="icon-512.png" alt="X&O Lab">
+      <img src="icon-512.png" alt="XO Playbook">
       <div>
         <div class="auth-brand-title">Create Account</div>
         <div class="auth-brand-sub">Start as a Basic Coach</div>
       </div>
     </div>
     <h2>Register</h2>
-    <p>Create your X&O Lab account. New accounts start as Basic Coach.</p>
+    <p>Create your XO Playbook account. New accounts start as Basic Coach.</p>
     <div class="field"><label>Name</label><input type="text" id="regName" placeholder="Coach name" autocomplete="name"></div>
     <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="coach@example.com" autocomplete="email"></div>
     <div class="field"><label>Confirm Email</label><input type="email" id="regEmail2" placeholder="Retype email" autocomplete="email"></div>
@@ -932,13 +1016,13 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       <div class="pro-item"><b>Unlimited playbooks</b><br>Create and manage more than one team or season.</div>
       <div class="pro-item"><b>Unlimited formations and plays</b><br>Build out your full system without Basic limits.</div>
       <div class="pro-item"><b>Custom view codes</b><br>Create cleaner share codes for players, parents, and coaches.</div>
-      <div class="pro-item"><b>Future premium features</b><br>Pro accounts are ready for upcoming X&amp;O Lab tools.</div>
+      <div class="pro-item"><b>Future premium features</b><br>Pro accounts are ready for upcoming XO Playbook tools.</div>
     </div>
 
     <div class="pro-item" style="margin-bottom:14px">
       <b>Payment Info</b><br>
       Send <b>$5</b> to <b>$levigrammer</b>.<br><br>
-      Your support helps cover cloud hosting, storage, database usage, maintenance, and ongoing development of X&amp;O Lab.<br><br>
+      Your support helps cover cloud hosting, storage, database usage, maintenance, and ongoing development of XO Playbook.<br><br>
       After payment is received, please allow <b>3–5 minutes</b> for your Pro status to be activated.
     </div>
 
@@ -952,10 +1036,20 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="patchNotesScreen">
   <div class="pw-box">
     <h2>Patch Notes</h2>
-    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.2</b></p>
+    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.3</b></p>
 
     <div class="patch-version-card current">
       <div class="patch-current-label">Current Build</div>
+      <div class="patch-version-title"><span>v1.1.3</span> — iPhone Compatibility Update</div>
+      <ul class="patch-list">
+        <li>Added automatic viewport sizing for newer iPhone models.</li>
+        <li>Fixed header/menu clipping on iPhone 16e and Safari.</li>
+        <li>Improved safe-area handling so the top navigation stays visible.</li>
+        <li>Updated branding to XO Playbook across the app.</li>
+      </ul>
+    </div>
+
+    <div class="patch-version-card">
       <div class="patch-version-title"><span>v1.1.2</span> — Ball Timing Control</div>
       <ul class="patch-list">
         <li>Snap now instantly places the ball on the first selected non-center player.</li>
@@ -997,7 +1091,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       </ul>
     </div>
 
-    <div class="patch-build-foot" id="patchBuildFoot">X&amp;O Lab v1.1.2 · Ball Timing Control</div>
+    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.1.3 · iPhone Compatibility Update</div>
     <div style="height:12px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
   </div>
@@ -1373,15 +1467,15 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // APP VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = '1.1.2';
-const RELEASE_NAME = 'Ball Timing Control';
+const APP_VERSION = '1.1.3';
+const RELEASE_NAME = 'iPhone Compatibility Update';
 function hydrateAppVersion(){
   const badge = document.getElementById('appVersionBadge');
   if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
   const current = document.getElementById('patchCurrentVersion');
   if(current) current.textContent = `v${APP_VERSION}`;
   const foot = document.getElementById('patchBuildFoot');
-  if(foot) foot.textContent = `X&O Lab v${APP_VERSION} · ${RELEASE_NAME}`;
+  if(foot) foot.textContent = `XO Playbook v${APP_VERSION} · ${RELEASE_NAME}`;
 }
 hydrateAppVersion();
 
@@ -4668,7 +4762,7 @@ window.printPlaybook=async function(){
 </style></head><body>`;
 
   html+=`<div class="cover">
-    <h1>X&O</h1>
+    <h1>XO Playbook</h1>
     <h2>${esc(currentPlaybook.name)}</h2>
     ${currentPlaybook.description?`<p style="font-size:14px;color:#555;max-width:400px;margin:0 0 30px">${esc(currentPlaybook.description)}</p>`:''}
     <div class="code">VIEW CODE</div>
