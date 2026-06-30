@@ -869,6 +869,12 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 .lab-pill{display:inline-flex;align-items:center;border:1px solid rgba(240,180,41,.25);background:rgba(240,180,41,.09);color:var(--accent);border-radius:999px;padding:4px 9px;font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase}
 @media (max-width:560px){.lab-row{gap:6px}.lab-chip{height:36px;padding:0 10px;font-size:11px}.lab-select{height:38px;min-width:160px}}
 
+
+/* FORMATION GRID + LAB CONTROL PATCH */
+.grid-toggle{position:absolute;top:10px;right:10px;z-index:3;height:34px;padding:0 10px;border-radius:10px;background:rgba(28,31,39,.86);border:1.5px solid rgba(240,180,41,.35);color:var(--accent);font-size:10px;font-weight:900;font-family:'DM Sans',sans-serif;letter-spacing:.7px;text-transform:uppercase}
+.grid-toggle.off{border-color:var(--border);color:var(--muted);background:rgba(28,31,39,.72)}
+.lab-chip.warn{border-color:rgba(240,65,65,.34);color:var(--red);background:rgba(240,65,65,.08)}
+.lab-selected-note{font-size:11px;color:var(--muted);font-weight:800;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -932,7 +938,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="landing-box">
     <img src="icon-512.png" alt="XO Playbook" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
-    <div class="app-version-badge" id="appVersionBadge">v1.1.4 · Lab + Precision Update</div>
+    <div class="app-version-badge" id="appVersionBadge">v1.1.5 · Lab Control + Formation Grid</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -1058,8 +1064,12 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 
     <div class="patch-version-card current">
       <div class="patch-current-label">Current Build</div>
-      <div class="patch-version-title"><span>v1.1.4</span> — Lab + Precision Update</div>
+      <div class="patch-version-title"><span>v1.1.5</span> — Lab Control + Formation Grid</div>
       <ul class="patch-list">
+        <li>Formation editor now uses a dense alignment grid when placing/dragging players; nudge controls still work for fine tuning.</li>
+        <li>Lab defenses now load full personnel: 8 defenders for 8-man plays and 11 defenders for 11-man plays.</li>
+        <li>Lab auto-blocking now defaults to box/front defenders only, so linemen do not chase corners.</li>
+        <li>Added a Lab blocking-control toggle for Box Only vs All Defenders.</li>
         <li>Added Lab mode for testing the same play against multiple defensive looks without changing the playbook.</li>
         <li>Added mobile precision nudge controls for selected players so thumbs do not block exact placement.</li>
         <li>Lab changes stay local to the current session and never save into formations or plays.</li>
@@ -1118,7 +1128,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       </ul>
     </div>
 
-    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.1.4 · Lab + Precision Update</div>
+    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.1.5 · Lab Control + Formation Grid</div>
     <div style="height:12px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
   </div>
@@ -1229,6 +1239,8 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       <button class="lab-chip" onclick="labPreset('odd')">Odd Front</button>
       <button class="lab-chip" onclick="labPreset('wide')">Wide Edges</button>
       <button class="lab-chip" onclick="labPreset('stack')">Stack LBs</button>
+      <button class="lab-chip" id="labBlockModeBtn" onclick="labToggleBlockMode()">Blocks: Box Only</button>
+      <span class="lab-selected-note" id="labSelectedNote">Drag defenders. Tap label to cycle role.</span>
     </div>
     <div class="lab-help">Pick a play, tap a front, then drag red defenders. Yellow block lines show which blockers are matched to each defender. Nothing in Lab is written back to the playbook.</div>
   </div>
@@ -1244,7 +1256,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div style="padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">
     Tap the field to place players. This becomes the starting point for every play in this formation.
   </div>
-  <div class="canvas-wrap" id="formCanvasWrap"><canvas id="formCanvas"></canvas><div class="precision-pad" id="formPrecisionPad"><button class="nudge" onclick="nudgeFormPlayer(-1,-1)">↖</button><button class="nudge" onclick="nudgeFormPlayer(0,-1)">↑</button><button class="nudge" onclick="nudgeFormPlayer(1,-1)">↗</button><button class="nudge" onclick="nudgeFormPlayer(-1,0)">←</button><button class="nudge lbl">NUDGE</button><button class="nudge" onclick="nudgeFormPlayer(1,0)">→</button><button class="nudge" onclick="nudgeFormPlayer(-1,1)">↙</button><button class="nudge" onclick="nudgeFormPlayer(0,1)">↓</button><button class="nudge" onclick="nudgeFormPlayer(1,1)">↘</button></div></div>
+  <div class="canvas-wrap" id="formCanvasWrap"><canvas id="formCanvas"></canvas><button class="grid-toggle" id="formGridToggle" onclick="toggleFormGrid()">Grid On</button><div class="precision-pad" id="formPrecisionPad"><button class="nudge" onclick="nudgeFormPlayer(-1,-1)">↖</button><button class="nudge" onclick="nudgeFormPlayer(0,-1)">↑</button><button class="nudge" onclick="nudgeFormPlayer(1,-1)">↗</button><button class="nudge" onclick="nudgeFormPlayer(-1,0)">←</button><button class="nudge lbl">NUDGE</button><button class="nudge" onclick="nudgeFormPlayer(1,0)">→</button><button class="nudge" onclick="nudgeFormPlayer(-1,1)">↙</button><button class="nudge" onclick="nudgeFormPlayer(0,1)">↓</button><button class="nudge" onclick="nudgeFormPlayer(1,1)">↘</button></div></div>
   <div class="bot-bar">
     <div class="tool-row">
       <button class="tool-btn on" id="ft-select" onclick="setFormTool('select')"><span class="ti">↖</span>SELECT</button>
@@ -2961,11 +2973,28 @@ function resizeFormCv(){
 }
 function fToS(fx,fy){return{x:fx*fVs+fVx+fcv.width/2-FW/2*fVs,y:fy*fVs+fVy+fcv.height/2-FH/2*fVs};}
 function fToF(sx,sy){return{x:(sx-fVx-fcv.width/2+FW/2*fVs)/fVs,y:(sy-fVy-fcv.height/2+FH/2*fVs)/fVs};}
+let formGridOn=true;
+const FORM_GRID_STEP=5;
+function snapFormPoint(pt){
+  if(!formGridOn) return {x:Math.max(0,Math.min(FW,pt.x)),y:Math.max(0,Math.min(FH,pt.y))};
+  return {x:Math.max(0,Math.min(FW,Math.round(pt.x/FORM_GRID_STEP)*FORM_GRID_STEP)),y:Math.max(0,Math.min(FH,Math.round(pt.y/FORM_GRID_STEP)*FORM_GRID_STEP))};
+}
+function drawFormationGrid(){
+  if(!formGridOn) return;
+  fctx.save();
+  fctx.strokeStyle='rgba(240,180,41,.10)';
+  fctx.lineWidth=Math.max(1,1*fVs);
+  for(let x=0;x<=FW;x+=FORM_GRID_STEP){const a=fToS(x,0),b=fToS(x,FH);fctx.beginPath();fctx.moveTo(a.x,a.y);fctx.lineTo(b.x,b.y);fctx.stroke();}
+  for(let y=0;y<=FH;y+=FORM_GRID_STEP){const a=fToS(0,y),b=fToS(FW,y);fctx.beginPath();fctx.moveTo(a.x,a.y);fctx.lineTo(b.x,b.y);fctx.stroke();}
+  fctx.restore();
+}
+window.toggleFormGrid=function(){formGridOn=!formGridOn;const b=document.getElementById('formGridToggle');if(b){b.textContent=formGridOn?'Grid On':'Grid Off';b.classList.toggle('off',!formGridOn);}drawFormAll();};
 
 function drawFormAll(){
   fctx.clearRect(0,0,fcv.width,fcv.height);
   fctx.fillStyle='#070809';fctx.fillRect(0,0,fcv.width,fcv.height);
   drawFieldOn(fctx,fcv,fVs,fToS.bind(this));
+  drawFormationGrid();
   drawPlayersOn(fctx,fcv,fVs,fPlayers,fSelP,fToS.bind(this));
   updatePrecisionPads();
 }
@@ -3001,7 +3030,7 @@ function handleFormDown(sx,sy){
     else{fSelP=null;fPanning=true;fPanSX=sx-fVx;fPanSY=sy-fVy;}
     buildFormOpts();drawFormAll();
   } else if(fTool==='player'){
-    fPlayers.push({x:fp.x,y:fp.y,color:fPColor,pos:fPPos,id:uid()});drawFormAll();
+    const sp=snapFormPoint(fp);fPlayers.push({x:sp.x,y:sp.y,color:fPColor,pos:fPPos,id:uid()});drawFormAll();
   } else if(fTool==='erase'){
     const hit=fPlayerAt(sx,sy);
     if(hit){fPlayers=fPlayers.filter(p=>p!==hit);fSelP=null;drawFormAll();}
@@ -3012,7 +3041,7 @@ function handleFormMove(sx,sy){
   if(fPanning&&fTool==='select'&&!fDragging){fVx=sx-fPanSX;fVy=sy-fPanSY;drawFormAll();return;}
   if(fDragging&&fDragP){
     const fp=fToF(sx-fDragOX,sy-fDragOY);
-    fDragP.x=fp.x;fDragP.y=fp.y;drawFormAll();
+    const sp=snapFormPoint(fp);fDragP.x=sp.x;fDragP.y=sp.y;drawFormAll();
   }
 }
 
@@ -5367,7 +5396,7 @@ function pinchMid(e,canv){const r=canv.getBoundingClientRect();const sx=canv.wid
 const labCv=document.getElementById('labCanvas');
 const labCtx=labCv?labCv.getContext('2d'):null;
 let labPlayId=null, labPlayers=[], labRoutes=[], labBall={enabled:false,mode:'basic',sequence:[]};
-let labDefenders=[], labVs=1, labVx=0, labVy=0, labDrag=null, labPan=false, labPanSX=0, labPanSY=0, labPinch=false, labPd0=0, labPvx0=0, labPvy0=0;
+let labDefenders=[], labBlockMode='box', labVs=1, labVx=0, labVy=0, labDrag=null, labPan=false, labPanSX=0, labPanSY=0, labPinch=false, labPd0=0, labPvx0=0, labPvy0=0;
 function labToS(fx,fy){return{x:fx*labVs+labVx+labCv.width/2-FW/2*labVs,y:fy*labVs+labVy+labCv.height/2-FH/2*labVs};}
 function labToF(sx,sy){return{x:(sx-labVx-labCv.width/2+FW/2*labVs)/labVs,y:(sy-labVy-labCv.height/2+FH/2*labVs)/labVs};}
 function resizeLabCv(){ if(!labCv) return; setupHdCanvas(labCv,document.getElementById('labCanvasWrap')); labFit(); labDraw(); }
@@ -5393,28 +5422,49 @@ window.labSelectPlay=function(id){
   labBall=normalizeBallData(p.data?.ball);
   if(!labDefenders.length) labPreset('even',true); else labDraw();
 };
+function labDefenseCount(){
+  const n=(labPlayers||[]).length;
+  return n<=8?8:11;
+}
 function labPreset(name,silent=false){
+  const count=labDefenseCount();
   const y=FH*.38;
-  const fronts={
+  const bases={
     even:[['DE',FW*.18,y],['DT',FW*.40,y],['DT',FW*.60,y],['DE',FW*.82,y],['LB',FW*.35,FH*.25],['LB',FW*.65,FH*.25]],
     odd:[['DE',FW*.24,y],['NT',FW*.50,y],['DE',FW*.76,y],['LB',FW*.30,FH*.25],['LB',FW*.50,FH*.22],['LB',FW*.70,FH*.25]],
     wide:[['EDGE',FW*.10,y],['DT',FW*.38,y],['DT',FW*.62,y],['EDGE',FW*.90,y],['LB',FW*.28,FH*.24],['LB',FW*.72,FH*.24]],
     stack:[['DL',FW*.24,y],['DL',FW*.50,y],['DL',FW*.76,y],['LB',FW*.24,FH*.24],['LB',FW*.50,FH*.22],['LB',FW*.76,FH*.24]]
   };
-  labDefenders=(fronts[name]||fronts.even).map(a=>({id:uid(),pos:a[0],x:a[1],y:a[2],color:'#f04141'}));
+  const coverage8=[['CB',FW*.14,FH*.13],['CB',FW*.86,FH*.13]];
+  const coverage11=[['CB',FW*.10,FH*.13],['CB',FW*.90,FH*.13],['S',FW*.30,FH*.08],['S',FW*.50,FH*.06],['S',FW*.70,FH*.08]];
+  const arr=(bases[name]||bases.even).slice();
+  const cov=count===8?coverage8:coverage11;
+  cov.forEach(x=>{ if(arr.length<count) arr.push(x); });
+  while(arr.length<count){ arr.push(['D',FW*(.18+(.64*((arr.length%5)/4))),FH*.16]); }
+  labDefenders=arr.slice(0,count).map(a=>({id:uid(),pos:a[0],x:a[1],y:a[2],color:'#f04141'}));
   labDraw();
-  if(!silent) toast('Defense loaded in Lab only','ok');
+  if(!silent) toast(`${count}-man defense loaded in Lab only`,'ok');
 }
 window.labPreset=labPreset;
+function labIsBoxDefender(d){return /^(DL|DE|DT|NT|EDGE|LB|OLB|ILB|MIKE|WILL|SAM)$/i.test((d.pos||''));}
+window.labToggleBlockMode=function(){labBlockMode=labBlockMode==='box'?'all':'box';const b=document.getElementById('labBlockModeBtn');if(b)b.textContent=labBlockMode==='box'?'Blocks: Box Only':'Blocks: All D';labDraw();};
+function labCycleRole(d){const roles=['DE','DT','NT','EDGE','LB','CB','S'];const cur=(d.pos||'D').toUpperCase();d.pos=roles[(Math.max(0,roles.indexOf(cur))+1)%roles.length];labDraw();}
 window.labClearDefense=function(){ labDefenders=[]; labDraw(); };
 window.labAddDefender=function(){ labDefenders.push({id:uid(),pos:'D',x:FW*.5,y:FH*.32,color:'#f04141'}); labDraw(); };
 function labDefAt(sx,sy){ return labDefenders.find(d=>{const s=labToS(d.x,d.y),r=Math.max(10,18*Math.min(labVs,1.4));return Math.hypot(sx-s.x,sy-s.y)<r+8;}); }
 function labBlockers(){ return labPlayers.filter(p=>/^(C|G|T|TE|OL|LG|RG|LT|RT)$/i.test((p.pos||''))); }
 function labAssignments(){
   const blockers=labBlockers(); const used=new Set(); const out=[];
-  labDefenders.forEach(d=>{
+  const targets=labDefenders.filter(d=>labBlockMode==='all'||labIsBoxDefender(d));
+  targets.forEach(d=>{
     let best=null,bd=1e9;
-    blockers.forEach(b=>{ if(used.has(b.id)) return; const dist=Math.hypot(b.x-d.x,(b.y-d.y)*1.15); if(dist<bd){bd=dist;best=b;} });
+    blockers.forEach(b=>{
+      if(used.has(b.id)) return;
+      const lateral=Math.abs(b.x-d.x), vertical=Math.abs(b.y-d.y);
+      if(labBlockMode==='box' && lateral>FW*.28) return;
+      const dist=Math.hypot(lateral,vertical*1.35);
+      if(dist<bd){bd=dist;best=b;}
+    });
     if(best){used.add(best.id); out.push({b:best,d});}
   });
   return out;
@@ -5437,6 +5487,7 @@ if(labCv){
   labCv.addEventListener('touchmove',e=>{e.preventDefault(); if(e.touches.length===2&&labPinch){const d=pinchD(e,labCv),f=d/labPd0,mc=pinchMid(e,labCv),ns=Math.min(4,Math.max(.25,labVs*f)); labVx=mc.x-(mc.x-labPvx0)*(ns/labVs);labVy=mc.y-(mc.y-labPvy0)*(ns/labVs);labVs=ns;labPd0=d;labPvx0=labVx;labPvy0=labVy;labDraw();return;} if(e.touches.length===1){const p=cvPos(e.touches[0],labCv); if(labDrag){const fp=labToF(p.x,p.y);labDrag.x=fp.x;labDrag.y=fp.y;labDraw();}else if(labPan){labVx=p.x-labPanSX;labVy=p.y-labPanSY;labDraw();}}},{passive:false});
   labCv.addEventListener('touchend',e=>{e.preventDefault(); labDrag=null;labPan=false;labPinch=false;labDraw();},{passive:false});
   labCv.addEventListener('mousedown',e=>{const hit=labDefAt(e.offsetX,e.offsetY); if(hit){labDrag=hit;}else{labPan=true;labPanSX=e.offsetX-labVx;labPanSY=e.offsetY-labVy;} labDraw();});
+  labCv.addEventListener('dblclick',e=>{const hit=labDefAt(e.offsetX,e.offsetY); if(hit) labCycleRole(hit);});
   labCv.addEventListener('mousemove',e=>{if(labDrag){const fp=labToF(e.offsetX,e.offsetY);labDrag.x=fp.x;labDrag.y=fp.y;labDraw();}else if(labPan){labVx=e.offsetX-labPanSX;labVy=e.offsetY-labPanSY;labDraw();}});
   labCv.addEventListener('mouseup',()=>{labDrag=null;labPan=false;labDraw();});
   labCv.addEventListener('wheel',e=>{e.preventDefault();const zf=e.deltaY>0?.92:1.09,ns=Math.min(4,Math.max(.25,labVs*zf));labVx=e.offsetX-(e.offsetX-labVx)*(ns/labVs);labVy=e.offsetY-(e.offsetY-labVy)*(ns/labVs);labVs=ns;labDraw();},{passive:false});
