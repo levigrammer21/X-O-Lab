@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>XO Playbook</title>
+<title>XO Playbook v1.1.7</title>
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -938,7 +938,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="landing-box">
     <img src="icon-512.png" alt="XO Playbook" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
-    <div class="app-version-badge" id="appVersionBadge">v1.1.5 · Lab Control + Formation Grid</div>
+    <div class="app-version-badge" id="appVersionBadge">v1.1.7 · Simple Formation Setup</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -1060,10 +1060,28 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="patchNotesScreen">
   <div class="pw-box">
     <h2>Patch Notes</h2>
-    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.4</b></p>
+    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.7</b></p>
+
 
     <div class="patch-version-card current">
       <div class="patch-current-label">Current Build</div>
+      <div class="patch-version-title"><span>v1.1.7</span> — Simple Formation Setup</div>
+      <ul class="patch-list">
+        <li>New formations now start with a full, draggable set of players instead of an empty field.</li>
+        <li>Added a Set / Line name for labels like Right, Left, Trips, Tight, or Slot.</li>
+        <li>Formation setup wording now focuses on one simple action: drag players and they snap to the grid.</li>
+      </ul>
+    </div>
+    <div class="patch-version-card">
+      <div class="patch-version-title"><span>v1.1.6</span> — Formation Grid Lock Fix</div>
+      <ul class="patch-list">
+        <li>Formation players are forcibly normalized onto the grid when opening and saving the template.</li>
+        <li>Formation dragging and nudge controls now move by one visible grid square every time.</li>
+        <li>Play editor player movement remains locked on purpose. Move players in the Formation Template editor, then plays inherit that locked template.</li>
+        <li>Version badge updated so you can confirm the new upload actually deployed.</li>
+      </ul>
+    </div>
+    <div class="patch-version-card">
       <div class="patch-version-title"><span>v1.1.5</span> — Lab Control + Formation Grid</div>
       <ul class="patch-list">
         <li>Formation editor now uses a dense alignment grid when placing/dragging players; nudge controls still work for fine tuning.</li>
@@ -1128,7 +1146,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       </ul>
     </div>
 
-    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.1.5 · Lab Control + Formation Grid</div>
+    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.1.7 · Simple Formation Setup</div>
     <div style="height:12px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
   </div>
@@ -1254,7 +1272,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     <button class="e-save" onclick="saveFormationTemplate()">SAVE TEMPLATE</button>
   </div>
   <div style="padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">
-    Tap the field to place players. This becomes the starting point for every play in this formation.
+    Drag players where you want them. They snap to the grid when moved. Plays inherit these locked player spots.
   </div>
   <div class="canvas-wrap" id="formCanvasWrap"><canvas id="formCanvas"></canvas><button class="grid-toggle" id="formGridToggle" onclick="toggleFormGrid()">Grid On</button><div class="precision-pad" id="formPrecisionPad"><button class="nudge" onclick="nudgeFormPlayer(-1,-1)">↖</button><button class="nudge" onclick="nudgeFormPlayer(0,-1)">↑</button><button class="nudge" onclick="nudgeFormPlayer(1,-1)">↗</button><button class="nudge" onclick="nudgeFormPlayer(-1,0)">←</button><button class="nudge lbl">NUDGE</button><button class="nudge" onclick="nudgeFormPlayer(1,0)">→</button><button class="nudge" onclick="nudgeFormPlayer(-1,1)">↙</button><button class="nudge" onclick="nudgeFormPlayer(0,1)">↓</button><button class="nudge" onclick="nudgeFormPlayer(1,1)">↘</button></div></div>
   <div class="bot-bar">
@@ -1398,8 +1416,9 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="sheet" id="newFormSheet">
   <div class="handle"></div>
   <h2>New Formation</h2>
-  <p class="sub">Create a formation then set up the player template.</p>
+  <p class="sub">Create a formation with a ready-to-drag set of players. You can rename the set line now or later.</p>
   <div class="field"><label>Formation Name</label><input id="nfName" placeholder="e.g. Shotgun Spread, I-Form, 4-3"></div>
+  <div class="field"><label>Set / Line Name</label><input id="nfSetName" placeholder="e.g. Right, Left, Trips, Tight" value="Right"></div>
   <div class="field"><label>Type</label>
     <select id="nfType">
       <option value="off">⚡ Offense</option>
@@ -1533,8 +1552,8 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // APP VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = '1.1.4';
-const RELEASE_NAME = 'Lab + Precision Update';
+const APP_VERSION = '1.1.6';
+const RELEASE_NAME = 'Formation Grid Lock Fix';
 function hydrateAppVersion(){
   const badge = document.getElementById('appVersionBadge');
   if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
@@ -2678,21 +2697,45 @@ function fCard(f){
         <span class="card-name">${esc(f.name)}</span>
         <span class="badge ${f.type}">${tl[f.type]||'OFF'}</span>
       </div>
-      <div class="card-sub">${(f.templatePlayers||[]).length} template players${f.notes?' · '+esc(f.notes):''}</div>
+      <div class="card-sub">${f.setName?'Set: '+esc(f.setName)+' · ':''}${(f.templatePlayers||[]).length} template players${f.notes?' · '+esc(f.notes):''}</div>
     </div>
     ${del}<span class="chevron">›</span>
   </div>`;
 }
 
+function defaultFormationPlayers(type){
+  const blue='#4182f0', red='#f04141', gold='#f0b429';
+  const mk=(pos,x,y,color)=>({id:uid(),pos,x,y,color});
+  if(type==='def'){
+    return normalizeFormationPlayers([
+      mk('DE',350,300,red),mk('DT',425,300,red),mk('NT',500,300,red),mk('DT',575,300,red),mk('DE',650,300,red),
+      mk('LB',400,245,red),mk('MLB',500,235,red),mk('LB',600,245,red),
+      mk('CB',250,220,red),mk('CB',750,220,red),mk('FS',500,130,red)
+    ]);
+  }
+  if(type==='st'){
+    return normalizeFormationPlayers([
+      mk('LS',500,300,gold),mk('LG',450,300,gold),mk('RG',550,300,gold),mk('LW',375,300,gold),mk('RW',625,300,gold),
+      mk('P',500,430,gold),mk('PP',500,365,gold),mk('L',275,260,gold),mk('R',725,260,gold),mk('G',425,245,gold),mk('G',575,245,gold)
+    ]);
+  }
+  return normalizeFormationPlayers([
+    mk('LT',400,300,blue),mk('LG',450,300,blue),mk('C',500,300,blue),mk('RG',550,300,blue),mk('RT',600,300,blue),mk('TE',650,300,blue),
+    mk('QB',500,350,blue),mk('RB',500,450,blue),mk('X',225,250,blue),mk('Y',700,250,blue),mk('Z',775,250,blue)
+  ]);
+}
+
 window.addFormation=async function(){
   const name=document.getElementById('nfName').value.trim();
-  if(!name){toast('Enter a name','err');return;}
+  if(!name){toast('Enter a formation name','err');return;}
   if(!enforceLimit('formation')) return;
-  const f={name,type:document.getElementById('nfType').value,notes:document.getElementById('nfNotes').value.trim(),templatePlayers:[],createdAt:Date.now()};
+  const type=document.getElementById('nfType').value;
+  const setName=(document.getElementById('nfSetName')?.value||'Right').trim()||'Right';
+  const f={name,setName,type,notes:document.getElementById('nfNotes').value.trim(),templatePlayers:defaultFormationPlayers(type),createdAt:Date.now()};
   const ref=await addDoc(fmCol(currentPlaybook.id),f);
   f.id=ref.id;
   formations.push(f);
-  document.getElementById('nfName').value='';document.getElementById('nfNotes').value='';
+  document.getElementById('nfName').value='';document.getElementById('nfNotes').value='';const ns=document.getElementById('nfSetName'); if(ns) ns.value='Right';
   closeSheet('newFormSheet');
   renderFormations();
   toast('Formation created!','ok');
@@ -2704,7 +2747,7 @@ async function openFormation(id){
   formationImages=[];
   document.getElementById('playsFormName').textContent=currentFormation.name;
   const tl={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
-  document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(canEdit?' · Plays':' · 👁 View only');
+  document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(currentFormation.setName?' · Set: '+currentFormation.setName:'')+(canEdit?' · Plays':' · 👁 View only');
   document.getElementById('addPlayBtn').style.display=canEdit?'':'none';
   document.getElementById('editFormBtn').style.display=canEdit?'':'none';
   document.getElementById('playUploadBtn').style.display=canEdit?'':'none';
@@ -2718,16 +2761,17 @@ window.openFormation=openFormation;
 // ═══════════════════════════════════════════════
 window.openFormationEditor=function(){
   if(!canEdit){toast('View only','err');return;}
-  fPlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
+  fPlayers=normalizeFormationPlayers(JSON.parse(JSON.stringify(currentFormation.templatePlayers||[])));
   fVx=0;fVy=0;fVs=1;fSelP=null;
   fTool='select';syncFormToolUI();
-  document.getElementById('formEditorTitle').textContent=currentFormation.name+' · Template';
+  document.getElementById('formEditorTitle').textContent=currentFormation.name+(currentFormation.setName?' · '+currentFormation.setName:'')+' · Template';
   navTo('formEditorScreen');
   setTimeout(()=>{resizeFormCv();drawFormAll();},100);
 };
 
 window.saveFormationTemplate=async function(){
-  currentFormation.templatePlayers=fPlayers;
+  currentFormation.templatePlayers=normalizeFormationPlayers(fPlayers);
+  fPlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers));
   const ref=doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id);
   await updateDoc(ref,{templatePlayers:fPlayers});
   const i=formations.findIndex(f=>f.id===currentFormation.id);
@@ -2753,14 +2797,14 @@ function buildFormOpts(){
     h+=`<div class="osep"></div>`;
     POSITIONS.forEach(p=>h+=`<button class="chip${fPPos===p?' on':''}" onclick="setFPP('${p}',this)">${p}</button>`);
   } else if(fTool==='select'&&fSelP){
-    h+=`<span class="olbl">PLAYER LOCKED · EDIT FORMATION TO MOVE</span>`;
+    h+=`<span class="olbl">DRAG PLAYER · SNAPS TO GRID</span>`;
     PCOLORS.forEach(c=>h+=`<div class="cdot${fSelP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setFSPC('${c}',this)"></div>`);
     h+=`<div class="osep"></div>`;
     h+=`<input class="label-input" id="fSelLabelInput" value="${esc(fSelP.pos||'')}" maxlength="3" oninput="setFSPCustom(this.value)" placeholder="LBL">`;
     h+=`<div class="osep"></div>`;
     POSITIONS.forEach(p=>h+=`<button class="chip${fSelP.pos===p?' on':''}" onclick="setFSPP('${p}',this)">${p}</button>`);
   } else {
-    h+=`<span class="olbl" style="color:var(--muted)">${fTool==='select'?'Tap player to select · drag to move · pinch zoom':'Tap player to erase'}</span>`;
+    h+=`<span class="olbl" style="color:var(--muted)">${fTool==='select'?'Drag players to grid spots · use nudge pad for one-square moves':'Tap player to erase'}</span>`;
     h+=`<div class="osep"></div><button class="chip red" onclick="clearFormCv()">✕ Clear</button>`;
   }
   row.innerHTML=h;
@@ -2974,11 +3018,17 @@ function resizeFormCv(){
 function fToS(fx,fy){return{x:fx*fVs+fVx+fcv.width/2-FW/2*fVs,y:fy*fVs+fVy+fcv.height/2-FH/2*fVs};}
 function fToF(sx,sy){return{x:(sx-fVx-fcv.width/2+FW/2*fVs)/fVs,y:(sy-fVy-fcv.height/2+FH/2*fVs)/fVs};}
 let formGridOn=true;
-const FORM_GRID_STEP=5;
+const FORM_GRID_STEP=25;
 function snapFormPoint(pt){
   // Formation players are ALWAYS stored on the alignment grid.
   // The grid toggle only hides/shows the visual grid; it never disables snapping.
   return {x:Math.max(0,Math.min(FW,Math.round(pt.x/FORM_GRID_STEP)*FORM_GRID_STEP)),y:Math.max(0,Math.min(FH,Math.round(pt.y/FORM_GRID_STEP)*FORM_GRID_STEP))};
+}
+function normalizeFormationPlayers(players){
+  return (Array.isArray(players)?players:[]).map(p=>{
+    const sp=snapFormPoint({x:Number(p.x)||0,y:Number(p.y)||0});
+    return {...p,x:sp.x,y:sp.y};
+  });
 }
 function drawFormationGrid(){
   if(!formGridOn) return;
@@ -3148,7 +3198,7 @@ function miniPrev(play){
 }
 
 function lockedPlayPlayers(fallbackPlayers=[]){
-  const template=Array.isArray(currentFormation?.templatePlayers) ? currentFormation.templatePlayers : [];
+  const template=normalizeFormationPlayers(Array.isArray(currentFormation?.templatePlayers) ? currentFormation.templatePlayers : []);
   const source=template.length ? template : fallbackPlayers;
   return JSON.parse(JSON.stringify(source||[]));
 }
@@ -4439,10 +4489,7 @@ function buildOpts(){
     h+=`<div class="osep"></div>`;
   }
   if(selP){
-    h+=`<span class="olbl">PLAYER LOCKED · EDIT FORMATION TO MOVE</span>`;
-    PCOLORS.forEach(c=>h+=`<div class="cdot${selP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setSPC('${c}',this)"></div>`);
-    h+=`<div class="osep"></div>`;
-    h+=`<input class="label-input" id="selLabelInput" value="${esc(selP.pos||'')}" maxlength="3" oninput="setSPLabel(this.value)" placeholder="LBL">`;
+    h+=`<span class="olbl">PLAYER LOCKED IN PLAYS · USE ✏️ EDIT FORMATION TO MOVE / RENAME</span>`;
   }
   if(tool==='ball'){
     h+=`<span class="olbl">BALL</span>`;
