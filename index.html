@@ -1387,8 +1387,8 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="sheet" id="newPlaybookSheet">
   <div class="handle"></div>
   <h2>New Playbook</h2>
-  <p class="sub" id="newPlaybookSub">A view code will be generated. Share it with players or parents.</p>
-  <div class="field"><label>Playbook Name</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026"></div>
+  <p class="sub" id="newPlaybookSub">Name the full playbook here. Formations are named on the next screen.</p>
+  <div class="field"><label>Playbook Name (not a formation)</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026 Playbook"></div>
   <div class="field"><label>Description (optional)</label><input id="npbDesc" placeholder="Team, season, etc."></div>
   <div class="field" id="npbCodeField"><label>Custom View Code (Pro/Admin only)</label><input id="npbCode" placeholder="Leave blank to auto-generate" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace" autocomplete="off"></div>
   <button class="btn btn-p" onclick="addPlaybook()">Create Playbook</button>
@@ -2504,7 +2504,7 @@ function genViewCode(){
 
 window.addPlaybook = async ()=>{
   const name=document.getElementById('npbName').value.trim();
-  if(!name){toast('Enter a name','err');return;}
+  if(!name){toast('Enter a playbook name','err');return;}
   if(!enforceLimit('playbook')) return;
   const customCodeRaw=document.getElementById('npbCode').value.trim().toUpperCase();
   let code;
@@ -2753,7 +2753,7 @@ function buildFormOpts(){
     h+=`<div class="osep"></div>`;
     POSITIONS.forEach(p=>h+=`<button class="chip${fPPos===p?' on':''}" onclick="setFPP('${p}',this)">${p}</button>`);
   } else if(fTool==='select'&&fSelP){
-    h+=`<span class="olbl">PLAYER</span>`;
+    h+=`<span class="olbl">PLAYER LOCKED · EDIT FORMATION TO MOVE</span>`;
     PCOLORS.forEach(c=>h+=`<div class="cdot${fSelP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setFSPC('${c}',this)"></div>`);
     h+=`<div class="osep"></div>`;
     h+=`<input class="label-input" id="fSelLabelInput" value="${esc(fSelP.pos||'')}" maxlength="3" oninput="setFSPCustom(this.value)" placeholder="LBL">`;
@@ -2976,7 +2976,8 @@ function fToF(sx,sy){return{x:(sx-fVx-fcv.width/2+FW/2*fVs)/fVs,y:(sy-fVy-fcv.he
 let formGridOn=true;
 const FORM_GRID_STEP=5;
 function snapFormPoint(pt){
-  if(!formGridOn) return {x:Math.max(0,Math.min(FW,pt.x)),y:Math.max(0,Math.min(FH,pt.y))};
+  // Formation players are ALWAYS stored on the alignment grid.
+  // The grid toggle only hides/shows the visual grid; it never disables snapping.
   return {x:Math.max(0,Math.min(FW,Math.round(pt.x/FORM_GRID_STEP)*FORM_GRID_STEP)),y:Math.max(0,Math.min(FH,Math.round(pt.y/FORM_GRID_STEP)*FORM_GRID_STEP))};
 }
 function drawFormationGrid(){
@@ -2988,7 +2989,7 @@ function drawFormationGrid(){
   for(let y=0;y<=FH;y+=FORM_GRID_STEP){const a=fToS(0,y),b=fToS(FW,y);fctx.beginPath();fctx.moveTo(a.x,a.y);fctx.lineTo(b.x,b.y);fctx.stroke();}
   fctx.restore();
 }
-window.toggleFormGrid=function(){formGridOn=!formGridOn;const b=document.getElementById('formGridToggle');if(b){b.textContent=formGridOn?'Grid On':'Grid Off';b.classList.toggle('off',!formGridOn);}drawFormAll();};
+window.toggleFormGrid=function(){formGridOn=!formGridOn;const b=document.getElementById('formGridToggle');if(b){b.textContent=formGridOn?'Grid Visible':'Grid Hidden';b.classList.toggle('off',!formGridOn);}drawFormAll();};
 
 function drawFormAll(){
   fctx.clearRect(0,0,fcv.width,fcv.height);
@@ -3053,21 +3054,19 @@ function updatePrecisionPads(){
   const fp=document.getElementById('formPrecisionPad');
   if(fp) fp.classList.toggle('on', !!(canEdit && fSelP && !document.getElementById('formEditorScreen').classList.contains('hidden')));
   const pp=document.getElementById('playPrecisionPad');
-  if(pp) pp.classList.toggle('on', !!(canEdit && selP && !document.getElementById('editorScreen').classList.contains('hidden')));
+  if(pp) pp.classList.remove('on');
 }
 window.nudgeFormPlayer=function(dx,dy){
   if(!canEdit || !fSelP) return;
-  const step=6;
-  fSelP.x=Math.max(0,Math.min(FW,fSelP.x+dx*step));
-  fSelP.y=Math.max(0,Math.min(FH,fSelP.y+dy*step));
+  const step=FORM_GRID_STEP;
+  const sp=snapFormPoint({x:fSelP.x+dx*step,y:fSelP.y+dy*step});
+  fSelP.x=sp.x;
+  fSelP.y=sp.y;
   drawFormAll();
 };
 window.nudgePlayPlayer=function(dx,dy){
-  if(!canEdit || !selP) return;
-  const step=6;
-  selP.x=Math.max(0,Math.min(FW,selP.x+dx*step));
-  selP.y=Math.max(0,Math.min(FH,selP.y+dy*step));
-  drawAll();
+  // Players are locked in plays. Move players only inside the Formation Template editor.
+  toast('Players are locked in plays — edit the formation template instead','err');
 };
 
 // ═══════════════════════════════════════════════
@@ -3148,10 +3147,16 @@ function miniPrev(play){
   cx.fillStyle=hi;cx.fillRect(0,0,cw,ch);
 }
 
+function lockedPlayPlayers(fallbackPlayers=[]){
+  const template=Array.isArray(currentFormation?.templatePlayers) ? currentFormation.templatePlayers : [];
+  const source=template.length ? template : fallbackPlayers;
+  return JSON.parse(JSON.stringify(source||[]));
+}
+
 window.newPlay=function(){
   if(!enforceLimit('play')) return;
   currentPlay=null;
-  ePlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers||[]));
+  ePlayers=lockedPlayPlayers();
   eRoutes=[];eZones=[];eBall={enabled:false,mode:'basic',sequence:[]};selP=null;eHistory=[];activeRoute=null;
   vx=0;vy=0;vs=1;
   document.getElementById('playNameInput').value='';
@@ -3287,7 +3292,7 @@ async function saveCurrentPlay(silent=false){
   if(!name){toast('Enter a play name','err');return false;}
   const description=document.getElementById('playDescInput').value.trim();
   const playType=document.getElementById('playTypeSelect').value;
-  const data={players:ePlayers,routes:eRoutes,zones:eZones,ball:eBall};
+  const data={players:lockedPlayPlayers(ePlayers),routes:eRoutes,zones:eZones,ball:eBall};
   if(currentPlay){
     currentPlay.name=name;currentPlay.description=description;currentPlay.playType=playType;currentPlay.data=data;
     const i=plays.findIndex(p=>p.id===currentPlay.id);if(i!==-1)plays[i]=currentPlay;
@@ -3308,7 +3313,7 @@ window.openPlay=function(id, stayOnEditor=false){
   currentPlay=plays.find(p=>p.id===id);
   if(!currentPlay) return;
   stopRouteAnimation(false);
-  ePlayers=JSON.parse(JSON.stringify(currentPlay.data?.players||[]));
+  ePlayers=lockedPlayPlayers(currentPlay.data?.players||[]);
   eRoutes=JSON.parse(JSON.stringify(currentPlay.data?.routes||[]));
   eZones=JSON.parse(JSON.stringify(currentPlay.data?.zones||[]));
   eBall=normalizeBallData(currentPlay.data?.ball);
@@ -4434,7 +4439,7 @@ function buildOpts(){
     h+=`<div class="osep"></div>`;
   }
   if(selP){
-    h+=`<span class="olbl">PLAYER</span>`;
+    h+=`<span class="olbl">PLAYER LOCKED · EDIT FORMATION TO MOVE</span>`;
     PCOLORS.forEach(c=>h+=`<div class="cdot${selP.color===c?' on':''}" style="background:${c}${c==='#ffffff'?';border-color:#555':''}" onclick="setSPC('${c}',this)"></div>`);
     h+=`<div class="osep"></div>`;
     h+=`<input class="label-input" id="selLabelInput" value="${esc(selP.pos||'')}" maxlength="3" oninput="setSPLabel(this.value)" placeholder="LBL">`;
