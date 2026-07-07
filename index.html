@@ -875,6 +875,39 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 .grid-toggle.off{border-color:var(--border);color:var(--muted);background:rgba(28,31,39,.72)}
 .lab-chip.warn{border-color:rgba(240,65,65,.34);color:var(--red);background:rgba(240,65,65,.08)}
 .lab-selected-note{font-size:11px;color:var(--muted);font-weight:800;white-space:nowrap}
+
+
+/* SURGICAL COACH PRO TOOLS + MOBILE FORMATION SETUP PATCH */
+.coach-tool-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.coach-tool-card{background:linear-gradient(180deg, rgba(22,25,32,.98), rgba(13,15,20,.98));border:1.5px solid rgba(255,255,255,.10);border-radius:16px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.coach-tool-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.coach-tool-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.2px;line-height:1;flex:1}
+.coach-tool-sub{font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:10px}
+.depth-row{display:grid;grid-template-columns:54px 1fr;gap:9px;align-items:start;margin-bottom:10px}
+.depth-pos{height:42px;border-radius:12px;background:var(--adim);border:1px solid rgba(240,180,41,.28);color:var(--accent);font-weight:900;display:flex;align-items:center;justify-content:center}
+.depth-inputs{display:grid;grid-template-columns:1fr;gap:7px}
+.depth-inputs input,.call-select,.call-note{width:100%;background:var(--card2);border:1.5px solid var(--border);color:var(--text);border-radius:11px;font-family:'DM Sans',sans-serif;outline:none}
+.depth-inputs input{height:40px;padding:0 11px;font-size:14px}
+.depth-inputs input:focus,.call-select:focus,.call-note:focus{border-color:var(--accent)}
+.call-bucket{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
+.call-bucket-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.call-bucket-name{font-weight:900;font-size:14px;flex:1}
+.call-bucket-hint{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.7px}
+.call-select{height:42px;padding:0 10px;font-size:13px;font-weight:800;margin-bottom:8px}
+.call-note{min-height:62px;resize:vertical;padding:10px 11px;font-size:13px;line-height:1.35;margin-top:8px}
+.call-chip{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:9px 10px;margin-top:7px}
+.call-chip-name{font-size:13px;font-weight:800;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.call-chip-sub{font-size:10px;color:var(--muted);white-space:nowrap}
+.call-chip button{width:30px;height:30px;border-radius:9px;background:rgba(240,65,65,.12);border:1px solid rgba(240,65,65,.22);color:var(--red);font-weight:900}
+.coach-lock{background:linear-gradient(180deg, rgba(240,180,41,.11), rgba(255,255,255,.025));border:1px solid rgba(240,180,41,.24);border-radius:16px;padding:18px;text-align:center;color:var(--muted);line-height:1.5}
+.coach-lock b{color:var(--accent)}
+.form-help-strip{padding:9px 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.form-help-strip b{color:var(--accent)}
+.form-fit-btn{height:30px;padding:0 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:10px;font-weight:900;font-family:'DM Sans',sans-serif;margin-left:auto}
+#formationsScreen #depthChartHdrBtn,#formationsScreen #callSheetHdrBtn{display:none}
+@media (min-width:760px){#formationsScreen #depthChartHdrBtn,#formationsScreen #callSheetHdrBtn{display:flex}.coach-tool-grid{grid-template-columns:1fr 1fr}.depth-inputs{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.coach-tool-card{padding:12px}.depth-row{grid-template-columns:48px 1fr}.depth-pos{height:38px}.form-help-strip{padding:8px 10px}.form-fit-btn{margin-left:0;width:100%}.precision-pad{right:10px;bottom:10px;grid-template-columns:42px 42px 42px;grid-template-rows:42px 42px 42px}.precision-pad .nudge{font-size:19px}}
+
 </style>
 </head>
 <body>
@@ -938,7 +971,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="landing-box">
     <img src="icon-512.png" alt="XO Playbook" class="landing-img">
     <div class="landing-tag" style="display:none"></div>
-    <div class="app-version-badge" id="appVersionBadge">v1.1.7 · Simple Formation Setup</div>
+    <div class="app-version-badge" id="appVersionBadge">v1.1.8 · Coach Pro Tools</div>
     <div class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
@@ -1217,10 +1250,33 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     <div class="hdr-title"><h1 id="formTeamName">Playbook</h1><p id="formTeamSub">Formations</p></div>
     <button class="hdr-btn ghost header-action-glow" onclick="startQuiz()" id="playTestHdrBtn">Play Test</button>
     <button class="hdr-btn ghost" onclick="openLeaderboard()" id="leaderboardHdrBtn">Leaderboard</button>
+    <button class="hdr-btn ghost" onclick="openDepthChart()" id="depthChartHdrBtn">Depth</button>
+    <button class="hdr-btn ghost" onclick="openCallSheet()" id="callSheetHdrBtn">Call Sheet</button>
     <button class="hdr-btn ghost icon menu-attn" onclick="openPlaybookMenu()" id="pbMenuBtn" title="More options">⋯</button>
     <button class="hdr-btn" id="addFormBtn" onclick="openSheet('newFormSheet')">+ Formation</button>
   </div>
   <div class="scroll" id="formationsList"></div>
+</div>
+
+
+<!-- DEPTH CHART (Pro coaches only) -->
+<div class="screen hidden" id="depthChartScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','depthChartScreen')">←</button>
+    <div class="hdr-title"><h1>DEPTH CHART</h1><p id="depthChartSub">Pro coach tool</p></div>
+    <button class="hdr-btn" onclick="saveDepthChart()">Save</button>
+  </div>
+  <div class="scroll" id="depthChartBody"></div>
+</div>
+
+<!-- PLAY CALL SHEET (Pro coaches only) -->
+<div class="screen hidden" id="callSheetScreen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack('formationsScreen','callSheetScreen')">←</button>
+    <div class="hdr-title"><h1>CALL SHEET</h1><p id="callSheetSub">Situational calls from your plays</p></div>
+    <button class="hdr-btn" onclick="saveCallSheet()">Save</button>
+  </div>
+  <div class="scroll" id="callSheetBody"></div>
 </div>
 
 <!-- PLAYS -->
@@ -1271,8 +1327,9 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     <div style="flex:1;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;padding:0 8px" id="formEditorTitle">Formation Setup</div>
     <button class="e-save" onclick="saveFormationTemplate()">SAVE TEMPLATE</button>
   </div>
-  <div style="padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">
-    Drag players where you want them. They snap to the grid when moved. Plays inherit these locked player spots.
+  <div class="form-help-strip">
+    <span><b>Phone setup:</b> drag a player, pinch to zoom, or tap Fit. Players stay full-size on screen and snap to clean spacing.</span>
+    <button class="form-fit-btn" onclick="fitFormationView()">Fit Formation</button>
   </div>
   <div class="canvas-wrap" id="formCanvasWrap"><canvas id="formCanvas"></canvas><button class="grid-toggle" id="formGridToggle" onclick="toggleFormGrid()">Grid On</button><div class="precision-pad" id="formPrecisionPad"><button class="nudge" onclick="nudgeFormPlayer(-1,-1)">↖</button><button class="nudge" onclick="nudgeFormPlayer(0,-1)">↑</button><button class="nudge" onclick="nudgeFormPlayer(1,-1)">↗</button><button class="nudge" onclick="nudgeFormPlayer(-1,0)">←</button><button class="nudge lbl">NUDGE</button><button class="nudge" onclick="nudgeFormPlayer(1,0)">→</button><button class="nudge" onclick="nudgeFormPlayer(-1,1)">↙</button><button class="nudge" onclick="nudgeFormPlayer(0,1)">↓</button><button class="nudge" onclick="nudgeFormPlayer(1,1)">↘</button></div></div>
   <div class="bot-bar">
@@ -1488,6 +1545,10 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openLeaderboard()">🏆 Leaderboard</button>
   <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openDepthChart()" id="pbDepthBtn">📊 Depth Chart <span class="account-pill pro">PRO</span></button>
+  <div style="height:8px" id="pbDepthSpacer"></div>
+  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openCallSheet()" id="pbCallBtn">🧾 Play Call Sheet <span class="account-pill pro">PRO</span></button>
+  <div style="height:8px" id="pbCallSpacer"></div>
   <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
   <div style="height:8px" id="pbEditCodeSpacer"></div>
   <button class="btn btn-g" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none">✏️ Edit View Code</button>
@@ -1552,8 +1613,8 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // APP VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = '1.1.6';
-const RELEASE_NAME = 'Formation Grid Lock Fix';
+const APP_VERSION = '1.1.8';
+const RELEASE_NAME = 'Coach Pro Tools';
 function hydrateAppVersion(){
   const badge = document.getElementById('appVersionBadge');
   if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
@@ -1917,6 +1978,7 @@ function isFirebaseAccount(){ return !!currentAccount; }
 function roleLabel(){ return currentRole==='admin'?'Admin':currentRole==='pro'?'Pro Coach':currentRole==='basic'?'Basic Coach':'Guest'; }
 function isAdminRole(){ return isSuperAdmin || currentRole==='admin'; }
 function isProRole(){ return currentRole==='pro' || currentRole==='admin' || isSuperAdmin; }
+function canUseCoachProTools(){ return !!(canEdit && isProRole() && !isViewOnly); }
 function isBasicRole(){ return currentRole==='basic'; }
 function accountOwnerId(){ return currentUserId ? 'user:'+currentUserId : (isSuperAdmin ? 'head' : currentCoachId); }
 function ownsPlaybook(pb){
@@ -2501,6 +2563,7 @@ async function openPlaybook(pb){
   canEdit = !isViewOnly && ownsPlaybook(pb);
   document.getElementById('formTeamSub').textContent=(isViewOnly?'👁 View only · ':('✏️ '+roleLabel()+' · '))+'Formations';
   document.getElementById('addFormBtn').style.display=canEdit?'':'none';
+  syncCoachToolButtons();
   renderFormations();
   navTo('formationsScreen'); applyViewOnlyUiLocks();
 }
@@ -2589,6 +2652,7 @@ window.openPlaybookMenu = ()=>{
   document.getElementById('pbEditCodeSpacer').style.display=canDelete?'':'none';
   const assignBtn=document.getElementById('pbAssignBtn');
   if(assignBtn) assignBtn.style.display=isAdminRole()?'':'none';
+  syncCoachToolButtons();
   openSheet('pbMenuSheet');
 };
 
@@ -2756,6 +2820,109 @@ async function openFormation(id){
 }
 window.openFormation=openFormation;
 
+
+// ═══════════════════════════════════════════════
+// COACH PRO TOOLS: DEPTH CHART + CALL SHEET
+// ═══════════════════════════════════════════════
+const DEPTH_GROUPS=[
+  {key:'OFF',title:'Offense',positions:['QB','RB','FB','WR','WR','TE','LT','LG','C','RG','RT']},
+  {key:'DEF',title:'Defense',positions:['DE','DT','NT','DT','DE','OLB','MLB','OLB','CB','CB','S']},
+  {key:'ST',title:'Special Teams',positions:['K','P','LS','H','KR','PR']}
+];
+const CALL_BUCKETS=[
+  ['openers','Opening Script','First 10–15 calls'],['1st','1st Down','Base menu'],['2short','2nd Short','2–3 yards'],['2medium','2nd Medium','4–6 yards'],['2long','2nd Long','7+ yards'],['3short','3rd/4th Short','Need 1–3'],['3medium','3rd Medium','Need 4–6'],['3long','3rd Long','Need 7+'],['red','Red Zone','Inside +20'],['goal','Goal Line / 2PT','Tight field'],['backed','Backed Up','Own goal line'],['shot','Shots / Tricks','Explosives']
+];
+let callSheetPlayPool=[];
+function syncCoachToolButtons(){
+  const ok=canUseCoachProTools();
+  ['depthChartHdrBtn','callSheetHdrBtn','pbDepthBtn','pbCallBtn'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display=ok?'':'none';});
+  ['pbDepthSpacer','pbCallSpacer'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display=ok?'':'none';});
+}
+function coachToolBlocked(){
+  if(canUseCoachProTools()) return false;
+  toast(isProRole()?'Coach edit access required':'Pro coaches only','err');
+  return true;
+}
+function depthKey(list,pos,i){return pos+(list.slice(0,i).filter(x=>x===pos).length?String(list.slice(0,i+1).filter(x=>x===pos).length):'');}
+function cleanDepthChart(){
+  const src=currentPlaybook?.depthChart||{};
+  const out={};
+  DEPTH_GROUPS.forEach(g=>{out[g.key]={};g.positions.forEach((pos,i)=>{const key=depthKey(g.positions,pos,i);out[g.key][key]=Array.isArray(src[g.key]?.[key])?src[g.key][key].slice(0,3):['','',''];});});
+  return out;
+}
+window.openDepthChart=function(){
+  if(coachToolBlocked()) return;
+  document.getElementById('depthChartSub').textContent=currentPlaybook.name+' · Pro coaches only';
+  const data=cleanDepthChart();
+  let h='<div class="coach-tool-grid">';
+  DEPTH_GROUPS.forEach(g=>{h+=`<div class="coach-tool-card"><div class="coach-tool-top"><div class="coach-tool-title">${g.title}</div><span class="account-pill pro">PRO</span></div><div class="coach-tool-sub">Starter, backup, and third string. Duplicate position rows are kept for real lineups.</div>`;g.positions.forEach((pos,i)=>{const key=depthKey(g.positions,pos,i);const vals=data[g.key][key]||['','',''];h+=`<div class="depth-row" data-group="${g.key}" data-pos="${key}"><div class="depth-pos">${pos}</div><div class="depth-inputs"><input placeholder="Starter" value="${esc(vals[0]||'')}"><input placeholder="Backup" value="${esc(vals[1]||'')}"><input placeholder="Third" value="${esc(vals[2]||'')}"></div></div>`;});h+='</div>';});
+  document.getElementById('depthChartBody').innerHTML=h+'</div>';
+  navTo('depthChartScreen');
+};
+window.saveDepthChart=async function(){
+  if(coachToolBlocked()) return;
+  const data={};
+  document.querySelectorAll('#depthChartBody .depth-row').forEach(row=>{const g=row.dataset.group,p=row.dataset.pos; if(!data[g]) data[g]={}; data[g][p]=Array.from(row.querySelectorAll('input')).map(i=>i.value.trim()).slice(0,3);});
+  currentPlaybook.depthChart=data;
+  await updateDoc(doc(db,'playbooks',currentPlaybook.id),{depthChart:data,updatedAt:Date.now()});
+  const i=playbooks.findIndex(p=>p.id===currentPlaybook.id); if(i!==-1) playbooks[i]=currentPlaybook;
+  toast('Depth chart saved','ok');
+};
+async function loadAllPlayPool(){
+  const pool=[];
+  for(const f of formations){
+    const ps=await loadPlays(currentPlaybook.id,f.id);
+    ps.forEach(pl=>pool.push({...pl,formationId:f.id,formationName:f.name,formationType:f.type,setName:f.setName||''}));
+  }
+  callSheetPlayPool=pool;
+  return pool;
+}
+function cleanCallSheet(){
+  const src=currentPlaybook?.callSheet||{};
+  const out={notes:src.notes||{}};
+  CALL_BUCKETS.forEach(([k])=>out[k]=Array.isArray(src[k])?src[k].filter(Boolean):[]);
+  return out;
+}
+window.openCallSheet=async function(){
+  if(coachToolBlocked()) return;
+  document.getElementById('callSheetSub').textContent='Loading plays…';
+  navTo('callSheetScreen');
+  const pool=await loadAllPlayPool();
+  const data=cleanCallSheet();
+  document.getElementById('callSheetSub').textContent=currentPlaybook.name+' · '+pool.length+' plays available';
+  if(!pool.length){document.getElementById('callSheetBody').innerHTML='<div class="coach-lock"><b>No plays yet.</b><br>Create plays first, then build the call sheet from them.</div>';return;}
+  let h='<div class="coach-tool-card"><div class="coach-tool-top"><div class="coach-tool-title">Game Day Call Sheet</div><span class="account-pill pro">PRO</span></div><div class="coach-tool-sub">Built from your saved plays and grouped by situation so a coach can scan fast on game day.</div></div>';
+  CALL_BUCKETS.forEach(([key,name,hint])=>{h+=renderCallBucket(key,name,hint,data[key],data.notes?.[key]||'');});
+  document.getElementById('callSheetBody').innerHTML=h;
+};
+function renderCallBucket(key,name,hint,ids=[],note=''){
+  const opts=['<option value="">+ Add play…</option>'].concat(callSheetPlayPool.map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.formationName)}${p.type?' · '+esc(p.type.toUpperCase()):''}</option>`)).join('');
+  const chips=ids.map(id=>callSheetPlayPool.find(p=>p.id===id)).filter(Boolean).map(p=>`<div class="call-chip" data-id="${p.id}"><div class="call-chip-name">${esc(p.name)}</div><div class="call-chip-sub">${esc(p.formationName)}${p.type?' · '+esc(p.type.toUpperCase()):''}</div><button onclick="removeCallPlay('${key}','${p.id}')">×</button></div>`).join('');
+  return `<div class="call-bucket" data-bucket="${key}"><div class="call-bucket-head"><div class="call-bucket-name">${name}</div><div class="call-bucket-hint">${hint}</div></div><select class="call-select" onchange="addCallPlay('${key}',this.value);this.value=''">${opts}</select><div class="call-list">${chips||'<div class="card-sub">No calls selected yet.</div>'}</div><textarea class="call-note" placeholder="Coach notes / reminders…">${esc(note)}</textarea></div>`;
+}
+window.addCallPlay=function(bucket,id){
+  if(!id) return;
+  const box=document.querySelector(`#callSheetBody .call-bucket[data-bucket="${bucket}"] .call-list`);
+  if(!box || box.querySelector(`[data-id="${id}"]`)) return;
+  const p=callSheetPlayPool.find(x=>x.id===id); if(!p) return;
+  if(box.querySelector('.card-sub')) box.innerHTML='';
+  box.insertAdjacentHTML('beforeend',`<div class="call-chip" data-id="${p.id}"><div class="call-chip-name">${esc(p.name)}</div><div class="call-chip-sub">${esc(p.formationName)}${p.type?' · '+esc(p.type.toUpperCase()):''}</div><button onclick="removeCallPlay('${bucket}','${p.id}')">×</button></div>`);
+};
+window.removeCallPlay=function(bucket,id){
+  const box=document.querySelector(`#callSheetBody .call-bucket[data-bucket="${bucket}"] .call-list`); if(!box) return;
+  const chip=box.querySelector(`[data-id="${id}"]`); if(chip) chip.remove();
+  if(!box.querySelector('.call-chip')) box.innerHTML='<div class="card-sub">No calls selected yet.</div>';
+};
+window.saveCallSheet=async function(){
+  if(coachToolBlocked()) return;
+  const data={notes:{}};
+  document.querySelectorAll('#callSheetBody .call-bucket').forEach(b=>{const key=b.dataset.bucket;data[key]=Array.from(b.querySelectorAll('.call-chip')).map(x=>x.dataset.id);data.notes[key]=(b.querySelector('.call-note')?.value||'').trim();});
+  currentPlaybook.callSheet=data;
+  await updateDoc(doc(db,'playbooks',currentPlaybook.id),{callSheet:data,updatedAt:Date.now()});
+  const i=playbooks.findIndex(p=>p.id===currentPlaybook.id); if(i!==-1) playbooks[i]=currentPlaybook;
+  toast('Call sheet saved','ok');
+};
+
 // ═══════════════════════════════════════════════
 // FORMATION EDITOR
 // ═══════════════════════════════════════════════
@@ -2766,7 +2933,7 @@ window.openFormationEditor=function(){
   fTool='select';syncFormToolUI();
   document.getElementById('formEditorTitle').textContent=currentFormation.name+(currentFormation.setName?' · '+currentFormation.setName:'')+' · Template';
   navTo('formEditorScreen');
-  setTimeout(()=>{resizeFormCv();drawFormAll();},100);
+  setTimeout(()=>{resizeFormCv();fitFormationView();drawFormAll();},100);
 };
 
 window.saveFormationTemplate=async function(){
@@ -3019,6 +3186,7 @@ function fToS(fx,fy){return{x:fx*fVs+fVx+fcv.width/2-FW/2*fVs,y:fy*fVs+fVy+fcv.h
 function fToF(sx,sy){return{x:(sx-fVx-fcv.width/2+FW/2*fVs)/fVs,y:(sy-fVy-fcv.height/2+FH/2*fVs)/fVs};}
 let formGridOn=true;
 const FORM_GRID_STEP=25;
+const FORM_MIN_ZOOM=.55, FORM_MAX_ZOOM=2.35;
 function snapFormPoint(pt){
   // Formation players are ALWAYS stored on the alignment grid.
   // The grid toggle only hides/shows the visual grid; it never disables snapping.
@@ -3041,16 +3209,23 @@ function drawFormationGrid(){
 }
 window.toggleFormGrid=function(){formGridOn=!formGridOn;const b=document.getElementById('formGridToggle');if(b){b.textContent=formGridOn?'Grid Visible':'Grid Hidden';b.classList.toggle('off',!formGridOn);}drawFormAll();};
 
+function formPlayerScreenScale(){return Math.max(.9,Math.min(1.18,1/Math.sqrt(Math.max(.75,fVs))));}
+window.fitFormationView=function(){
+  if(!fcv.width || !fcv.height) return;
+  const pad=(window.innerWidth<=560?34:56)*hdDpr();
+  fVs=Math.max(FORM_MIN_ZOOM,Math.min(FORM_MAX_ZOOM,Math.min((fcv.width-pad*2)/FW,(fcv.height-pad*2)/FH)));
+  fVx=0;fVy=0;drawFormAll();
+};
 function drawFormAll(){
   fctx.clearRect(0,0,fcv.width,fcv.height);
   fctx.fillStyle='#070809';fctx.fillRect(0,0,fcv.width,fcv.height);
   drawFieldOn(fctx,fcv,fVs,fToS.bind(this));
   drawFormationGrid();
-  drawPlayersOn(fctx,fcv,fVs,fPlayers,fSelP,fToS.bind(this));
+  drawPlayersOn(fctx,fcv,formPlayerScreenScale(),fPlayers,fSelP,fToS.bind(this));
   updatePrecisionPads();
 }
 
-function fPlayerAt(sx,sy){return fPlayers.find(p=>{const s=fToS(p.x,p.y),r=Math.max(14,18*Math.min(fVs,1.4));return Math.hypot(sx-s.x,sy-s.y)<r+6;});}
+function fPlayerAt(sx,sy){return fPlayers.find(p=>{const s=fToS(p.x,p.y),r=Math.max(22,20*formPlayerScreenScale());return Math.hypot(sx-s.x,sy-s.y)<r+10;});}
 
 fcv.addEventListener('touchstart',e=>{
   e.preventDefault();
@@ -3061,7 +3236,7 @@ fcv.addEventListener('touchmove',e=>{
   e.preventDefault();
   if(e.touches.length===2&&fPinching){
     const d=pinchD(e,fcv),f=d/fPd0,mc=pinchMid(e,fcv);
-    const ns=Math.min(4,Math.max(.25,fVs*f));
+    const ns=Math.min(FORM_MAX_ZOOM,Math.max(FORM_MIN_ZOOM,fVs*f));
     fVx=mc.x-(mc.x-fPvx0)*(ns/fVs);fVy=mc.y-(mc.y-fPvy0)*(ns/fVs);
     fVs=ns;fPd0=d;fPvx0=fVx;fPvy0=fVy;drawFormAll();return;
   }
@@ -3071,7 +3246,7 @@ fcv.addEventListener('touchend',e=>{e.preventDefault();fPinching=false;fDragging
 fcv.addEventListener('mousedown',e=>handleFormDown(e.offsetX,e.offsetY));
 fcv.addEventListener('mousemove',e=>{if(fDragging||fPanning)handleFormMove(e.offsetX,e.offsetY);});
 fcv.addEventListener('mouseup',()=>{fDragging=false;fDragP=null;fPanning=false;});
-fcv.addEventListener('wheel',e=>{e.preventDefault();const zf=e.deltaY>0?.92:1.09,ns=Math.min(4,Math.max(.25,fVs*zf));fVx=e.offsetX-(e.offsetX-fVx)*(ns/fVs);fVy=e.offsetY-(e.offsetY-fVy)*(ns/fVs);fVs=ns;drawFormAll();},{passive:false});
+fcv.addEventListener('wheel',e=>{e.preventDefault();const zf=e.deltaY>0?.92:1.09,ns=Math.min(FORM_MAX_ZOOM,Math.max(FORM_MIN_ZOOM,fVs*zf));fVx=e.offsetX-(e.offsetX-fVx)*(ns/fVs);fVy=e.offsetY-(e.offsetY-fVy)*(ns/fVs);fVs=ns;drawFormAll();},{passive:false});
 
 function handleFormDown(sx,sy){
   const fp=fToF(sx,sy);
