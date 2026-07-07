@@ -883,12 +883,19 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 .coach-tool-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .coach-tool-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.2px;line-height:1;flex:1}
 .coach-tool-sub{font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:10px}
-.depth-row{display:grid;grid-template-columns:54px 1fr;gap:9px;align-items:start;margin-bottom:10px}
-.depth-pos{height:42px;border-radius:12px;background:var(--adim);border:1px solid rgba(240,180,41,.28);color:var(--accent);font-weight:900;display:flex;align-items:center;justify-content:center}
-.depth-inputs{display:grid;grid-template-columns:1fr;gap:7px}
-.depth-inputs input,.call-select,.call-note{width:100%;background:var(--card2);border:1.5px solid var(--border);color:var(--text);border-radius:11px;font-family:'DM Sans',sans-serif;outline:none}
-.depth-inputs input{height:40px;padding:0 11px;font-size:14px}
-.depth-inputs input:focus,.call-select:focus,.call-note:focus{border-color:var(--accent)}
+.depth-roster-list,.depth-spots-list{display:flex;flex-direction:column;gap:8px}
+.depth-roster-row{display:grid;grid-template-columns:70px 1fr 38px;gap:8px;align-items:center}
+.depth-spot-row{display:grid;grid-template-columns:minmax(74px,118px) 1fr 38px;gap:8px;align-items:start;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;padding:9px}
+.depth-slot-grid{display:grid;grid-template-columns:1fr;gap:7px}
+.depth-roster-row input,.depth-spot-row input,.depth-spot-row select,.call-select,.call-note{width:100%;background:var(--card2);border:1.5px solid var(--border);color:var(--text);border-radius:11px;font-family:'DM Sans',sans-serif;outline:none}
+.depth-roster-row input,.depth-spot-row input,.depth-spot-row select{height:40px;padding:0 10px;font-size:14px;font-weight:700}
+.depth-roster-row input:focus,.depth-spot-row input:focus,.depth-spot-row select:focus,.call-select:focus,.call-note:focus{border-color:var(--accent)}
+.depth-spot-row select{font-size:13px;color:var(--text)}
+.depth-mini-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.depth-mini-btn{height:36px;padding:0 12px;border-radius:11px;background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-size:12px;font-weight:900;font-family:'DM Sans',sans-serif;cursor:pointer}
+.depth-mini-btn:active{border-color:var(--accent);color:var(--accent);background:var(--adim)}
+.depth-del{width:38px;height:38px;border-radius:11px;background:rgba(240,65,65,.12);border:1px solid rgba(240,65,65,.24);color:var(--red);font-size:16px;font-weight:900;cursor:pointer}
+.depth-empty-note{font-size:12px;color:var(--muted);line-height:1.45;background:rgba(255,255,255,.025);border:1px dashed var(--border);border-radius:12px;padding:12px}
 .call-bucket{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
 .call-bucket-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .call-bucket-name{font-weight:900;font-size:14px;flex:1}
@@ -905,8 +912,8 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 .form-help-strip b{color:var(--accent)}
 .form-fit-btn{height:30px;padding:0 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:10px;font-weight:900;font-family:'DM Sans',sans-serif;margin-left:auto}
 #formationsScreen #depthChartHdrBtn,#formationsScreen #callSheetHdrBtn{display:none}
-@media (min-width:760px){#formationsScreen #depthChartHdrBtn,#formationsScreen #callSheetHdrBtn{display:flex}.coach-tool-grid{grid-template-columns:1fr 1fr}.depth-inputs{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:560px){.coach-tool-card{padding:12px}.depth-row{grid-template-columns:48px 1fr}.depth-pos{height:38px}.form-help-strip{padding:8px 10px}.form-fit-btn{margin-left:0;width:100%}.precision-pad{right:10px;bottom:10px;grid-template-columns:42px 42px 42px;grid-template-rows:42px 42px 42px}.precision-pad .nudge{font-size:19px}}
+@media (min-width:760px){#formationsScreen #depthChartHdrBtn,#formationsScreen #callSheetHdrBtn{display:flex}.coach-tool-grid{grid-template-columns:1fr 1fr}.depth-slot-grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.coach-tool-card{padding:12px}.depth-roster-row{grid-template-columns:58px 1fr 38px}.depth-spot-row{grid-template-columns:1fr 38px}.depth-slot-grid{grid-column:1 / -1}.form-help-strip{padding:8px 10px}.form-fit-btn{margin-left:0;width:100%}.precision-pad{right:10px;bottom:10px;grid-template-columns:42px 42px 42px;grid-template-rows:42px 42px 42px}.precision-pad .nudge{font-size:19px}}
 
 </style>
 </head>
@@ -2843,26 +2850,117 @@ function coachToolBlocked(){
   toast(isProRole()?'Coach edit access required':'Pro coaches only','err');
   return true;
 }
-function depthKey(list,pos,i){return pos+(list.slice(0,i).filter(x=>x===pos).length?String(list.slice(0,i+1).filter(x=>x===pos).length):'');}
+function depthId(prefix){return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);}
 function cleanDepthChart(){
   const src=currentPlaybook?.depthChart||{};
-  const out={};
-  DEPTH_GROUPS.forEach(g=>{out[g.key]={};g.positions.forEach((pos,i)=>{const key=depthKey(g.positions,pos,i);out[g.key][key]=Array.isArray(src[g.key]?.[key])?src[g.key][key].slice(0,3):['','',''];});});
-  return out;
+  if(src.version===2){
+    return {
+      version:2,
+      roster:Array.isArray(src.roster)?src.roster.map(p=>({id:p.id||depthId('p'),number:p.number||'',name:p.name||''})).filter(p=>p.name||p.number):[],
+      spots:Array.isArray(src.spots)?src.spots.map(sp=>({id:sp.id||depthId('s'),label:sp.label||'',players:Array.isArray(sp.players)?sp.players.slice(0,3):['','','']})).filter(sp=>sp.label):[]
+    };
+  }
+  const nameMap=new Map();
+  const roster=[];
+  const getPlayerId=name=>{
+    const clean=String(name||'').trim();
+    if(!clean) return '';
+    const key=clean.toLowerCase();
+    if(nameMap.has(key)) return nameMap.get(key);
+    const id=depthId('p');
+    nameMap.set(key,id);
+    roster.push({id,number:'',name:clean});
+    return id;
+  };
+  const spots=[];
+  DEPTH_GROUPS.forEach(g=>g.positions.forEach((pos,i)=>{
+    const key=pos+(g.positions.slice(0,i).filter(x=>x===pos).length?String(g.positions.slice(0,i+1).filter(x=>x===pos).length):'');
+    const vals=Array.isArray(src[g.key]?.[key])?src[g.key][key]:[];
+    const players=vals.slice(0,3).map(getPlayerId);
+    if(players.some(Boolean)) spots.push({id:depthId('s'),label:key,players});
+  }));
+  return {version:2,roster,spots};
+}
+function depthRosterOptions(roster,selected){
+  let h='<option value="">— Empty —</option>';
+  roster.forEach(p=>{const label=((p.number?'#'+esc(p.number)+' ':'')+esc(p.name||'Unnamed')).trim();h+=`<option value="${esc(p.id)}" ${p.id===selected?'selected':''}>${label}</option>`;});
+  return h;
+}
+function readDepthRosterFromDom(){
+  return Array.from(document.querySelectorAll('#depthRosterList .depth-roster-row')).map(row=>({
+    id:row.dataset.id||depthId('p'),
+    number:(row.querySelector('[data-depth-number]')?.value||'').trim(),
+    name:(row.querySelector('[data-depth-name]')?.value||'').trim()
+  })).filter(p=>p.name||p.number);
+}
+function refreshDepthSpotSelects(){
+  const roster=readDepthRosterFromDom();
+  document.querySelectorAll('#depthSpotsList .depth-spot-row').forEach(row=>{
+    row.querySelectorAll('select').forEach(sel=>{const val=sel.value; sel.innerHTML=depthRosterOptions(roster,val); if(roster.some(p=>p.id===val)) sel.value=val;});
+  });
+}
+function addDepthRosterRow(player={}){
+  const list=document.getElementById('depthRosterList');
+  if(!list) return;
+  const id=player.id||depthId('p');
+  const row=document.createElement('div');
+  row.className='depth-roster-row';
+  row.dataset.id=id;
+  row.innerHTML=`<input data-depth-number placeholder="#" value="${esc(player.number||'')}" oninput="refreshDepthSpotSelects()"><input data-depth-name placeholder="Player name" value="${esc(player.name||'')}" oninput="refreshDepthSpotSelects()"><button class="depth-del" type="button" onclick="this.closest('.depth-roster-row').remove();refreshDepthSpotSelects()">×</button>`;
+  list.appendChild(row);
+  refreshDepthSpotSelects();
+}
+function addDepthSpotRow(label='',players=[]){
+  const list=document.getElementById('depthSpotsList');
+  if(!list) return;
+  const roster=readDepthRosterFromDom();
+  const row=document.createElement('div');
+  row.className='depth-spot-row';
+  row.dataset.id=depthId('s');
+  row.innerHTML=`<input data-depth-label placeholder="Spot" value="${esc(label||'')}"><div class="depth-slot-grid"><select>${depthRosterOptions(roster,players[0]||'')}</select><select>${depthRosterOptions(roster,players[1]||'')}</select><select>${depthRosterOptions(roster,players[2]||'')}</select></div><button class="depth-del" type="button" onclick="this.closest('.depth-spot-row').remove()">×</button>`;
+  list.appendChild(row);
 }
 window.openDepthChart=function(){
   if(coachToolBlocked()) return;
   document.getElementById('depthChartSub').textContent=currentPlaybook.name+' · Pro coaches only';
   const data=cleanDepthChart();
-  let h='<div class="coach-tool-grid">';
-  DEPTH_GROUPS.forEach(g=>{h+=`<div class="coach-tool-card"><div class="coach-tool-top"><div class="coach-tool-title">${g.title}</div><span class="account-pill pro">PRO</span></div><div class="coach-tool-sub">Starter, backup, and third string. Duplicate position rows are kept for real lineups.</div>`;g.positions.forEach((pos,i)=>{const key=depthKey(g.positions,pos,i);const vals=data[g.key][key]||['','',''];h+=`<div class="depth-row" data-group="${g.key}" data-pos="${key}"><div class="depth-pos">${pos}</div><div class="depth-inputs"><input placeholder="Starter" value="${esc(vals[0]||'')}"><input placeholder="Backup" value="${esc(vals[1]||'')}"><input placeholder="Third" value="${esc(vals[2]||'')}"></div></div>`;});h+='</div>';});
-  document.getElementById('depthChartBody').innerHTML=h+'</div>';
+  document.getElementById('depthChartBody').innerHTML=`<div class="coach-tool-grid">
+    <div class="coach-tool-card">
+      <div class="coach-tool-top"><div class="coach-tool-title">Roster</div><span class="account-pill pro">PRO</span></div>
+      <div class="coach-tool-sub">Add players once here. Depth chart spots pull from this roster, so phones are faster and cleaner.</div>
+      <div class="depth-roster-list" id="depthRosterList"></div>
+      <div class="depth-mini-actions"><button class="depth-mini-btn" type="button" onclick="addDepthRosterRow()">+ Player</button></div>
+    </div>
+    <div class="coach-tool-card">
+      <div class="coach-tool-top"><div class="coach-tool-title">Spots</div><span class="account-pill pro">CUSTOM</span></div>
+      <div class="coach-tool-sub">Create only the positions or roles you want. Examples: QB, X, Slot, Edge, Nickel, KOR.</div>
+      <div class="depth-spots-list" id="depthSpotsList"></div>
+      <div class="depth-mini-actions"><button class="depth-mini-btn" type="button" onclick="addDepthSpotRow()">+ Spot</button><button class="depth-mini-btn" type="button" onclick="['QB','RB','WR','OL','DL','LB','DB'].forEach(p=>addDepthSpotRow(p))">+ Quick Core</button></div>
+    </div>
+  </div>`;
+  data.roster.forEach(addDepthRosterRow);
+  if(!data.roster.length) addDepthRosterRow();
+  data.spots.forEach(sp=>addDepthSpotRow(sp.label,sp.players));
+  if(!data.spots.length) document.getElementById('depthSpotsList').innerHTML='<div class="depth-empty-note">No fixed spots are forced anymore. Tap <b>+ Spot</b> and build the chart your way.</div>';
   navTo('depthChartScreen');
 };
+window.addDepthRosterRow=addDepthRosterRow;
+window.addDepthSpotRow=function(label,players){
+  const empty=document.querySelector('#depthSpotsList .depth-empty-note');
+  if(empty) empty.remove();
+  addDepthSpotRow(label,players);
+};
+window.refreshDepthSpotSelects=refreshDepthSpotSelects;
 window.saveDepthChart=async function(){
   if(coachToolBlocked()) return;
-  const data={};
-  document.querySelectorAll('#depthChartBody .depth-row').forEach(row=>{const g=row.dataset.group,p=row.dataset.pos; if(!data[g]) data[g]={}; data[g][p]=Array.from(row.querySelectorAll('input')).map(i=>i.value.trim()).slice(0,3);});
+  const roster=readDepthRosterFromDom();
+  const validIds=new Set(roster.map(p=>p.id));
+  const spots=Array.from(document.querySelectorAll('#depthSpotsList .depth-spot-row')).map(row=>({
+    id:row.dataset.id||depthId('s'),
+    label:(row.querySelector('[data-depth-label]')?.value||'').trim(),
+    players:Array.from(row.querySelectorAll('select')).map(sel=>validIds.has(sel.value)?sel.value:'').slice(0,3)
+  })).filter(sp=>sp.label);
+  const data={version:2,roster,spots};
   currentPlaybook.depthChart=data;
   await updateDoc(doc(db,'playbooks',currentPlaybook.id),{depthChart:data,updatedAt:Date.now()});
   const i=playbooks.findIndex(p=>p.id===currentPlaybook.id); if(i!==-1) playbooks[i]=currentPlaybook;
