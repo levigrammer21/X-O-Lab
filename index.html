@@ -1560,11 +1560,23 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div style="height:8px" id="pbEditCodeSpacer"></div>
   <button class="btn btn-g" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none">✏️ Edit View Code</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="printPlaybook()">🖨 Print Full Playbook</button>
+  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openSheet('printLayoutSheet')">🖨 Print Full Playbook</button>
   <div style="height:8px" id="pbAssignSpacer"></div>
   <button class="btn btn-g" onclick="openAssignScreen()" id="pbAssignBtn" style="display:none">👤 Assign to Coach</button>
   <div style="height:8px" id="pbAdminSpacer"></div>
   <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
+</div>
+
+<div class="overlay" id="printLayoutOverlay" onclick="closeSheet('printLayoutSheet')"></div>
+<div class="sheet" id="printLayoutSheet">
+  <div class="handle"></div>
+  <h2>Print Layout</h2>
+  <p class="sub">Choose how plays are arranged on Letter-size pages.</p>
+  <button class="btn btn-p" onclick="printPlaybook('two')">2 Plays per Page</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="printPlaybook('compact')">Compact Grid</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="closeSheet('printLayoutSheet')">Cancel</button>
 </div>
 
 <div class="overlay" id="deleteOverlay" onclick="closeSheet('deleteSheet')"></div>
@@ -5042,9 +5054,10 @@ window.printPlay=function(){
   w.document.close();
 };
 
-window.printPlaybook=async function(){
+window.printPlaybook=async function(layout='two'){
   if(!currentPlaybook){toast('No playbook open','err');return;}
   closeSheet('pbMenuSheet');
+  closeSheet('printLayoutSheet');
   toast('Building playbook…','');
   const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
   const groups={off:[],def:[],st:[]};
@@ -5075,7 +5088,22 @@ window.printPlaybook=async function(){
     .play-item img{width:100%;border:1px solid #ddd;border-radius:6px;display:block}
     .template img{width:100%;max-width:600px;border:1px solid #ddd;border-radius:6px;display:block;margin-bottom:12px}
     .empty-note{color:#888;font-style:italic;font-size:13px;padding:8px 0}
-    @media print { .section{page-break-after:always} }
+    .two-page{padding:.18in .25in;height:10.25in;page-break-after:always;overflow:hidden}
+    .two-page:last-child{page-break-after:auto}
+    .two-page-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid #f0b429;padding-bottom:5px;margin-bottom:8px}
+    .two-page-head h2{font-size:20px;letter-spacing:1.5px;margin:0}
+    .two-page-head .meta{font-size:11px;color:#666;font-weight:700}
+    .two-play{height:4.72in;display:flex;flex-direction:column;padding:7px 0 9px;page-break-inside:avoid;overflow:hidden}
+    .two-play + .two-play{border-top:1px solid #bbb;padding-top:10px}
+    .two-play .play-title{font-size:17px;font-weight:800;margin:0 0 3px}
+    .two-play .play-desc{font-size:11px;line-height:1.25;color:#555;white-space:pre-wrap;margin:0 0 5px;max-height:.58in;overflow:hidden}
+    .two-play img{display:block;width:100%;min-height:0;flex:1;object-fit:contain;border:1px solid #ccc;border-radius:5px;background:#070809}
+    .formation-page{padding:.3in;page-break-after:always}
+    .formation-page h2{font-size:28px;margin:0 0 5px;border-bottom:3px solid #f0b429;padding-bottom:6px}
+    .formation-page h3{font-size:20px;margin:12px 0 6px}
+    .formation-page img{width:100%;max-height:7.7in;object-fit:contain;border:1px solid #ddd;border-radius:6px;background:#070809}
+    @page{size:Letter portrait;margin:.35in}
+    @media print { .section{page-break-after:always} body{-webkit-print-color-adjust:exact;print-color-adjust:exact} }
   
 
 
@@ -5244,42 +5272,80 @@ window.printPlaybook=async function(){
   for(const groupKey of ['off','def','st']){
     const items=groups[groupKey];
     if(!items.length)continue;
-    html+=`<div class="section"><h2>${groupLabels[groupKey]}</h2>`;
-    for(const {form,plays:formPlays,images:formImages} of items){
-      const formImg=renderFormationToImage(form,900,400);
-      html+=`<div class="form-block">
-        <div class="form-head"><h3>${esc(form.name)}</h3><span>${formPlays.length} play${formPlays.length===1?'':'s'}</span></div>
-        ${form.notes?`<div class="form-notes">${esc(form.notes)}</div>`:''}
-        <div class="template"><img src="${formImg}"></div>
-      </div>`;
-      // Uploaded formation images
-      if(formImages && formImages.length){
-        html+=`<div class="play-grid">`;
-        for(const im of formImages){
-          html+=`<div class="play-item"><div class="name">${esc(im.name)}${im.isPlay?' · 🏈':''}</div><img src="${im.url}" crossorigin="anonymous"></div>`;
+
+    if(layout==='compact'){
+      html+=`<div class="section"><h2>${groupLabels[groupKey]}</h2>`;
+      for(const {form,plays:formPlays,images:formImages} of items){
+        const formImg=renderFormationToImage(form,900,400);
+        html+=`<div class="form-block">
+          <div class="form-head"><h3>${esc(form.name)}</h3><span>${formPlays.length} play${formPlays.length===1?'':'s'}</span></div>
+          ${form.notes?`<div class="form-notes">${esc(form.notes)}</div>`:''}
+          <div class="template"><img src="${formImg}"></div>
+        </div>`;
+        if(formImages && formImages.length){
+          html+=`<div class="play-grid">`;
+          for(const im of formImages){
+            html+=`<div class="play-item"><div class="name">${esc(im.name)}${im.isPlay?' · 🏈':''}</div><img src="${im.url}" crossorigin="anonymous"></div>`;
+          }
+          html+=`</div>`;
         }
-        html+=`</div>`;
+        if(formPlays.length){
+          html+=`<div class="play-grid">`;
+          for(const p of formPlays){
+            if(p.kind==='image'){
+              html+=`<div class="play-item"><div class="name">${esc(p.name)}${p.isPlay?' · 🏈':''}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${p.url}" crossorigin="anonymous"></div>`;
+              continue;
+            }
+            if(!p.data || !p.data.players){
+              html+=`<div class="play-item"><div class="name">${esc(p.name)}</div><div class="empty-note">No diagram</div></div>`;
+              continue;
+            }
+            const img=renderPlayToImage(p,700,420);
+            html+=`<div class="play-item"><div class="name">${esc(p.name)}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${img}"></div>`;
+          }
+          html+=`</div>`;
+        } else if(!(formImages && formImages.length)){
+          html+=`<div class="empty-note">No plays yet for this formation.</div>`;
+        }
       }
-      if(formPlays.length){
-        html+=`<div class="play-grid">`;
-        for(const p of formPlays){
-          if(p.kind==='image'){
-            html+=`<div class="play-item"><div class="name">${esc(p.name)}${p.isPlay?' · 🏈':''}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${p.url}" crossorigin="anonymous"></div>`;
-            continue;
-          }
-          if(!p.data || !p.data.players){
-            html+=`<div class="play-item"><div class="name">${esc(p.name)}</div><div class="empty-note">No diagram</div></div>`;
-            continue;
-          }
-          const img=renderPlayToImage(p,700,420);
-          html+=`<div class="play-item"><div class="name">${esc(p.name)}</div>${p.description?`<div style="font-size:12px;color:#555;margin-bottom:4px;white-space:pre-wrap">${esc(p.description)}</div>`:''}<img src="${img}"></div>`;
+      html+=`</div>`;
+      continue;
+    }
+
+    for(const {form,plays:formPlays,images:formImages} of items){
+      const formImg=renderFormationToImage(form,1200,720);
+      html+=`<div class="formation-page">
+        <h2>${groupLabels[groupKey]}</h2>
+        <h3>${esc(form.name)} · ${formPlays.length} play${formPlays.length===1?'':'s'}</h3>
+        ${form.notes?`<div class="form-notes">${esc(form.notes)}</div>`:''}
+        <img src="${formImg}">
+      </div>`;
+
+      const printable=[];
+      for(const im of (formImages||[])){
+        printable.push({name:im.name+(im.isPlay?' · 🏈':''),description:'',url:im.url,external:true});
+      }
+      for(const p of formPlays){
+        let url='';
+        if(p.kind==='image') url=p.url||'';
+        else if(p.data && p.data.players) url=renderPlayToImage(p,1200,720);
+        printable.push({name:p.name||'Play',description:p.description||'',url,external:p.kind==='image'});
+      }
+
+      if(!printable.length){
+        html+=`<div class="two-page"><div class="two-page-head"><h2>${groupLabels[groupKey]} · ${esc(form.name)}</h2><div class="meta">No plays</div></div><div class="empty-note">No plays yet for this formation.</div></div>`;
+        continue;
+      }
+
+      for(let i=0;i<printable.length;i+=2){
+        const pageItems=printable.slice(i,i+2);
+        html+=`<div class="two-page"><div class="two-page-head"><h2>${groupLabels[groupKey]} · ${esc(form.name)}</h2><div class="meta">${i+1}–${Math.min(i+2,printable.length)} of ${printable.length}</div></div>`;
+        for(const item of pageItems){
+          html+=`<div class="two-play"><div class="play-title">${esc(item.name)}</div>${item.description?`<div class="play-desc">${esc(item.description)}</div>`:''}${item.url?`<img src="${item.url}"${item.external?' crossorigin="anonymous"':''}>`:`<div class="empty-note">No diagram</div>`}</div>`;
         }
         html+=`</div>`;
-      } else if(!(formImages && formImages.length)){
-        html+=`<div class="empty-note">No plays yet for this formation.</div>`;
       }
     }
-    html+=`</div>`;
   }
 
   if(!groups.off.length && !groups.def.length && !groups.st.length){
