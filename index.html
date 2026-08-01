@@ -811,6 +811,30 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 }
 
 
+/* VIEW-ONLY MOBILE QUICK ACTIONS
+   Kids/parents viewing a playbook get direct Play Test and Leaderboard
+   buttons in the formations header instead of having to open the ⋯ menu. */
+@media (max-width:560px){
+  #formationsScreen.viewer-mobile-actions .hdr{
+    grid-template-columns:40px minmax(0,1fr) 40px;
+    grid-template-areas:
+      "back title menu"
+      "test test leaderboard";
+  }
+  #formationsScreen.viewer-mobile-actions #playTestHdrBtn,
+  #formationsScreen.viewer-mobile-actions #leaderboardHdrBtn{
+    display:flex!important;
+    height:40px!important;
+    justify-content:center;
+    padding:0 12px!important;
+    font-size:12px!important;
+  }
+  #formationsScreen.viewer-mobile-actions #playTestHdrBtn{grid-area:test;}
+  #formationsScreen.viewer-mobile-actions #leaderboardHdrBtn{grid-area:leaderboard;min-width:112px;}
+  #formationsScreen.viewer-mobile-actions #addFormBtn{display:none!important;}
+}
+
+
 /* SURGICAL iPHONE 16e / SAFARI VIEWPORT GUARD
    iOS Safari can mis-report the visible viewport when the bottom address bar,
    call bar, split view, or zoom state changes. These rules use JS-provided
@@ -1622,7 +1646,9 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="handle"></div>
   <h2>Print Layout</h2>
   <p class="sub">Choose how plays are arranged on Letter-size pages.</p>
-  <button class="btn btn-p" onclick="printPlaybook('two')">2 Plays per Page</button>
+  <button class="btn btn-p" onclick="printPlaybook('one')">1 Play per Page</button>
+  <div style="height:8px"></div>
+  <button class="btn btn-g" onclick="printPlaybook('two')">2 Plays per Page</button>
   <div style="height:8px"></div>
   <button class="btn btn-g" onclick="printPlaybook('compact')">Compact Grid</button>
   <div style="height:8px"></div>
@@ -1778,6 +1804,8 @@ function lockViewOnlyEditorInputs(){
 function applyViewOnlyUiLocks(){
   lockViewOnlyEditorInputs();
   const ro = isReadOnlyMode();
+  const formationsScreen=document.getElementById('formationsScreen');
+  if(formationsScreen) formationsScreen.classList.toggle('viewer-mobile-actions', ro);
   ['addFormBtn','addPlayBtn','editFormBtn','playUploadBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display = ro ? 'none' : '';
@@ -5149,6 +5177,10 @@ window.printPlaybook=async function(layout='two'){
     .two-play .play-title{font-size:17px;font-weight:800;margin:0 0 3px}
     .two-play .play-desc{font-size:11px;line-height:1.25;color:#555;white-space:pre-wrap;margin:0 0 5px;max-height:.58in;overflow:hidden}
     .two-play img{display:block;width:100%;min-height:0;flex:1;object-fit:contain;border:1px solid #ccc;border-radius:5px;background:#070809}
+    .one-play-grid{display:block;height:9.55in}
+    .one-play{height:100%;padding:8px 10px 10px}
+    .one-play .play-title{font-size:22px;margin-bottom:5px}
+    .one-play .play-desc{font-size:13px;line-height:1.35;max-height:.85in;margin-bottom:7px}
     .formation-page{padding:.3in;page-break-after:always}
     .formation-page h2{font-size:28px;margin:0 0 5px;border-bottom:3px solid #f0b429;padding-bottom:6px}
     .formation-page h3{font-size:20px;margin:12px 0 6px}
@@ -5388,11 +5420,16 @@ window.printPlaybook=async function(layout='two'){
         continue;
       }
 
-      for(let i=0;i<printable.length;i+=2){
-        const pageItems=printable.slice(i,i+2);
-        html+=`<div class="two-page"><div class="two-page-head"><h2>${groupLabels[groupKey]} · ${esc(form.name)}</h2><div class="meta">${i+1}–${Math.min(i+2,printable.length)} of ${printable.length}</div></div><div class="two-play-grid">`;
+      const playsPerPage = layout==='one' ? 1 : 2;
+      for(let i=0;i<printable.length;i+=playsPerPage){
+        const pageItems=printable.slice(i,i+playsPerPage);
+        const end=Math.min(i+playsPerPage,printable.length);
+        const meta=playsPerPage===1 ? `${i+1} of ${printable.length}` : `${i+1}–${end} of ${printable.length}`;
+        const gridClass=playsPerPage===1?'one-play-grid':'two-play-grid';
+        const playClass=playsPerPage===1?'two-play one-play':'two-play';
+        html+=`<div class="two-page"><div class="two-page-head"><h2>${groupLabels[groupKey]} · ${esc(form.name)}</h2><div class="meta">${meta}</div></div><div class="${gridClass}">`;
         for(const item of pageItems){
-          html+=`<div class="two-play"><div class="play-title">${esc(item.name)}</div>${item.description?`<div class="play-desc">${esc(item.description)}</div>`:''}${item.url?`<img src="${item.url}"${item.external?' crossorigin="anonymous"':''}>`:`<div class="empty-note">No diagram</div>`}</div>`;
+          html+=`<div class="${playClass}"><div class="play-title">${esc(item.name)}</div>${item.description?`<div class="play-desc">${esc(item.description)}</div>`:''}${item.url?`<img src="${item.url}"${item.external?' crossorigin="anonymous"':''}>`:`<div class="empty-note">No diagram</div>`}</div>`;
         }
         html+=`</div></div>`;
       }
