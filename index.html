@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>XO Playbook v1.1.7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Build, teach, share, and test your football playbook from any phone, tablet, or computer.">
+<meta name="theme-color" content="#0b0c0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="XO Playbook — Football Playbook for Coaches">
+<meta property="og:description" content="Build formations, draw plays, create call sheets, and share your playbook with players and parents.">
+<meta property="og:image" content="https://xoplaybook.com/xo-playbook-icon-1024.png">
+<meta property="og:type" content="website">
+<title>XO Playbook — Football Playbook for Coaches</title>
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -13,17 +21,19 @@
   --bg: #0b0c0f; --card: #13151a; --card2: #1c1f27; --border: #252830;
   --accent: #f0b429; --adim: rgba(240,180,41,.13);
   --red: #f04141; --blue: #4182f0; --green: #41c97a;
-  --text: #eceef2; --muted: #5a5f6e; --radius: 12px;
+  --text: #eceef2; --muted: #8b91a1; --radius: 12px;
   --safe: env(safe-area-inset-bottom,0px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;touch-action:none}
+html,body{height:100%;overflow:hidden;touch-action:manipulation}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(240,180,41,.62);outline-offset:2px}
 
 /* SCREENS */
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .28s}
-.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
-.screen.back{transform:translateX(-100%);opacity:0;pointer-events:none}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;visibility:hidden}
+.screen.back{transform:translateX(-100%);opacity:0;pointer-events:none;visibility:hidden}
 
 /* HEADER */
 .hdr{display:flex;align-items:center;padding:14px 14px 12px;gap:10px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
@@ -91,6 +101,25 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
 .handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
 .sheet h2{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:3px}
 .sheet .sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+
+/* GROUPED COACH TOOLS */
+.tool-menu-group{margin-top:16px}
+.tool-menu-group:first-of-type{margin-top:4px}
+.tool-menu-label{font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:0 2px 8px}
+.tool-menu-list{display:flex;flex-direction:column;gap:7px}
+.tool-menu-row{width:100%;min-height:58px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);text-align:left;cursor:pointer}
+.tool-menu-row:active{border-color:var(--accent);background:var(--adim)}
+.tool-menu-row.primary{border-color:rgba(240,180,41,.4);background:linear-gradient(135deg,rgba(240,180,41,.17),rgba(28,31,39,.98))}
+.tool-menu-row.danger{border-color:rgba(240,65,65,.25);background:rgba(240,65,65,.08);color:var(--red)}
+.tool-menu-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.055);font-size:20px;flex-shrink:0}
+.tool-menu-copy{flex:1;min-width:0}
+.tool-menu-title{font-size:14px;font-weight:900;line-height:1.15}
+.tool-menu-desc{font-size:11px;color:var(--muted);line-height:1.3;margin-top:3px}
+.tool-menu-arrow{color:var(--muted);font-size:18px;flex-shrink:0}
+.share-code-card{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(135deg,rgba(240,180,41,.14),rgba(28,31,39,.98));border:1.5px solid rgba(240,180,41,.32);border-radius:15px;padding:14px;margin-bottom:14px}
+.share-code-label{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.share-code-value{font-family:monospace;font-size:24px;font-weight:900;letter-spacing:3px;color:var(--accent);margin-top:3px}
+.share-link-preview{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:14px;padding:10px 12px;background:var(--card2);border-radius:10px;border:1px solid var(--border)}
 
 /* FORM */
 .field{margin-bottom:14px}
@@ -201,13 +230,17 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .landing-logo{font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:7px;color:var(--accent);line-height:1;text-align:center}
 .landing-img{display:block;width:140px;height:140px;border-radius:28px;margin:0 auto 10px;object-fit:cover;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 .landing-tag{font-size:12px;color:var(--muted);letter-spacing:2px;text-align:center;margin-bottom:38px}
-.landing-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:22px;cursor:pointer;margin-bottom:12px;transition:border-color .12s}
+.landing-card{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:22px;cursor:pointer;margin-bottom:12px;transition:border-color .12s;text-align:left;color:var(--text);font-family:'DM Sans',sans-serif}
 .landing-card:active{border-color:var(--accent)}
 .landing-card-row{display:flex;align-items:center;gap:14px}
 .landing-card-ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
 .landing-card-body{flex:1}
 .landing-card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;line-height:1;margin-bottom:4px}
 .landing-card-sub{font-size:12px;color:var(--muted);line-height:1.4}
+.landing-card.demo{border-color:rgba(240,180,41,.36);background:linear-gradient(135deg,rgba(240,180,41,.16),rgba(18,20,25,.98));box-shadow:0 14px 38px rgba(240,180,41,.08)}
+.landing-card.demo .landing-card-title{color:var(--accent)}
+.landing-trust{text-align:center;color:var(--muted);font-size:11px;line-height:1.5;margin:12px 0 2px}
+.auth-link{width:100%;border:0;background:transparent;color:var(--accent);font-size:12px;font-weight:800;text-align:center;padding:10px;cursor:pointer}
 
 /* PASSWORD SCREEN */
 .pw-screen{align-items:center;justify-content:center;padding:32px}
@@ -244,6 +277,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .quiz-opt.correct{background:rgba(65,201,122,.18);border-color:var(--green);color:var(--green)}
 .quiz-opt.wrong{background:rgba(240,65,65,.18);border-color:var(--red);color:var(--red)}
 .quiz-opt.disabled{pointer-events:none;opacity:.65}
+.quiz-opt-name{display:block;font-weight:900}
+.quiz-opt-form{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-top:3px}
 .quiz-info{padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:stretch;flex-shrink:0}
 .quiz-note-card{flex:1;min-width:0;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px}
 .quiz-note-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
@@ -353,6 +388,8 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 /* LOGIN LANDING POLISH */
 #landingScreen{
   justify-content:flex-start;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
   padding:clamp(78px, 10vh, 118px) 18px 28px;
   background:
     radial-gradient(circle at 50% 18%, rgba(240,180,41,.16), transparent 28%),
@@ -559,24 +596,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
 .header-action-glow{
   box-shadow:0 0 0 1px rgba(240,180,41,.25), 0 0 18px rgba(240,180,41,.18);
 }
-#pbMenuBtn{
-  position:relative;
-}
-#pbMenuBtn.menu-attn{
-  border-color:rgba(240,180,41,.55);
-  box-shadow:0 0 0 1px rgba(240,180,41,.18), 0 0 16px rgba(240,180,41,.22);
-}
-#pbMenuBtn.menu-attn:after{
-  content:'';
-  position:absolute;
-  top:7px;
-  right:7px;
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:var(--accent);
-  box-shadow:0 0 10px rgba(240,180,41,.8);
-}
+#pbMenuBtn{position:relative;border-color:rgba(240,180,41,.28)}
 @media (max-width:700px){
   #formationsScreen .hdr{
     gap:7px;
@@ -596,7 +616,7 @@ canvas{display:block;touch-action:none;width:100%;height:100%;flex:1}
     font-size:18px;
   }
   #playTestHdrBtn,
-  #leaderboardHdrBtn{
+  #shareHdrBtn{
     padding:0 8px!important;
     font-size:11px!important;
   }
@@ -755,7 +775,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 @media (max-width:560px){
   #formationsScreen .hdr{
     display:grid;
-    grid-template-columns:40px minmax(0,1fr) 40px auto;
+    grid-template-columns:40px minmax(0,1fr) 62px auto;
     grid-template-areas:"back title menu add";
     align-items:center;
     gap:7px;
@@ -785,12 +805,12 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     text-overflow:ellipsis;
   }
   #formationsScreen #playTestHdrBtn,
-  #formationsScreen #leaderboardHdrBtn{
+  #formationsScreen #shareHdrBtn{
     display:none!important;
   }
   #formationsScreen #pbMenuBtn{
     grid-area:menu;
-    width:40px!important;
+    width:62px!important;
     height:40px;
     padding:0!important;
   }
@@ -1022,14 +1042,25 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- LANDING (account, guest, utilities) -->
 <div class="screen hidden landing" id="landingScreen">
   <div class="auth-utility">
-    <button class="mini-btn" onclick="openPatchNotes()">Patch Notes</button>
-    <button class="mini-btn" onclick="clearCacheAndReload()">Refresh Cache</button>
+    <button class="mini-btn" id="installAppBtn" onclick="installApp()" style="display:none">Install App</button>
+    <button class="mini-btn pro" onclick="openProInfo()">Pro Coach</button>
+    <button class="mini-btn" onclick="openPatchNotes()">What's New</button>
   </div>
   <div class="landing-box">
     <img src="icon-512.png" alt="XO Playbook" class="landing-img">
-    <div class="landing-tag" style="display:none"></div>
-    <div class="app-version-badge" id="appVersionBadge">v1.1.8 · Coach Pro Tools</div>
-    <div class="landing-card" onclick="goLogin()">
+    <div class="landing-tag">BUILD · TEACH · GAME DAY</div>
+    <div class="app-version-badge" id="appVersionBadge">v1.2.0 · Friday Night Ready</div>
+    <button class="landing-card demo" onclick="openCoachDemo()">
+      <div class="landing-card-row">
+        <div class="landing-card-ico" style="background:rgba(240,180,41,.18);color:var(--accent)">🏆</div>
+        <div class="landing-card-body">
+          <div class="landing-card-title">Explore Coach Demo</div>
+          <div class="landing-card-sub">Open a ready-made varsity playbook. No account needed.</div>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+    </button>
+    <button class="landing-card" onclick="goLogin()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(240,180,41,.15);color:var(--accent)">🔐</div>
         <div class="landing-card-body">
@@ -1038,18 +1069,18 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
         </div>
         <span class="chevron">›</span>
       </div>
-    </div>
-    <div class="landing-card" onclick="goRegister()">
+    </button>
+    <button class="landing-card" onclick="goRegister()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(65,201,122,.15);color:var(--green)">➕</div>
         <div class="landing-card-body">
-          <div class="landing-card-title">Register</div>
-          <div class="landing-card-sub">Create a Basic Coach account.</div>
+          <div class="landing-card-title">Create Free Coach Account</div>
+          <div class="landing-card-sub">Build one playbook with up to 15 plays.</div>
         </div>
         <span class="chevron">›</span>
       </div>
-    </div>
-    <div class="landing-card" onclick="goGuest()">
+    </button>
+    <button class="landing-card" onclick="goGuest()">
       <div class="landing-card-row">
         <div class="landing-card-ico" style="background:rgba(65,130,240,.15);color:var(--blue)">🔑</div>
         <div class="landing-card-body">
@@ -1058,7 +1089,8 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
         </div>
         <span class="chevron">›</span>
       </div>
-    </div>
+    </button>
+    <div class="landing-trust">No player account required · Share by private team code</div>
     <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:20px;letter-spacing:.5px" id="connTag">Loading…</div>
   </div>
 </div>
@@ -1075,10 +1107,11 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     </div>
     <h2>Login</h2>
     <p>Sign in with your email/password account or continue with Google.</p>
-    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="coach@example.com" autocomplete="email"></div>
-    <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="loginErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="loginWithEmail()">Login</button>
+    <button class="auth-link" onclick="resetCoachPassword()">Forgot password?</button>
     <div style="height:8px"></div>
     <div class="auth-divider social">Fast sign in</div>
     <div class="social-login-stack">
@@ -1102,10 +1135,10 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     </div>
     <h2>Register</h2>
     <p>Create your XO Playbook account. New accounts start as Basic Coach.</p>
-    <div class="field"><label>Name</label><input type="text" id="regName" placeholder="Coach name" autocomplete="name"></div>
-    <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="coach@example.com" autocomplete="email"></div>
-    <div class="field"><label>Confirm Email</label><input type="email" id="regEmail2" placeholder="Retype email" autocomplete="email"></div>
-    <div class="field"><label>Password</label><input type="password" id="regPassword" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
+    <div class="field"><label for="regName">Name</label><input type="text" id="regName" placeholder="Coach name" autocomplete="name"></div>
+    <div class="field"><label for="regEmail">Email</label><input type="email" id="regEmail" placeholder="coach@example.com" autocomplete="email"></div>
+    <div class="field"><label for="regEmail2">Confirm Email</label><input type="email" id="regEmail2" placeholder="Retype email" autocomplete="email"></div>
+    <div class="field"><label for="regPassword">Password</label><input type="password" id="regPassword" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
     <div id="regErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
     <button class="btn btn-p" onclick="registerWithEmail()">Create Basic Account</button>
     <div style="height:8px"></div>
@@ -1150,16 +1183,24 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <div class="screen hidden pw-screen" id="patchNotesScreen">
   <div class="pw-box">
     <h2>Patch Notes</h2>
-    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.1.7</b></p>
+    <p>Current Version: <b id="patchCurrentVersion" style="color:var(--accent)">v1.2.0</b></p>
 
 
     <div class="patch-version-card current">
       <div class="patch-current-label">Current Build</div>
+      <div class="patch-version-title"><span>v1.2.0</span> — Friday Night Ready</div>
+      <ul class="patch-list">
+        <li>Added a no-account varsity coach demo for first-time visitors.</li>
+        <li>Rebuilt playbook tools into clear Practice, Game Day, Share, and Manage groups.</li>
+        <li>Added native team sharing, direct-link copying, password reset, and install support.</li>
+        <li>Improved accessibility, safer deletion, quiz clarity, and mobile navigation.</li>
+      </ul>
+    </div>
+    <div class="patch-version-card">
       <div class="patch-version-title"><span>v1.1.7</span> — Simple Formation Setup</div>
       <ul class="patch-list">
-        <li>New formations now start with a full, draggable set of players instead of an empty field.</li>
-        <li>Added a Set / Line name for labels like Right, Left, Trips, Tight, or Slot.</li>
-        <li>Formation setup wording now focuses on one simple action: drag players and they snap to the grid.</li>
+        <li>New formations start with a full, draggable set of players instead of an empty field.</li>
+        <li>Added Set / Line names and grid-snapped formation placement.</li>
       </ul>
     </div>
     <div class="patch-version-card">
@@ -1236,22 +1277,20 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
       </ul>
     </div>
 
-    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.1.7 · Simple Formation Setup</div>
+    <div class="patch-build-foot" id="patchBuildFoot">XO Playbook v1.2.0 · Friday Night Ready</div>
     <div style="height:12px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','patchNotesScreen')">Back</button>
+    <div style="height:8px"></div>
+    <button class="auth-link" onclick="clearCacheAndReload()">Having trouble? Repair app cache</button>
   </div>
 </div>
 
 <!-- ADMIN PASSWORD -->
 <div class="screen hidden pw-screen" id="adminPwScreen">
   <div class="pw-box">
-    <h2>Legacy Coach Login</h2>
-    <p>Temporary access for existing legacy coach passwords. Admin access now uses Google login.</p>
-    <div class="field"><label>Password</label><input type="password" id="adminPwInput" placeholder="••••••••" autocomplete="off"></div>
-    <div id="adminPwErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Legacy coach password not found</div>
-    <button class="btn btn-p" onclick="goBack('landingScreen','adminPwScreen')">Back to Login</button>
-    <div style="height:10px"></div>
-    <button class="btn btn-g" onclick="clearCacheAndReload()">Clear Cache & Reload</button>
+    <h2>Legacy Login Retired</h2>
+    <p>For better team security, coach access now uses email, Google, or Apple sign-in.</p>
+    <button class="btn btn-p" onclick="goBack('loginScreen','adminPwScreen')">Use Secure Login</button>
     <div style="height:10px"></div>
     <button class="btn btn-g" onclick="goBack('landingScreen','adminPwScreen')">Back</button>
   </div>
@@ -1262,7 +1301,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="pw-box">
     <h2>Open Playbook</h2>
     <p>Enter the view code your coach gave you.</p>
-    <div class="field"><label>View Code</label><input type="text" id="viewCodeInput" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
+    <div class="field"><label for="viewCodeInput">View Code</label><input type="text" id="viewCodeInput" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center"></div>
     <div id="viewCodeErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Code not found</div>
     <button class="btn btn-p" onclick="checkViewCode()">Open</button>
     <div style="height:10px"></div>
@@ -1273,7 +1312,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- PLAYBOOKS LIST (admin only) -->
 <div class="screen hidden" id="playbooksScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="logoutToLanding()">←</button>
+    <button class="hdr-back" onclick="logoutToLanding()" aria-label="Sign out and go back">←</button>
     <div class="hdr-title"><h1>PLAYBOOKS</h1><p id="pbConn">Coach view</p></div>
     <button class="hdr-btn ghost icon" onclick="openManageCoaches()" id="manageCoachesBtn" style="display:none">👥</button>
     <button class="hdr-btn ghost" onclick="openSheet('findPlaybookSheet')" id="findPlaybookBtn">Find Playbook</button>
@@ -1285,7 +1324,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- MANAGE COACHES (super admin only) -->
 <div class="screen hidden" id="coachesScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('playbooksScreen','coachesScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('playbooksScreen','coachesScreen')" aria-label="Back to playbooks">←</button>
     <div class="hdr-title"><h1>ADMIN</h1><p>Manage users, roles, and playbook ownership</p></div>
   </div>
   <div class="scroll" id="coachesList"></div>
@@ -1294,7 +1333,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- ASSIGN PLAYBOOK TO COACH (super admin only) -->
 <div class="screen hidden" id="assignScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('formationsScreen','assignScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('formationsScreen','assignScreen')" aria-label="Back to formations">←</button>
     <div class="hdr-title"><h1>ASSIGN COACH</h1><p id="assignPbName">Playbook</p></div>
   </div>
   <div class="scroll" id="assignList"></div>
@@ -1303,13 +1342,11 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- FORMATIONS -->
 <div class="screen hidden" id="formationsScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="backFromFormations()">←</button>
+    <button class="hdr-back" onclick="backFromFormations()" aria-label="Back">←</button>
     <div class="hdr-title"><h1 id="formTeamName">Playbook</h1><p id="formTeamSub">Formations</p></div>
     <button class="hdr-btn ghost header-action-glow" onclick="startQuiz()" id="playTestHdrBtn">Play Test</button>
-    <button class="hdr-btn ghost" onclick="openLeaderboard()" id="leaderboardHdrBtn">Leaderboard</button>
-    <button class="hdr-btn ghost" onclick="openDepthChart()" id="depthChartHdrBtn">Depth</button>
-    <button class="hdr-btn ghost" onclick="openCallSheet()" id="callSheetHdrBtn">Call Sheet</button>
-    <button class="hdr-btn ghost icon menu-attn" onclick="openPlaybookMenu()" id="pbMenuBtn" title="More options">⋯</button>
+    <button class="hdr-btn ghost" onclick="openShareSheet()" id="shareHdrBtn">Share</button>
+    <button class="hdr-btn ghost" onclick="openPlaybookMenu()" id="pbMenuBtn" aria-label="Open playbook tools">Tools</button>
     <button class="hdr-btn" id="addFormBtn" onclick="openSheet('newFormSheet')">+ Formation</button>
   </div>
   <div class="scroll" id="formationsList"></div>
@@ -1319,7 +1356,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- DEPTH CHART (Pro coaches only) -->
 <div class="screen hidden" id="depthChartScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('formationsScreen','depthChartScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('formationsScreen','depthChartScreen')" aria-label="Back to formations">←</button>
     <div class="hdr-title"><h1>DEPTH CHART</h1><p id="depthChartSub">Pro coach tool</p></div>
     <button class="hdr-btn" onclick="saveDepthChart()">Save</button>
   </div>
@@ -1329,7 +1366,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- PLAY CALL SHEET (Pro coaches only) -->
 <div class="screen hidden" id="callSheetScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('formationsScreen','callSheetScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('formationsScreen','callSheetScreen')" aria-label="Back to formations">←</button>
     <div class="hdr-title"><h1>CALL SHEET</h1><p id="callSheetSub">Situational calls from your plays</p></div>
     <button class="hdr-btn" onclick="saveCallSheet()">Save</button>
   </div>
@@ -1339,7 +1376,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- PLAYS -->
 <div class="screen hidden" id="playsScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('formationsScreen','playsScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('formationsScreen','playsScreen')" aria-label="Back to formations">←</button>
     <div class="hdr-title"><h1 id="playsFormName">Formation</h1><p id="playsFormSub">Plays</p></div>
     <button class="hdr-btn ghost" onclick="openLab()" id="labHdrBtn">Lab</button>
     <button class="hdr-btn ghost icon" onclick="openFormationEditor()" id="editFormBtn">✏️</button>
@@ -1354,7 +1391,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- LAB (session-only defensive looks against existing plays) -->
 <div class="screen hidden lab-screen" id="labScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="closeLab()">←</button>
+    <button class="hdr-back" onclick="closeLab()" aria-label="Close Lab">←</button>
     <div class="hdr-title"><h1>LAB</h1><p id="labSub">Test blocks vs defensive looks — does not save to playbook</p></div>
     <button class="hdr-btn ghost" onclick="labClearDefense()">Clear D</button>
     <button class="hdr-btn" onclick="labAddDefender()">+ Defender</button>
@@ -1380,7 +1417,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- FORMATION EDITOR (set up player template) -->
 <div class="screen hidden" id="formEditorScreen">
   <div class="editor-hdr">
-    <button class="e-back" onclick="goBack('playsScreen','formEditorScreen')">←</button>
+    <button class="e-back" onclick="backFromFormationEditor()" aria-label="Save and return to plays">←</button>
     <div style="flex:1;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;padding:0 8px" id="formEditorTitle">Formation Setup</div>
     <button class="e-save" onclick="saveFormationTemplate()">SAVE TEMPLATE</button>
   </div>
@@ -1402,16 +1439,16 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- PLAY EDITOR -->
 <div class="screen hidden" id="editorScreen">
   <div class="editor-hdr">
-    <button class="e-back" onclick="backFromPlayEditor()">←</button>
+    <button class="e-back" onclick="backFromPlayEditor()" aria-label="Save and return to plays">←</button>
     <div class="name-wrap"><input id="playNameInput" placeholder="Play name…" maxlength="40"><span class="play-counter" id="playCounter">—</span></div>
     <button class="e-save" onclick="savePlay()">SAVE</button>
-    <button class="e-back" onclick="printPlay()" style="margin-left:2px">🖨</button>
+    <button class="e-back" onclick="printPlay()" style="margin-left:2px" aria-label="Print play">🖨</button>
   </div>
   <div class="canvas-wrap" id="canvasWrap"><canvas id="playCanvas"></canvas><div class="precision-pad" id="playPrecisionPad"><button class="nudge" onclick="nudgePlayPlayer(-1,-1)">↖</button><button class="nudge" onclick="nudgePlayPlayer(0,-1)">↑</button><button class="nudge" onclick="nudgePlayPlayer(1,-1)">↗</button><button class="nudge" onclick="nudgePlayPlayer(-1,0)">←</button><button class="nudge lbl">NUDGE</button><button class="nudge" onclick="nudgePlayPlayer(1,0)">→</button><button class="nudge" onclick="nudgePlayPlayer(-1,1)">↙</button><button class="nudge" onclick="nudgePlayPlayer(0,1)">↓</button><button class="nudge" onclick="nudgePlayPlayer(1,1)">↘</button></div></div>
 
   <div class="play-info-row" id="playInfoRow">
     <div class="play-desc-wrap" id="playDescWrap">
-      <label>Play Description / Coaching Notes</label>
+      <label for="playDescInput">Play Description / Coaching Notes</label>
       <textarea id="playDescInput" placeholder="Enter play description…" maxlength="500"></textarea>
     </div>
     <div class="play-meta-row" id="playMetaRow">
@@ -1450,7 +1487,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- QUIZ SCREEN -->
 <div class="screen hidden quiz-screen" id="quizScreen">
   <div class="quiz-top">
-    <button class="hdr-back" onclick="quitQuiz()">←</button>
+    <button class="hdr-back" onclick="quitQuiz()" aria-label="Quit quiz">←</button>
     <div class="quiz-timer" id="quizTimer">0.0s</div>
     <div class="quiz-progress" id="quizProgress">1 / 10</div>
     <div class="quiz-score" id="quizScore">0</div>
@@ -1476,7 +1513,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- QUIZ DONE -->
 <div class="screen hidden" id="quizDoneScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('formationsScreen','quizDoneScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('formationsScreen','quizDoneScreen')" aria-label="Back to formations">←</button>
     <div class="hdr-title"><h1>QUIZ RESULTS</h1><p id="quizDonePB">Playbook</p></div>
   </div>
   <div class="quiz-done">
@@ -1486,15 +1523,15 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     <div class="quiz-done-detail">Final Score: <b id="qdFinal">0</b></div>
     <div style="height:30px"></div>
     <div id="qdNameRow" style="width:100%;max-width:320px;display:none">
-      <div class="field"><label>Your Name for Leaderboard</label>
-        <input id="qdNameInput" placeholder="Enter name" maxlength="20">
+      <div class="field"><label for="qdNameInput">First Name or Nickname for Leaderboard</label>
+        <input id="qdNameInput" placeholder="First name or nickname" maxlength="20">
       </div>
       <button class="btn btn-p" onclick="submitScore()">Submit Score</button>
     </div>
     <div id="qdActions" style="width:100%;max-width:320px;display:none">
       <button class="btn btn-p" onclick="startQuiz()">Play Again</button>
       <div style="height:8px"></div>
-      <button class="btn btn-g" onclick="openLeaderboard()">View Leaderboard</button>
+      <button class="btn btn-g" id="qdLeaderboardBtn" onclick="openLeaderboard()">View Leaderboard</button>
     </div>
   </div>
 </div>
@@ -1502,7 +1539,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- LEADERBOARD -->
 <div class="screen hidden" id="leaderboardScreen">
   <div class="hdr">
-    <button class="hdr-back" onclick="goBack('formationsScreen','leaderboardScreen')">←</button>
+    <button class="hdr-back" onclick="goBack('formationsScreen','leaderboardScreen')" aria-label="Back to formations">←</button>
     <div class="hdr-title"><h1>LEADERBOARD</h1><p id="lbPbName">Playbook</p></div>
     <button class="hdr-btn" onclick="startQuiz()">Play</button>
   </div>
@@ -1520,9 +1557,9 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="handle"></div>
   <h2>New Playbook</h2>
   <p class="sub" id="newPlaybookSub">Name the full playbook here. Formations are named on the next screen.</p>
-  <div class="field"><label>Playbook Name (not a formation)</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026 Playbook"></div>
-  <div class="field"><label>Description (optional)</label><input id="npbDesc" placeholder="Team, season, etc."></div>
-  <div class="field" id="npbCodeField"><label>Custom View Code (Pro/Admin only)</label><input id="npbCode" placeholder="Leave blank to auto-generate" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace" autocomplete="off"></div>
+  <div class="field"><label for="npbName">Playbook Name (not a formation)</label><input id="npbName" placeholder="e.g. 5/6 Grade Spring 2026 Playbook"></div>
+  <div class="field"><label for="npbDesc">Description (optional)</label><input id="npbDesc" placeholder="Team, season, etc."></div>
+  <div class="field" id="npbCodeField"><label for="npbCode">Custom View Code (Pro/Admin only)</label><input id="npbCode" placeholder="Leave blank to auto-generate" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace" autocomplete="off"></div>
   <button class="btn btn-p" onclick="addPlaybook()">Create Playbook</button>
 </div>
 
@@ -1531,16 +1568,16 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="handle"></div>
   <h2>New Formation</h2>
   <p class="sub">Create a formation with a ready-to-drag set of players. You can rename the set line now or later.</p>
-  <div class="field"><label>Formation Name</label><input id="nfName" placeholder="e.g. Shotgun Spread, I-Form, 4-3"></div>
-  <div class="field"><label>Set / Line Name</label><input id="nfSetName" placeholder="e.g. Right, Left, Trips, Tight" value="Right"></div>
-  <div class="field"><label>Type</label>
+  <div class="field"><label for="nfName">Formation Name</label><input id="nfName" placeholder="e.g. Shotgun Spread, I-Form, 4-3"></div>
+  <div class="field"><label for="nfSetName">Set / Line Name</label><input id="nfSetName" placeholder="e.g. Right, Left, Trips, Tight" value="Right"></div>
+  <div class="field"><label for="nfType">Type</label>
     <select id="nfType">
       <option value="off">⚡ Offense</option>
       <option value="def">🛡 Defense</option>
       <option value="st">⭐ Special Teams</option>
     </select>
   </div>
-  <div class="field"><label>Notes (optional)</label><input id="nfNotes" placeholder="When to use this formation"></div>
+  <div class="field"><label for="nfNotes">Notes (optional)</label><input id="nfNotes" placeholder="When to use this formation"></div>
   <button class="btn btn-p" onclick="addFormation()">Create Formation</button>
 </div>
 
@@ -1550,7 +1587,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="handle"></div>
   <h2>Find Playbook</h2>
   <p class="sub">Enter a view code to add that playbook to your account in view-only mode.</p>
-  <div class="field"><label>View Code</label><input id="findPbCode" placeholder="ABC123" autocomplete="off" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;text-align:center;font-family:monospace"></div>
+  <div class="field"><label for="findPbCode">View Code</label><input id="findPbCode" placeholder="ABC123" autocomplete="off" maxlength="12" style="text-transform:uppercase;letter-spacing:2px;text-align:center;font-family:monospace"></div>
   <div id="findPbErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">Code not found</div>
   <button class="btn btn-p" onclick="savePlaybookByCode()">Add View-Only Playbook</button>
   <div style="height:8px"></div>
@@ -1567,7 +1604,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
     <div class="ph-ico">📷</div>
     <div class="ph-txt">Tap to choose a photo</div>
   </div>
-  <div class="field"><label>Name</label><input id="uploadName" placeholder="e.g. Trips Right Smash, Blitz notes"></div>
+  <div class="field"><label for="uploadName">Name</label><input id="uploadName" placeholder="e.g. Trips Right Smash, Blitz notes"></div>
   <div class="check-row" id="isPlayCheck" onclick="toggleIsPlay()">
     <div class="check-box" id="isPlayBox"></div>
     <div class="check-text">
@@ -1583,7 +1620,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
   <div class="handle"></div>
   <h2>Edit View Code</h2>
   <p class="sub">3–12 characters. Letters and numbers only. Anyone with this code can view the playbook.</p>
-  <div class="field"><label>View Code</label>
+  <div class="field"><label for="editCodeInput">View Code</label>
     <input id="editCodeInput" placeholder="e.g. EAGLES26" maxlength="12" autocomplete="off" style="text-transform:uppercase;letter-spacing:2px;font-size:17px;text-align:center;font-family:monospace">
   </div>
   <div id="editCodeErr" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">—</div>
@@ -1593,28 +1630,65 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 </div>
 
 <div class="overlay" id="pbMenuOverlay" onclick="closeSheet('pbMenuSheet')"></div>
-<div class="sheet" id="pbMenuSheet">
+<div class="sheet" id="pbMenuSheet" role="dialog" aria-modal="true" aria-labelledby="pbMenuTitle">
   <div class="handle"></div>
   <h2 id="pbMenuTitle">Playbook</h2>
   <p class="sub" id="pbMenuCode">View code: —</p>
   <p class="sub" id="pbMenuOwner" style="display:none;color:var(--accent)">Owner: —</p>
-  <button class="btn btn-p" onclick="closeSheet('pbMenuSheet');startQuiz()">🎯 Play Test (Quiz)</button>
+  <div class="tool-menu-group">
+    <div class="tool-menu-label">Teach &amp; Practice</div>
+    <div class="tool-menu-list">
+      <button class="tool-menu-row primary" onclick="closeSheet('pbMenuSheet');startQuiz()"><span class="tool-menu-ico">🎯</span><span class="tool-menu-copy"><span class="tool-menu-title">Play Test</span><span class="tool-menu-desc">Quiz players on formations and assignments</span></span><span class="tool-menu-arrow">›</span></button>
+      <button class="tool-menu-row" id="pbLeaderboardBtn" onclick="closeSheet('pbMenuSheet');openLeaderboard()"><span class="tool-menu-ico">🏆</span><span class="tool-menu-copy"><span class="tool-menu-title">Leaderboard</span><span class="tool-menu-desc">Review top quiz scores and recent results</span></span><span class="tool-menu-arrow">›</span></button>
+    </div>
+  </div>
+  <div class="tool-menu-group" id="pbGameDayGroup">
+    <div class="tool-menu-label">Game Day</div>
+    <div class="tool-menu-list">
+      <button class="tool-menu-row" onclick="closeSheet('pbMenuSheet');openDepthChart()" id="pbDepthBtn"><span class="tool-menu-ico">📊</span><span class="tool-menu-copy"><span class="tool-menu-title">Depth Chart <span class="account-pill pro">PRO</span></span><span class="tool-menu-desc">Build position groups from your roster</span></span><span class="tool-menu-arrow">›</span></button>
+      <button class="tool-menu-row" onclick="closeSheet('pbMenuSheet');openCallSheet()" id="pbCallBtn"><span class="tool-menu-ico">🧾</span><span class="tool-menu-copy"><span class="tool-menu-title">Play Call Sheet <span class="account-pill pro">PRO</span></span><span class="tool-menu-desc">Organize calls by down and situation</span></span><span class="tool-menu-arrow">›</span></button>
+    </div>
+  </div>
+  <div class="tool-menu-group">
+    <div class="tool-menu-label">Share &amp; Export</div>
+    <div class="tool-menu-list">
+      <button class="tool-menu-row primary" onclick="openShareSheet()"><span class="tool-menu-ico">📣</span><span class="tool-menu-copy"><span class="tool-menu-title">Share Playbook</span><span class="tool-menu-desc">Send the team link or copy the view code</span></span><span class="tool-menu-arrow">›</span></button>
+      <button class="tool-menu-row" onclick="closeSheet('pbMenuSheet');openSheet('printLayoutSheet')"><span class="tool-menu-ico">🖨</span><span class="tool-menu-copy"><span class="tool-menu-title">Print Full Playbook</span><span class="tool-menu-desc">Choose one-play, two-play, or compact pages</span></span><span class="tool-menu-arrow">›</span></button>
+    </div>
+  </div>
+  <div class="tool-menu-group" id="pbManageGroup">
+    <div class="tool-menu-label">Manage</div>
+    <div class="tool-menu-list">
+      <button class="tool-menu-row" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none"><span class="tool-menu-ico">✏️</span><span class="tool-menu-copy"><span class="tool-menu-title">Edit View Code</span><span class="tool-menu-desc">Set a memorable code for your team</span></span><span class="tool-menu-arrow">›</span></button>
+      <button class="tool-menu-row" onclick="openAssignScreen()" id="pbAssignBtn" style="display:none"><span class="tool-menu-ico">👤</span><span class="tool-menu-copy"><span class="tool-menu-title">Assign to Coach</span><span class="tool-menu-desc">Transfer playbook ownership</span></span><span class="tool-menu-arrow">›</span></button>
+    </div>
+  </div>
+  <div class="tool-menu-group" id="pbDangerGroup">
+    <div class="tool-menu-label">Danger Zone</div>
+    <div class="tool-menu-list">
+      <button class="tool-menu-row danger" onclick="confirmDeletePlaybook()" id="pbDelBtn"><span class="tool-menu-ico">🗑</span><span class="tool-menu-copy"><span class="tool-menu-title">Delete Playbook</span><span class="tool-menu-desc">Permanently remove this playbook and its plays</span></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="sharePlaybookOverlay" onclick="closeSheet('sharePlaybookSheet')"></div>
+<div class="sheet" id="sharePlaybookSheet" role="dialog" aria-modal="true" aria-labelledby="sharePlaybookTitle">
+  <div class="handle"></div>
+  <h2 id="sharePlaybookTitle">Share Playbook</h2>
+  <p class="sub" id="sharePlaybookSub">Players and parents can open the link without creating an account.</p>
+  <div class="share-code-card" id="shareCodeCard">
+    <div><div class="share-code-label">Team View Code</div><div class="share-code-value" id="shareCodeValue">—</div></div>
+    <span class="tool-menu-ico">🏈</span>
+  </div>
+  <div class="share-link-preview" id="shareLinkPreview">—</div>
+  <button class="btn btn-p" onclick="sharePlaybookNow()">📣 Share with Team</button>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openLeaderboard()">🏆 Leaderboard</button>
+  <div class="btn-row">
+    <button class="btn btn-g" onclick="copyPlaybookLink()">Copy Link</button>
+    <button class="btn btn-g" id="pbCopyBtn" onclick="copyViewCodeOnly()">Copy Code</button>
+  </div>
   <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openDepthChart()" id="pbDepthBtn">📊 Depth Chart <span class="account-pill pro">PRO</span></button>
-  <div style="height:8px" id="pbDepthSpacer"></div>
-  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openCallSheet()" id="pbCallBtn">🧾 Play Call Sheet <span class="account-pill pro">PRO</span></button>
-  <div style="height:8px" id="pbCallSpacer"></div>
-  <button class="btn btn-g" onclick="copyViewCode()" id="pbCopyBtn">📋 Copy View Code</button>
-  <div style="height:8px" id="pbEditCodeSpacer"></div>
-  <button class="btn btn-g" onclick="openEditCode()" id="pbEditCodeBtn" style="display:none">✏️ Edit View Code</button>
-  <div style="height:8px"></div>
-  <button class="btn btn-g" onclick="closeSheet('pbMenuSheet');openSheet('printLayoutSheet')">🖨 Print Full Playbook</button>
-  <div style="height:8px" id="pbAssignSpacer"></div>
-  <button class="btn btn-g" onclick="openAssignScreen()" id="pbAssignBtn" style="display:none">👤 Assign to Coach</button>
-  <div style="height:8px" id="pbAdminSpacer"></div>
-  <button class="btn btn-d" onclick="confirmDeletePlaybook()" id="pbDelBtn">🗑 Delete Playbook</button>
+  <button class="btn btn-g" onclick="closeSheet('sharePlaybookSheet')">Done</button>
 </div>
 
 <div class="overlay" id="printLayoutOverlay" onclick="closeSheet('printLayoutSheet')"></div>
@@ -1645,7 +1719,7 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- FULLSCREEN IMAGE VIEWER -->
 <div class="img-viewer" id="imgViewer">
   <div class="img-viewer-top">
-    <button class="hdr-back" onclick="closeImgViewer()">←</button>
+    <button class="hdr-back" onclick="closeImgViewer()" aria-label="Close image">←</button>
     <div class="name" id="imgViewerName">Image</div>
     <button class="hdr-btn ghost icon" id="imgViewerDel" onclick="deleteViewedImage()" style="display:none">🗑</button>
   </div>
@@ -1655,16 +1729,16 @@ body{background:radial-gradient(circle at 50% -18%, rgba(240,180,41,.08), transp
 <!-- hidden file input -->
 <input type="file" id="fileInput" accept="image/*" style="display:none">
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script type="module">
 // ═══════════════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════════════
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile, linkWithPopup, OAuthProvider, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile, linkWithPopup, OAuthProvider, setPersistence, browserLocalPersistence, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const fbConfig = {
   apiKey: "AIzaSyAn23czySBNVndL0myYOctnjq5hZaPSaDg",
@@ -1684,8 +1758,8 @@ const googleProvider = new GoogleAuthProvider();
 // ═══════════════════════════════════════════════
 // APP VERSION
 // ═══════════════════════════════════════════════
-const APP_VERSION = '1.1.8';
-const RELEASE_NAME = 'Coach Pro Tools';
+const APP_VERSION = '1.2.0';
+const RELEASE_NAME = 'Friday Night Ready';
 function hydrateAppVersion(){
   const badge = document.getElementById('appVersionBadge');
   if(badge) badge.textContent = `v${APP_VERSION} · ${RELEASE_NAME}`;
@@ -1699,13 +1773,14 @@ hydrateAppVersion();
 // ═══════════════════════════════════════════════
 // AUTH CONFIG
 // ═══════════════════════════════════════════════
-const SUPER_ADMIN_PASSWORDS = []; // Password admin login removed. Use Google/admin account. // Disabled: Google admin only; legacy coach passwords still work.
+// Coach authentication is handled by Firebase Auth. Legacy plaintext login is retired.
 
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
 let currentPlaybook = null, currentFormation = null, currentPlay = null;
 let canEdit = false, isViewOnly = false;
+let isDemoMode = false;
 let isSuperAdmin = false;
 let currentCoachId = null;
 let currentCoachName = '';
@@ -1751,6 +1826,7 @@ let uploadContext=null;     // 'formation' | 'play'
 let uploadIsPlay=false;
 let uploadDataUrl=null;     // resized data URL ready to upload
 let viewerImage=null;       // {scope, id, name, ...} currently being viewed fullscreen
+let deferredInstallPrompt=null;
 
 const FW=1000, FH=600;
 const POSITIONS=['QB','RB','FB','WR','TE','OL','C','DE','DT','LB','CB','S','K','P','X','Y','Z'];
@@ -1894,10 +1970,9 @@ function fmImgCol(pbId,formId){ return collection(db,'playbooks',pbId,'formation
 
 async function loadPlaybooks(ownerId=null){
   try{
-    const snap=await getDocs(query(pbCol(),orderBy('createdAt')));
-    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(ownerId) return all.filter(p=>p.ownerId===ownerId);
-    return all;
+    const q=ownerId ? query(pbCol(),where('ownerId','==',ownerId)) : query(pbCol(),orderBy('createdAt'));
+    const snap=await getDocs(q);
+    return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
   }catch(e){ console.error(e); return []; }
 }
 async function findPlaybookByCode(code){
@@ -1925,7 +2000,7 @@ function currentViewerInfo(){
       viewerId:'user:'+(currentUserId || authUser.uid),
       viewerType:'user',
       name:(currentAccount && currentAccount.name) || (authUser && authUser.displayName) || '',
-      email:(currentAccount && currentAccount.email) || (authUser && authUser.email) || ''
+      email:''
     };
   }
   return {
@@ -1953,9 +2028,9 @@ async function trackViewCodeOpen(pb, source='viewCode'){
         viewerId:info.viewerId,
         viewerType:info.viewerType,
         name:info.name || old.name || '',
-        email:info.email || old.email || '',
+        email:'',
         lastViewedAt:now,
-        viewCount:(old.viewCount || 0) + 1,
+        viewCount:increment(1),
         lastSource:source
       },{merge:true});
     }else{
@@ -1966,7 +2041,7 @@ async function trackViewCodeOpen(pb, source='viewCode'){
         viewerId:info.viewerId,
         viewerType:info.viewerType,
         name:info.name || '',
-        email:info.email || '',
+        email:'',
         firstViewedAt:now,
         lastViewedAt:now,
         viewCount:1,
@@ -2028,17 +2103,12 @@ async function loadFormationImages(pbId,formId){
 async function loadCoaches(){
   try{
     const snap=await getDocs(query(coachCol(),orderBy('createdAt')));
-    return snap.docs.map(d=>({id:d.id,...d.data()}));
+    return snap.docs.map(d=>{const {password,...safe}=d.data()||{};return{id:d.id,...safe};});
   }catch(e){ console.error(e); return []; }
 }
 async function findCoachByPassword(pw){
-  try{
-    const q=query(coachCol(),where('password','==',pw));
-    const snap=await getDocs(q);
-    if(snap.empty) return null;
-    const d=snap.docs[0];
-    return {id:d.id, ...d.data()};
-  }catch(e){ return null; }
+  // Retired in v1.2.0. Coach credentials must never be queried from Firestore.
+  return null;
 }
 
 
@@ -2099,13 +2169,8 @@ async function loadSavedViewOnlyPlaybooksForCurrentUser(){
   if(!currentUserId || isAdminRole()) return [];
   try{
     const snap=await getDocs(collection(db,'users',currentUserId,'savedPlaybooks'));
-    const out=[];
-    for(const d of snap.docs){
-      const pbId=d.id;
-      const psnap=await getDoc(doc(db,'playbooks',pbId));
-      if(psnap.exists()) out.push({id:psnap.id,...psnap.data(),savedViewOnly:true});
-    }
-    return out;
+    const docs=await Promise.all(snap.docs.map(d=>getDoc(doc(db,'playbooks',d.id))));
+    return docs.filter(psnap=>psnap.exists()).map(psnap=>({id:psnap.id,...psnap.data(),savedViewOnly:true}));
   }catch(e){ console.warn('Saved view-only playbooks skipped', e); return []; }
 }
 async function loadAccountPlaybookList(){
@@ -2125,6 +2190,7 @@ async function loadUsers(){
 function setLoginError(id,msg){ const el=document.getElementById(id); if(el){el.textContent=msg; el.style.display='block';} }
 function clearLoginError(id){ const el=document.getElementById(id); if(el){el.textContent=''; el.style.display='none';} }
 async function enterAccountApp(userRec){
+  isDemoMode=false;
   currentAccount=userRec;
   currentUserId=userRec.uid || userRec.id;
   currentRole=userRec.role || 'basic';
@@ -2133,21 +2199,15 @@ async function enterAccountApp(userRec){
   currentCoachName=userRec.name || userRec.email || roleLabel();
   await migrateLocalStoragePlaybooks();
   await claimLegacyPlaybooksForAccount();
-  [playbooks, coaches] = await Promise.all([loadAccountPlaybookList(), loadCoaches()]);
+  [playbooks, coaches] = await Promise.all([loadAccountPlaybookList(), isAdminRole()?loadCoaches():Promise.resolve([])]);
   playbookViewStats = isAdminRole() ? await loadAllPlaybookViewStats(playbooks) : {};
   renderPlaybooks();
   navTo('playbooksScreen');
 }
 async function claimLegacyPlaybooksForAccount(){
-  if(!currentUserId || isAdminRole()) return;
-  try{
-    const owned=await loadPlaybooks(accountOwnerId());
-    if(owned.length) return;
-    const all=await loadPlaybooks();
-    const legacy=all.filter(p=>!p.ownerId).slice(0,1);
-    for(const pb of legacy){ await updateDoc(doc(db,'playbooks',pb.id),{ownerId:accountOwnerId(),claimedAt:Date.now()}); }
-    if(legacy.length) toast('Claimed existing playbook for this account','ok');
-  }catch(e){ console.warn('Legacy claim skipped', e); }
+  // Automatic global claiming was unsafe: a new account could take the first
+  // unowned legacy playbook. Existing data must be assigned explicitly by admin.
+  return;
 }
 async function migrateLocalStoragePlaybooks(){
   // Safe migration hook: never deletes or clears localStorage. If a prior local-only build used a recognizable key,
@@ -2231,15 +2291,59 @@ window.copyProPaymentInfo = async function(){
   }
 };
 
-window.goAdmin = ()=>{
-  document.getElementById('adminPwInput').value='';
-  document.getElementById('adminPwErr').style.display='none';
-  navTo('adminPwScreen');
-};
+window.goAdmin = ()=>navTo('adminPwScreen');
 window.goViewCode = ()=>{
   document.getElementById('viewCodeInput').value='';
   document.getElementById('viewCodeErr').style.display='none';
   navTo('viewCodeScreen');
+};
+
+function readableAuthError(e){
+  const code=String(e?.code||'');
+  const messages={
+    'auth/invalid-credential':'Email or password is incorrect.',
+    'auth/invalid-email':'Enter a valid email address.',
+    'auth/email-already-in-use':'An account already uses that email.',
+    'auth/weak-password':'Use a password with at least 6 characters.',
+    'auth/popup-closed-by-user':'Sign-in was canceled.',
+    'auth/popup-blocked':'Allow popups for XO Playbook, then try again.',
+    'auth/network-request-failed':'Check your connection and try again.',
+    'auth/too-many-requests':'Too many attempts. Wait a moment and try again.'
+  };
+  return messages[code] || 'Could not sign in. Please try again.';
+}
+
+window.resetCoachPassword=async function(){
+  clearLoginError('loginErr');
+  const email=document.getElementById('loginEmail').value.trim();
+  if(!email){setLoginError('loginErr','Enter your email first, then tap Forgot password.');return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    toast('Password reset email sent','ok');
+  }catch(e){
+    setLoginError('loginErr',readableAuthError(e));
+  }
+};
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  const btn=document.getElementById('installAppBtn');
+  if(btn)btn.style.display='';
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  const btn=document.getElementById('installAppBtn');
+  if(btn)btn.style.display='none';
+  toast('XO Playbook installed','ok');
+});
+window.installApp=async function(){
+  if(!deferredInstallPrompt){toast('Use your browser menu to add XO Playbook to your home screen','');return;}
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice.catch(()=>{});
+  deferredInstallPrompt=null;
+  const btn=document.getElementById('installAppBtn');
+  if(btn)btn.style.display='none';
 };
 
 
@@ -2252,7 +2356,7 @@ window.loginWithEmail = async ()=>{
     const cred=await signInWithEmailAndPassword(auth,email,pw);
     const rec=await ensureUserRecord(cred.user);
     await enterAccountApp(rec);
-  }catch(e){ setLoginError('loginErr', e.message || 'Login failed'); }
+  }catch(e){ setLoginError('loginErr', readableAuthError(e)); }
 };
 window.registerWithEmail = async ()=>{
   clearLoginError('regErr');
@@ -2267,7 +2371,7 @@ window.registerWithEmail = async ()=>{
     await updateProfile(cred.user,{displayName:name}).catch(()=>{});
     const rec=await ensureUserRecord(cred.user,{name,role:'basic'});
     await enterAccountApp(rec);
-  }catch(e){ setLoginError('regErr', e.message || 'Registration failed'); }
+  }catch(e){ setLoginError('regErr', readableAuthError(e)); }
 };
 window.loginWithGoogle = async ()=>{
   clearLoginError('loginErr');
@@ -2275,7 +2379,7 @@ window.loginWithGoogle = async ()=>{
     const cred=await signInWithPopup(auth,googleProvider);
     const rec=await ensureUserRecord(cred.user,{role:'basic'});
     await enterAccountApp(rec);
-  }catch(e){ setLoginError('loginErr', e.message || 'Google sign-in failed'); }
+  }catch(e){ setLoginError('loginErr', readableAuthError(e)); }
 };
 
 async function signInWithAppleFlow(){
@@ -2348,8 +2452,7 @@ window.checkViewCode = async ()=>{
     document.getElementById('viewCodeErr').style.display='block';
     return;
   }
-  currentAccount=null; currentUserId=null; currentRole='guest';
-  currentAccount=null; currentUserId=null; currentRole='guest';
+  currentAccount=null; currentUserId=null; currentRole='guest'; isDemoMode=false;
   canEdit=false; isViewOnly=true;
   await trackViewCodeOpen(pb,'manual-code');
   await openPlaybook(pb);
@@ -2361,7 +2464,7 @@ async function checkUrlCode(){
   if(!code)return false;
   const pb = await findPlaybookByCode(code);
   if(!pb)return false;
-  canEdit=false; isViewOnly=true;
+  canEdit=false; isViewOnly=true; isDemoMode=false;
   await trackViewCodeOpen(pb,'url-code');
   await openPlaybook(pb);
   return true;
@@ -2430,7 +2533,7 @@ function renderPlaybooks(){
 
 window.logoutToLanding = ()=>{
   try{ if(auth.currentUser) signOut(auth); }catch(e){}
-  canEdit=false; isViewOnly=false; isSuperAdmin=false; currentRole='guest'; currentAccount=null; currentUserId=null;
+  canEdit=false; isViewOnly=false; isDemoMode=false; isSuperAdmin=false; currentRole='guest'; currentAccount=null; currentUserId=null;
   currentCoachId=null; currentCoachName='';
   currentPlaybook=null; currentFormation=null; currentPlay=null;
   playbooks=[]; formations=[]; plays=[];
@@ -2470,7 +2573,7 @@ function renderCoaches(){
       <div style="width:46px;height:46px;border-radius:12px;background:rgba(65,130,240,.15);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🔑</div>
       <div class="card-body">
         <div class="card-name">${esc(c.name)} <span class="account-pill basic">legacy</span></div>
-        <div class="card-sub">Password hidden<b style="color:var(--accent);font-family:monospace">${esc(c.password)}</b> · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
+        <div class="card-sub">Legacy access retired · Assign these playbooks to a secure account · ${playbookCount} playbook${playbookCount===1?'':'s'}</div>
       </div>
       <button class="icon-del" onclick="confirmDelCoach('${c.id}')">🗑</button>
     </div>`;
@@ -2490,7 +2593,7 @@ function renderCoaches(){
         <div class="card-sub">Last viewed: ${esc(fmtViewLast(st.last))}</div>
       </div>
     </div>`;
-  }).join('') || '<div class="card"><div class="card-body"><div class="card-sub">No playbooks.</div></div></div>'}<div class="sec-label">Legacy Password Coaches</div>${legacyCards || '<div class="card"><div class="card-body"><div class="card-sub">No legacy coaches.</div></div></div>'}`;
+  }).join('') || '<div class="card"><div class="card-body"><div class="card-sub">No playbooks.</div></div></div>'}<div class="sec-label">Legacy Coach Records</div>${legacyCards || '<div class="card"><div class="card-body"><div class="card-sub">No legacy coaches.</div></div></div>'}`;
 }
 
 window.setUserRole = async (uid, role)=>{
@@ -2503,24 +2606,7 @@ window.setUserRole = async (uid, role)=>{
 };
 
 window.addCoach = async ()=>{
-  const name=document.getElementById('ncName').value.trim();
-  const pw=document.getElementById('ncPw').value.trim();
-  if(!name || !pw){toast('Name and password required','err');return;}
-  if(SUPER_ADMIN_PASSWORDS.includes(pw)){
-    toast('That password is reserved','err');return;
-  }
-  if(coaches.some(c=>c.password===pw)){
-    toast('That password is already in use','err');return;
-  }
-  const coach={name, password:pw, role:'basic', createdAt:Date.now()};
-  const ref=await addDoc(coachCol(),coach);
-  coach.id=ref.id;
-  coaches.push(coach);
-  document.getElementById('ncName').value='';
-  document.getElementById('ncPw').value='';
-  closeSheet('newCoachSheet');
-  renderCoaches();
-  toast('Coach added!','ok');
+  toast('Legacy password coaches are retired. Ask the coach to create a secure account.','err');
 };
 
 window.confirmDelCoach = (id)=>{
@@ -2627,8 +2713,9 @@ window.openPlaybookById = async (id)=>{
 };
 
 async function openPlaybook(pb){
+  isDemoMode=false;
   currentPlaybook=pb;
-  isViewOnly = !!pb.savedViewOnly || (!!currentAccount && !isAdminRole() && !ownsPlaybook(pb));
+  isViewOnly = !!pb.savedViewOnly || !ownsPlaybook(pb);
   formations=await loadFormations(pb.id);
   document.getElementById('formTeamName').textContent=pb.name;
   canEdit = !isViewOnly && ownsPlaybook(pb);
@@ -2644,6 +2731,7 @@ function backFromFormations(){
     goBack('playbooksScreen','formationsScreen');
   } else {
     goBack('landingScreen','formationsScreen');
+    isDemoMode=false;
   }
 }
 window.backFromFormations = backFromFormations;
@@ -2703,7 +2791,7 @@ window.addPlaybook = async ()=>{
 window.openPlaybookMenu = ()=>{
   if(!currentPlaybook)return;
   document.getElementById('pbMenuTitle').textContent=currentPlaybook.name;
-  document.getElementById('pbMenuCode').textContent='View code: '+currentPlaybook.viewCode;
+  document.getElementById('pbMenuCode').textContent=isDemoMode?'Coach demo · Nothing here will be saved':'View code: '+currentPlaybook.viewCode;
   const ownerLine=document.getElementById('pbMenuOwner');
   if(ownerLine){
     if(isSuperAdmin){
@@ -2716,26 +2804,62 @@ window.openPlaybookMenu = ()=>{
   }
   const canDelete = canEdit && ownsPlaybook(currentPlaybook);
   document.getElementById('pbDelBtn').style.display=canDelete?'':'none';
-  document.getElementById('pbAdminSpacer').style.display=canDelete?'':'none';
-  document.getElementById('pbCopyBtn').style.display=canEdit?'':'none';
-  // Edit-code: same permissions as delete (owners + super admin only)
+  document.getElementById('pbDangerGroup').style.display=canDelete?'':'none';
+  document.getElementById('pbCopyBtn').style.display=isDemoMode?'none':'';
   document.getElementById('pbEditCodeBtn').style.display=(canDelete && canCustomizeCodes())?'':'none';
-  document.getElementById('pbEditCodeSpacer').style.display=canDelete?'':'none';
   const assignBtn=document.getElementById('pbAssignBtn');
   if(assignBtn) assignBtn.style.display=isAdminRole()?'':'none';
+  document.getElementById('pbManageGroup').style.display=((canDelete&&canCustomizeCodes())||isAdminRole())?'':'none';
+  document.getElementById('pbLeaderboardBtn').style.display=isDemoMode?'none':'';
   syncCoachToolButtons();
   openSheet('pbMenuSheet');
 };
 
-window.copyViewCode = ()=>{
-  if(!currentPlaybook)return;
-  const link=`${location.origin}${location.pathname}?code=${currentPlaybook.viewCode}`;
-  const text=`${currentPlaybook.name}\nView Code: ${currentPlaybook.viewCode}\nLink: ${link}`;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>toast('Code & link copied!','ok'));
-  } else {
-    toast('Code: '+currentPlaybook.viewCode,'ok');
+function playbookShareLink(){
+  if(!currentPlaybook)return location.origin+location.pathname;
+  if(isDemoMode)return location.origin+location.pathname;
+  return `${location.origin}${location.pathname}?code=${encodeURIComponent(currentPlaybook.viewCode||'')}`;
+}
+async function copyText(text,success){
+  try{
+    await navigator.clipboard.writeText(text);
+    toast(success,'ok');
+  }catch(e){
+    const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';
+    document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();
+    toast(success,'ok');
   }
+}
+window.openShareSheet=function(){
+  if(!currentPlaybook)return;
+  if(document.getElementById('pbMenuSheet').classList.contains('open'))closeSheet('pbMenuSheet');
+  const link=playbookShareLink();
+  document.getElementById('sharePlaybookTitle').textContent=isDemoMode?'Share XO Playbook':'Share '+currentPlaybook.name;
+  document.getElementById('sharePlaybookSub').textContent=isDemoMode?'Send another coach the XO Playbook demo.':'Players and parents can open the link without creating an account.';
+  document.getElementById('shareCodeValue').textContent=isDemoMode?'DEMO':(currentPlaybook.viewCode||'—');
+  document.getElementById('shareCodeCard').style.display=isDemoMode?'none':'';
+  document.getElementById('pbCopyBtn').style.display=isDemoMode?'none':'';
+  document.getElementById('shareLinkPreview').textContent=link;
+  openSheet('sharePlaybookSheet');
+};
+window.sharePlaybookNow=async function(){
+  if(!currentPlaybook)return;
+  const url=playbookShareLink();
+  const text=isDemoMode?'See how XO Playbook helps football coaches build, teach, and share plays.':`Open ${currentPlaybook.name}${currentPlaybook.viewCode?' with team code '+currentPlaybook.viewCode:''}.`;
+  if(navigator.share){
+    try{await navigator.share({title:currentPlaybook.name||'XO Playbook',text,url});return;}catch(e){if(e?.name==='AbortError')return;}
+  }
+  await copyText(`${text}\n${url}`,'Team link copied');
+};
+window.copyPlaybookLink=()=>copyText(playbookShareLink(),'Team link copied');
+window.copyViewCodeOnly=function(){
+  if(!currentPlaybook||isDemoMode)return;
+  copyText(currentPlaybook.viewCode||'','View code copied');
+};
+window.copyViewCode=function(){
+  if(!currentPlaybook)return;
+  const text=`${currentPlaybook.name}\nView Code: ${currentPlaybook.viewCode}\nLink: ${playbookShareLink()}`;
+  copyText(text,'Code and link copied');
 };
 
 window.confirmDeletePlaybook = ()=>{
@@ -2860,6 +2984,61 @@ function defaultFormationPlayers(type){
   ]);
 }
 
+function buildCoachDemo(){
+  const clone=x=>JSON.parse(JSON.stringify(x));
+  const offense=defaultFormationPlayers('off');
+  const defense=defaultFormationPlayers('def');
+  const route=(players,pos,pts,type='route',color='#41c97a')=>{
+    const p=players.find(x=>x.pos===pos);
+    if(!p)return null;
+    return {playerId:p.id,segments:[{type,color,pts:[{x:p.x,y:p.y},...pts.map(([x,y])=>({x,y}))]}]};
+  };
+  const play=(id,name,playType,description,players,defs,order)=>({
+    id,name,playType,description,kind:'drawn',order,createdAt:order,
+    data:{players:clone(players),routes:defs.map(d=>route(players,...d)).filter(Boolean),zones:[],ball:{enabled:false,mode:'basic',sequence:[]}}
+  });
+  const gunPlays=[
+    play('demo_mesh','Mesh','pass','Fast answer versus man coverage. Read the mesh, then settle the Y over the ball.',offense,[
+      ['X',[[360,240],[520,240]]],['Z',[[640,260],[500,260]]],['Y',[[700,190],[610,120]]],['RB',[[570,390],[650,330]]]
+    ],1000),
+    play('demo_flood','Flood Right','pass','Three-level stretch: clear, sail, and flat. Quarterback reads high to low.',offense,[
+      ['Z',[[790,170],[760,80]]],['Y',[[700,195],[790,145]]],['RB',[[590,405],[720,360]]]
+    ],2000),
+    play('demo_zone','Inside Zone Right','run','Press the play-side A gap and make one decisive cut off the first down lineman.',offense,[
+      ['RB',[[520,405],[555,335],[575,285]],'route','#f0b429']
+    ],3000),
+    play('demo_smash','Smash Corner','pass','Corner-flat bind against Cover 2. Outside receiver throttles at five yards.',offense,[
+      ['X',[[225,205],[225,155]]],['Y',[[690,195],[610,115]]],['RB',[[600,410],[690,365]]]
+    ],4000),
+    play('demo_counter','Counter GT','run','Backside guard and tackle pull. Let the kick-out and wrap declare the entry.',offense,[
+      ['RB',[[465,410],[420,355],[520,300]],'route','#f0b429'],['LG',[[430,320],[520,345]],'motion','#f0b429'],['LT',[[380,325],[480,360]],'motion','#f0b429']
+    ],5000)
+  ];
+  const defensePlays=[
+    play('demo_cover3','Cover 3 Buzz','pass','Show a two-high shell, roll the strong safety down, and protect the seams.',defense,[],1000),
+    play('demo_pressure','Nickel Edge Pressure','run','Set the front away from the back and bring the nickel off the passing strength.',defense,[
+      ['CB',[[300,260],[365,300]],'route','#f04141'],['LB',[[520,285],[545,330]],'route','#f04141']
+    ],2000)
+  ];
+  return [
+    {id:'demo_gun',name:'Gun Trips Right',setName:'Trips Right',type:'off',notes:'Core varsity install',templatePlayers:offense,createdAt:1000,demoPlays:gunPlays},
+    {id:'demo_425',name:'4–2–5 Base',setName:'Field',type:'def',notes:'Base coverage and pressure',templatePlayers:defense,createdAt:2000,demoPlays:defensePlays}
+  ];
+}
+
+window.openCoachDemo=function(){
+  isDemoMode=true;
+  currentAccount=null;currentUserId=null;currentRole='guest';currentCoachId=null;currentCoachName='';
+  currentPlaybook={id:'coach-demo',name:'Varsity Friday Night Demo',description:'A ready-made XO Playbook walkthrough',viewCode:'DEMO',demo:true};
+  currentFormation=null;currentPlay=null;canEdit=false;isViewOnly=true;
+  formations=buildCoachDemo();plays=[];
+  document.getElementById('formTeamName').textContent=currentPlaybook.name;
+  document.getElementById('formTeamSub').textContent='🏆 Coach Demo · Tap a formation to explore';
+  document.getElementById('addFormBtn').style.display='none';
+  syncCoachToolButtons();renderFormations();
+  navTo('formationsScreen');applyViewOnlyUiLocks();
+};
+
 window.addFormation=async function(){
   const name=document.getElementById('nfName').value.trim();
   if(!name){toast('Enter a formation name','err');return;}
@@ -2878,8 +3057,12 @@ window.addFormation=async function(){
 
 async function openFormation(id){
   currentFormation=formations.find(f=>f.id===id);
-  plays=await loadPlays(currentPlaybook.id,id);
-  formationImages=[];
+  if(!currentFormation)return;
+  if(isDemoMode){
+    plays=JSON.parse(JSON.stringify(currentFormation.demoPlays||[]));formationImages=[];
+  }else{
+    [plays,formationImages]=await Promise.all([loadPlays(currentPlaybook.id,id),loadFormationImages(currentPlaybook.id,id)]);
+  }
   document.getElementById('playsFormName').textContent=currentFormation.name;
   const tl={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
   document.getElementById('playsFormSub').textContent=(tl[currentFormation.type]||'')+(currentFormation.setName?' · Set: '+currentFormation.setName:'')+(canEdit?' · Plays':' · 👁 View only');
@@ -2908,6 +3091,7 @@ function syncCoachToolButtons(){
   const ok=canUseCoachProTools();
   ['depthChartHdrBtn','callSheetHdrBtn','pbDepthBtn','pbCallBtn'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display=ok?'':'none';});
   ['pbDepthSpacer','pbCallSpacer'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display=ok?'':'none';});
+  const group=document.getElementById('pbGameDayGroup');if(group)group.style.display=ok?'':'none';
 }
 function coachToolBlocked(){
   if(canUseCoachProTools()) return false;
@@ -3031,11 +3215,9 @@ window.saveDepthChart=async function(){
   toast('Depth chart saved','ok');
 };
 async function loadAllPlayPool(){
+  const results=await Promise.all(formations.map(async f=>({f,ps:await loadPlays(currentPlaybook.id,f.id)})));
   const pool=[];
-  for(const f of formations){
-    const ps=await loadPlays(currentPlaybook.id,f.id);
-    ps.forEach(pl=>pool.push({...pl,formationId:f.id,formationName:f.name,formationType:f.type,setName:f.setName||''}));
-  }
+  results.forEach(({f,ps})=>ps.forEach(pl=>pool.push({...pl,formationId:f.id,formationName:f.name,formationType:f.type,setName:f.setName||''})));
   callSheetPlayPool=pool;
   return pool;
 }
@@ -3099,15 +3281,19 @@ window.openFormationEditor=function(){
 };
 
 window.saveFormationTemplate=async function(){
-  currentFormation.templatePlayers=normalizeFormationPlayers(fPlayers);
-  fPlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers));
-  const ref=doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id);
-  await updateDoc(ref,{templatePlayers:fPlayers});
-  const i=formations.findIndex(f=>f.id===currentFormation.id);
-  if(i!==-1) formations[i]=currentFormation;
-  toast('Template saved!','ok');
-  goBack('playsScreen','formEditorScreen');
+  try{
+    currentFormation.templatePlayers=normalizeFormationPlayers(fPlayers);
+    fPlayers=JSON.parse(JSON.stringify(currentFormation.templatePlayers));
+    const ref=doc(db,'playbooks',currentPlaybook.id,'formations',currentFormation.id);
+    await updateDoc(ref,{templatePlayers:fPlayers});
+    const i=formations.findIndex(f=>f.id===currentFormation.id);
+    if(i!==-1) formations[i]=currentFormation;
+    toast('Template saved!','ok');
+    goBack('playsScreen','formEditorScreen');
+    return true;
+  }catch(e){console.error(e);toast('Could not save template','err');return false;}
 };
+window.backFromFormationEditor=()=>window.saveFormationTemplate();
 
 window.setFormTool=function(t){fTool=t;fSelP=null;syncFormToolUI();buildFormOpts();};
 function syncFormToolUI(){
@@ -3459,6 +3645,21 @@ window.nudgePlayPlayer=function(dx,dy){
 // ═══════════════════════════════════════════════
 // PLAYS
 // ═══════════════════════════════════════════════
+let miniPreviewObserver=null;
+function queueMiniPreview(play){
+  const wrap=document.getElementById('prev-'+play.id);if(!wrap)return;
+  if(!('IntersectionObserver' in window)){setTimeout(()=>miniPrev(play),40);return;}
+  if(!miniPreviewObserver){
+    miniPreviewObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(!entry.isIntersecting)return;
+      const id=entry.target.id.replace(/^prev-/,'');
+      const p=plays.find(x=>x.id===id);
+      if(p)miniPrev(p);
+      miniPreviewObserver.unobserve(entry.target);
+    }),{root:document.getElementById('playsList'),rootMargin:'180px'});
+  }
+  miniPreviewObserver.observe(wrap);
+}
 function playTypeBadge(type){
   if(type==='run') return '<span class="play-type-badge run">Run</span>';
   if(type==='pass') return '<span class="play-type-badge pass">Pass</span>';
@@ -3467,14 +3668,15 @@ function playTypeBadge(type){
 
 function renderPlays(){
   const el=document.getElementById('playsList');
+  const references=formationImages.length?`<div class="sec-label">Formation References</div>${formationImages.map(imgCardFormation).join('')}<div class="sec-label">Plays</div>`:'';
   // Sort by order (fallback to createdAt for older plays without order)
   plays.sort((a,b)=>{
     const ao = (a.order!=null) ? a.order : (a.createdAt||0);
     const bo = (b.order!=null) ? b.order : (b.createdAt||0);
     return ao - bo;
   });
-  if(!plays.length){el.innerHTML=`<div class="empty"><div class="empty-ico">🏃</div><h3>No Plays Yet</h3><p>${canEdit?'Tap + Play to draw, or 📷 to upload an image.':'No plays yet.'}</p></div>`;return;}
-  el.innerHTML=`<div class="play-grid">${plays.map((p,idx)=>{
+  if(!plays.length){el.innerHTML=references+`<div class="empty"><div class="empty-ico">🏃</div><h3>No Plays Yet</h3><p>${canEdit?'Tap + Play to draw, or 📷 to upload an image.':'No plays yet.'}</p></div>`;return;}
+  el.innerHTML=references+`<div class="play-grid">${plays.map((p,idx)=>{
     const upDisabled = idx===0;
     const downDisabled = idx===plays.length-1;
     const reorderRow = canEdit ? `
@@ -3502,7 +3704,7 @@ function renderPlays(){
       ${reorderRow}
     </div>`;
   }).join('')}</div>`;
-  plays.forEach(p=>{if(p.kind!=='image' && p.data)setTimeout(()=>miniPrev(p),80);});
+  plays.forEach(p=>{if(p.kind!=='image' && p.data)queueMiniPreview(p);});
 }
 
 function miniPrev(play){
@@ -3632,6 +3834,7 @@ window.duplicatePlay = async function(id){
       rec={
         name: baseName,
         description: orig.description||'',
+        playType: orig.playType||'',
         kind:'drawn',
         data: JSON.parse(JSON.stringify(orig.data||{players:[],routes:[]})),
         order: nextOrder(),
@@ -3742,9 +3945,18 @@ window.openAdjacentPlay=async function(dir){
   openPlay(list[ni].id, true);
 };
 
-window.backFromPlayEditor = ()=>{
+window.backFromPlayEditor = async ()=>{
   stopRouteAnimation(false);
   if(activeRoute) commitRoute();
+  if(canEdit){
+    const name=document.getElementById('playNameInput').value.trim();
+    const hasDraft=!!(currentPlay||name||eRoutes.length||eZones.length);
+    if(hasDraft){
+      const ok=await saveCurrentPlay(true);
+      if(!ok)return;
+      toast('Play saved','ok');
+    }
+  }
   setPresentationMode(false);
   goBack('playsScreen','editorScreen');
 };
@@ -3943,12 +4155,21 @@ async function deleteStorageIfAny(path){
 async function execDel(){
   const{type,id}=pendDel;closeSheet('deleteSheet');
   if(type==='form'){
-    // also clean up any formation images in storage
     try{
-      const imgs=await loadFormationImages(currentPlaybook.id,id);
-      for(const im of imgs){ await deleteStorageIfAny(im.storagePath); await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',id,'images',im.id)); }
-    }catch(e){}
-    await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',id));
+      const [childPlays,imgs]=await Promise.all([
+        loadPlays(currentPlaybook.id,id),
+        loadFormationImages(currentPlaybook.id,id)
+      ]);
+      await Promise.all(childPlays.map(async p=>{
+        if(p.kind==='image'&&p.storagePath)await deleteStorageIfAny(p.storagePath);
+        await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',id,'plays',p.id));
+      }));
+      await Promise.all(imgs.map(async im=>{
+        await deleteStorageIfAny(im.storagePath);
+        await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',id,'images',im.id));
+      }));
+      await deleteDoc(doc(db,'playbooks',currentPlaybook.id,'formations',id));
+    }catch(e){console.error(e);toast('Could not fully delete formation','err');return;}
     formations=formations.filter(f=>f.id!==id);
     renderFormations();toast('Formation deleted','ok');
   } else if(type==='play'){
@@ -3980,6 +4201,14 @@ async function execDel(){
         for(const im of imgs){ await deleteStorageIfAny(im.storagePath); await deleteDoc(doc(db,'playbooks',id,'formations',f.id,'images',im.id)); }
         await deleteDoc(doc(db,'playbooks',id,'formations',f.id));
       }
+      const [viewerSnap,scoreSnap]=await Promise.all([
+        getDocs(collection(db,'playbooks',id,'viewers')),
+        getDocs(collection(db,'playbooks',id,'leaderboard'))
+      ]);
+      await Promise.all([
+        ...viewerSnap.docs.map(d=>deleteDoc(d.ref)),
+        ...scoreSnap.docs.map(d=>deleteDoc(d.ref))
+      ]);
       await deleteDoc(doc(db,'playbooks',id));
     }catch(e){console.error(e);toast('Delete error','err');return;}
     playbooks=playbooks.filter(p=>p.id!==id);
@@ -5113,9 +5342,12 @@ window.printPlaybook=async function(layout='two'){
   toast('Building playbook…','');
   const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
   const groups={off:[],def:[],st:[]};
-  for(const f of fs){
-    const ps=await loadPlays(currentPlaybook.id,f.id);
-    const imgs=await loadFormationImages(currentPlaybook.id,f.id);
+  const printData=await Promise.all(fs.map(async f=>({
+    f,
+    ps:isDemoMode?JSON.parse(JSON.stringify(f.demoPlays||[])):await loadPlays(currentPlaybook.id,f.id),
+    imgs:isDemoMode?[]:await loadFormationImages(currentPlaybook.id,f.id)
+  })));
+  for(const {f,ps,imgs} of printData){
     groups[f.type||'off'].push({form:f,plays:ps,images:imgs});
   }
   const groupLabels={off:'⚡ Offense',def:'🛡 Defense',st:'⭐ Special Teams'};
@@ -5590,8 +5822,8 @@ window.startQuiz=async function(){
   toast('Loading plays…','');
   const fs=formations.length?formations:await loadFormations(currentPlaybook.id);
   const all=[];
-  for(const f of fs){
-    const ps=await loadPlays(currentPlaybook.id,f.id);
+  const quizData=await Promise.all(fs.map(async f=>({f,ps:isDemoMode?JSON.parse(JSON.stringify(f.demoPlays||[])):await loadPlays(currentPlaybook.id,f.id)})));
+  for(const {f,ps} of quizData){
     ps.forEach(p=>{
       if(p.kind==='image'){
         // Only quiz uploaded images explicitly marked as plays
@@ -5610,11 +5842,11 @@ window.startQuiz=async function(){
   quizQuestions=picks.map(item=>{
     const distractorPool=all.filter(x=>x.play.id!==item.play.id);
     const distractors=shuffle(distractorPool).slice(0,3);
-    const options=shuffle([item, ...distractors]).map(x=>x.play.name);
+    const options=shuffle([item, ...distractors]).map(x=>({id:x.play.id,name:x.play.name,formName:x.formName}));
     return {
       play:item.play,
       formName:item.formName,
-      correctName:item.play.name,
+      correctId:item.play.id,
       options
     };
   });
@@ -5655,7 +5887,7 @@ function renderQuizQ(){
   quizAnswered=false;
   const optsEl=document.getElementById('quizOptions');
   optsEl.innerHTML=q.options.map((o,i)=>
-    `<button class="quiz-opt" onclick="answerQuiz(${i})">${esc(o)}</button>`
+    `<button class="quiz-opt" onclick="answerQuiz(${i})"><span class="quiz-opt-name">${esc(o.name)}</span><span class="quiz-opt-form">${esc(o.formName)}</span></button>`
   ).join('');
 }
 
@@ -5665,11 +5897,11 @@ window.answerQuiz=function(i){
   quizAnswered=true;
   const q=quizQuestions[quizIdx];
   const chosen=q.options[i];
-  const correct=chosen===q.correctName;
+  const correct=chosen.id===q.correctId;
   const buttons=document.querySelectorAll('.quiz-opt');
   buttons.forEach((b,idx)=>{
     b.classList.add('disabled');
-    if(q.options[idx]===q.correctName) b.classList.add('correct');
+    if(q.options[idx].id===q.correctId) b.classList.add('correct');
     else if(idx===i) b.classList.add('wrong');
   });
   if(correct){
@@ -5702,8 +5934,9 @@ function finishQuiz(){
   document.getElementById('qdScore').textContent=correct+'/'+quizQuestions.length;
   document.getElementById('qdTime').textContent=totalSec.toFixed(1)+'s';
   document.getElementById('qdFinal').textContent=finalScore;
-  document.getElementById('qdNameRow').style.display=finalScore>0?'block':'none';
+  document.getElementById('qdNameRow').style.display=(finalScore>0&&!isDemoMode)?'block':'none';
   document.getElementById('qdActions').style.display='block';
+  document.getElementById('qdLeaderboardBtn').style.display=isDemoMode?'none':'';
   document.getElementById('qdNameInput').value='';
   navTo('quizDoneScreen');
 }
@@ -5715,6 +5948,7 @@ window.quitQuiz=function(){
 };
 
 window.submitScore=async function(){
+  if(isDemoMode){toast('Demo scores are not submitted','');return;}
   const name=document.getElementById('qdNameInput').value.trim();
   if(!name){toast('Enter a name','err');return;}
   if(!lastQuizResult){return;}
@@ -5773,6 +6007,7 @@ window.setLbRange=function(range){
 window.openLeaderboard=async function(refreshOnly=false){
   closeSheet('pbMenuSheet');
   if(!currentPlaybook){toast('No playbook','err');return;}
+  if(isDemoMode){toast('Create a free coach account to run a team leaderboard','');return;}
   document.getElementById('lbPbName').textContent=currentPlaybook.name;
   syncLbTabs();
   const el=document.getElementById('leaderboardList');
@@ -5957,7 +6192,7 @@ window.addEventListener('resize',()=>{
 });
 
 // Enter key handlers
-document.getElementById('adminPwInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminPw();});
+document.getElementById('adminPwInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminPw();});
 document.getElementById('viewCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkViewCode();});
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')loginWithEmail();});
 document.getElementById('regPassword').addEventListener('keydown',e=>{if(e.key==='Enter')registerWithEmail();});
@@ -5979,13 +6214,16 @@ onAuthStateChanged(auth, async user=>{
 });
 (async()=>{
   pushGuard();
-  try{
-    await getDocs(query(pbCol(),limit(1)));
-    document.getElementById('connTag').textContent='● Connected';
-    document.getElementById('connTag').style.color='var(--green)';
-  }catch(e){
-    document.getElementById('connTag').textContent='● Offline mode';
-    document.getElementById('connTag').style.color='var(--red)';
+  const syncConnectionLabel=()=>{
+    const el=document.getElementById('connTag');if(!el)return;
+    el.textContent=navigator.onLine?'● Ready':'● No network connection';
+    el.style.color=navigator.onLine?'var(--green)':'var(--red)';
+  };
+  syncConnectionLabel();
+  window.addEventListener('online',syncConnectionLabel);
+  window.addEventListener('offline',syncConnectionLabel);
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('App install support unavailable',e)));
   }
   const handled=await checkUrlCode();
   if(handled) return;
