@@ -5050,7 +5050,19 @@ function renderPrintPlayToImage(play, w=1600, h=960, fillPage=false){
   (play.data?.routes||[]).forEach(route=>{
     (route.segments||[]).forEach((seg,si)=>{
       const pts=(seg.pts||[]).map(p=>toScreen(p.x,p.y));
-      drawSegment(c,pts,seg.type,seg.color,si===route.segments.length-1,sc);
+      // White/near-white route lines disappear on the printer-friendly white field.
+      // Convert only those route colors to black for print; preserve every other route color.
+      const printRouteColor=(()=>{
+        const color=(seg.color||'').trim().toLowerCase();
+        if(color==='white'||color==='#fff'||color==='#ffffff'||color==='rgb(255,255,255)'||color==='rgba(255,255,255,1)') return '#000000';
+        const m=color.match(/^#([0-9a-f]{6})$/i);
+        if(m){
+          const n=parseInt(m[1],16), r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+          if(r>=245&&g>=245&&b>=245) return '#000000';
+        }
+        return seg.color;
+      })();
+      drawSegment(c,pts,seg.type,printRouteColor,si===route.segments.length-1,sc);
     });
   });
   drawPrintPlayersOn(c,sc,play.data?.players||[],toScreen);
