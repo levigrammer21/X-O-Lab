@@ -5177,15 +5177,23 @@ window.printPlaybook=async function(layout='two'){
     .two-play .play-title{font-size:17px;font-weight:800;margin:0 0 3px}
     .two-play .play-desc{font-size:11px;line-height:1.25;color:#555;white-space:pre-wrap;margin:0 0 5px;max-height:.58in;overflow:hidden}
     .two-play img{display:block;width:100%;min-height:0;flex:1;object-fit:contain;border:1px solid #ccc;border-radius:5px;background:#070809}
-    .one-play-grid{display:block;height:9.55in}
-    .one-play{height:100%;padding:8px 10px 10px}
-    .one-play .play-title{font-size:22px;margin-bottom:5px}
-    .one-play .play-desc{font-size:13px;line-height:1.35;max-height:.85in;margin-bottom:7px}
+    .one-play-grid{display:block;height:7.35in}
+    .one-play{height:100%;padding:0;display:flex;flex-direction:column}
+    .one-play .play-title{font-size:20px;margin:0 0 3px;line-height:1.05}
+    .one-play .play-desc{font-size:11px;line-height:1.2;max-height:.38in;margin:0 0 5px;overflow:hidden}
+    .one-play img{display:block;width:100%;min-height:0;flex:1;object-fit:fill;border:1px solid #aaa;border-radius:0;background:#fff}
     .formation-page{padding:.3in;page-break-after:always}
     .formation-page h2{font-size:28px;margin:0 0 5px;border-bottom:3px solid #f0b429;padding-bottom:6px}
     .formation-page h3{font-size:20px;margin:12px 0 6px}
     .formation-page img{width:100%;max-height:7.7in;object-fit:contain;border:1px solid #ddd;border-radius:6px;background:#070809}
-    @page{size:Letter portrait;margin:.35in}
+    @page{size:${layout==='one'?'Letter landscape':'Letter portrait'};margin:${layout==='one'?'.22in':'.35in'}}
+    ${layout==='one'?`
+    .two-page{width:10.56in;height:8.06in;padding:.08in .10in;page-break-after:always;overflow:hidden;background:#fff}
+    .two-page-head{height:.32in;margin:0 0 .05in;padding:0 0 .03in;border-bottom:1px solid #888}
+    .two-page-head h2{font-size:12px;letter-spacing:.5px}
+    .two-page-head .meta{font-size:9px}
+    .one-play-grid{height:7.50in}
+    `:''}
     @media print { .section{page-break-after:always} body{-webkit-print-color-adjust:exact;print-color-adjust:exact} }
   
 
@@ -5411,7 +5419,7 @@ window.printPlaybook=async function(layout='two'){
       for(const p of formPlays){
         let url='';
         if(p.kind==='image') url=p.url||'';
-        else if(p.data && p.data.players) url=renderPlayToImage(p,1200,720);
+        else if(p.data && p.data.players) url=layout==='one' ? renderPrintPlayToImage(p,2112,1518,true) : renderPlayToImage(p,1200,720);
         printable.push({name:p.name||'Play',description:p.description||'',url,external:p.kind==='image'});
       }
 
