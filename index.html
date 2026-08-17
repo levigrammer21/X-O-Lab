@@ -5027,14 +5027,24 @@ function drawPrintPlayersOn(c,sc,players,toScreen){
   });
 }
 
-function renderPrintPlayToImage(play, w=1600, h=960){
+function renderPrintPlayToImage(play, w=1600, h=960, fillPage=false){
   const off=document.createElement('canvas');
   off.width=w;off.height=h;
   const c=off.getContext('2d');
   const pad=20;
-  const sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
-  const ox=(w-FW*sc)/2,oy=(h-FH*sc)/2;
-  const toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  let sc, toScreen;
+  if(fillPage){
+    // Single-play printing: expand the football coordinates to the full
+    // printable landscape-page aspect ratio. Marker sizes stay uniform so
+    // players remain circles/squares rather than being distorted.
+    const sx=(w-pad*2)/FW, sy=(h-pad*2)/FH;
+    sc=Math.min(sx,sy);
+    toScreen=(fx,fy)=>({x:pad+fx*sx,y:pad+fy*sy});
+  } else {
+    sc=Math.min((w-pad*2)/FW,(h-pad*2)/FH);
+    const ox=(w-FW*sc)/2,oy=(h-FH*sc)/2;
+    toScreen=(fx,fy)=>({x:fx*sc+ox,y:fy*sc+oy});
+  }
   drawPrintFieldOn(c,off,sc,toScreen);
   drawPrintZonesOn(c,sc,play.data?.zones||[],toScreen,play.data?.players||[]);
   (play.data?.routes||[]).forEach(route=>{
@@ -5096,24 +5106,25 @@ window.printPlay=function(){
     zones:JSON.parse(JSON.stringify(eZones||[])),
     ball:JSON.parse(JSON.stringify(normalizeBallData(eBall)))
   }};
-  const url=renderPrintPlayToImage(printablePlay,1800,1080);
+  // Match the printable area of Letter landscape (10.7 x 8.2 in at .15 in margins)
+  // so the play itself fills the sheet instead of being contained inside it.
+  const url=renderPrintPlayToImage(printablePlay,2140,1640,true);
   const w=window.open('','_blank');
   if(!w){toast('Allow popups to print','err');return;}
   w.document.write(`<!DOCTYPE html><html><head><title>${esc(name)}</title><style>
     *{box-sizing:border-box}
-    @page{size:Letter landscape;margin:.35in}
-    html,body{margin:0;padding:0;background:#fff;color:#111;font-family:'Helvetica Neue',Arial,sans-serif}
+    @page{size:Letter landscape;margin:.15in}
+    html,body{width:10.7in;height:8.2in;margin:0;padding:0;background:#fff;color:#111;font-family:'Helvetica Neue',Arial,sans-serif;overflow:hidden}
     body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .page{width:100%;min-height:7.8in;display:flex;flex-direction:column}
-    h1{font-size:22px;line-height:1.1;margin:0 0 3px}
-    .meta{font-size:11px;color:#555;margin-bottom:5px}
-    .desc{font-size:12px;line-height:1.3;color:#333;white-space:pre-wrap;margin:0 0 7px;max-height:.55in;overflow:hidden}
-    img{display:block;width:100%;min-height:0;flex:1;object-fit:contain;border:1px solid #aaa;background:#fff}
+    .page{position:relative;width:10.7in;height:8.2in;margin:0;overflow:hidden;background:#fff}
+    img{position:absolute;inset:0;display:block;width:10.7in;height:8.2in;object-fit:fill;background:#fff}
+    .label{position:absolute;left:.12in;top:.10in;max-width:4.5in;padding:.06in .10in;background:rgba(255,255,255,.88);border:1px solid #aaa;color:#111}
+    h1{font-size:15px;line-height:1.05;margin:0 0 2px}
+    .meta{font-size:9px;line-height:1.1;color:#555}
+    @media print{html,body,.page{width:10.7in;height:8.2in}}
   </style></head><body><main class="page">
-    <h1>${esc(name)}</h1>
-    <div class="meta">${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</div>
-    ${description?`<div class="desc">${esc(description)}</div>`:''}
     <img src="${url}">
+    <div class="label"><h1>${esc(name)}</h1><div class="meta">${esc(currentFormation?.name||'')} · ${esc(currentPlaybook?.name||'')}</div></div>
   </main><script>window.onload=()=>window.print();<\/script></body></html>`);
   w.document.close();
 };
